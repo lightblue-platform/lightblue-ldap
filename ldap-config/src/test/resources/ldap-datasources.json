@@ -1,0 +1,17 @@
+{
+    "ldap": {
+        "type" : "com.redhat.lightblue.config.ldap.LdapDataSourceConfiguration",
+        "database" : "name of ldap server",
+
+        "bindableDn" : "uid=admin,dc=example,dc=com",
+        "password" : "cred",
+        "numberOfInitialConnections" : 5,
+        "maxNumberOfConnections" : 10,
+        "servers" : [
+            {
+                "host" : "localhost",
+                "port" : "38900"
+            }
+        ]
+    }
+}
