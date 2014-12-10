@@ -4,7 +4,7 @@
         "database" : "name of ldap server",
 
         "bindableDn" : "uid=admin,dc=example,dc=com",
-        "password" : "cred",
+        "password" : "password",
         "numberOfInitialConnections" : 5,
         "maxNumberOfConnections" : 10,
         "servers" : [

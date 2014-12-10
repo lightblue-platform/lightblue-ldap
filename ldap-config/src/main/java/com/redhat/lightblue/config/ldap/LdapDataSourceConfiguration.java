@@ -34,6 +34,7 @@ public class LdapDataSourceConfiguration implements DataSourceConfiguration{
         return databaseName;
     }
 
+    @SuppressWarnings("rawtypes")
     public Class<LdapDataStoreParser> getMetadataDataStoreParser() {
         return LdapDataStoreParser.class;
     }
