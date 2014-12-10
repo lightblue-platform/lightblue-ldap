@@ -29,7 +29,7 @@
     </parent>
      
     <groupId>com.redhat.lightblue.ldap</groupId>
-    <artifactId>ldap-pom</artifactId>
+    <artifactId>lightblue-ldap-pom</artifactId>
     <name>lightblue-ldap: ${project.groupId}|${project.artifactId}</name>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -39,11 +39,11 @@
     </properties>
     
     <modules>
-        <module>ldap-test</module>
-        <module>ldap-config</module>
-        <module>ldap-crud</module>
-        <module>ldap-metadata</module>
-        <module>ldap-hystrix</module>
+        <module>lightblue-ldap-test</module>
+        <module>lightblue-ldap-config</module>
+        <module>lightblue-ldap-crud</module>
+        <module>lightblue-ldap-metadata</module>
+        <module>lightblue-ldap-hystrix</module>
     </modules>
     
     <dependencies>
@@ -63,14 +63,10 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.7</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
     
@@ -96,27 +92,27 @@
             <!-- Lightblue Ldap -->
             <dependency>
                 <groupId>com.redhat.lightblue.ldap</groupId>
-                <artifactId>ldap-config</artifactId>
+                <artifactId>lightblue-ldap-config</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.redhat.lightblue.ldap</groupId>
-                <artifactId>ldap-crud</artifactId>
+                <artifactId>lightblue-ldap-crud</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.redhat.lightblue.ldap</groupId>
-                <artifactId>ldap-metadata</artifactId>
+                <artifactId>lightblue-ldap-metadata</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.redhat.lightblue.ldap</groupId>
-                <artifactId>ldap-hystrix</artifactId>
+                <artifactId>lightblue-ldap-hystrix</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.redhat.lightblue.ldap</groupId>
-                <artifactId>ldap-test</artifactId>
+                <artifactId>lightblue-ldap-test</artifactId>
                 <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -131,6 +127,20 @@
                 <groupId>com.netflix.hystrix</groupId>
                 <artifactId>hystrix-core</artifactId>
                 <version>1.3.16</version>
+            </dependency>
+            
+            <!-- Test -->
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.11</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-simple</artifactId>
+                <version>1.7.7</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
