@@ -27,7 +27,8 @@ import com.redhat.lightblue.crud.ldap.LdapCRUDController;
 public class LdapControllerFactory implements ControllerFactory{
 
     public CRUDController createController(ControllerConfiguration cfg, DataSourcesConfiguration ds) {
-        return new LdapCRUDController();
+        return new LdapCRUDController(
+                new LdapDBResolver(ds.getDataSourcesByType(LdapDataSourceConfiguration.class)));
     }
 
 }

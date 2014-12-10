@@ -40,6 +40,7 @@
     
     <modules>
         <module>lightblue-ldap-test</module>
+        <module>lightblue-ldap-common</module>
         <module>lightblue-ldap-config</module>
         <module>lightblue-ldap-crud</module>
         <module>lightblue-ldap-metadata</module>
@@ -94,6 +95,11 @@
             </dependency>
             
             <!-- Lightblue Ldap -->
+            <dependency>
+                <groupId>com.redhat.lightblue.ldap</groupId>
+                <artifactId>lightblue-ldap-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.redhat.lightblue.ldap</groupId>
                 <artifactId>lightblue-ldap-config</artifactId>

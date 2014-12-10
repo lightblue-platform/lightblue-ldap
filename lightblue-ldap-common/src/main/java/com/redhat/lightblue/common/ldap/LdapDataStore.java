@@ -1,0 +1,86 @@
+/*
+ Copyright 2014 Red Hat, Inc. and/or its affiliates.
+
+ This file is part of lightblue.
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package com.redhat.lightblue.common.ldap;
+
+import com.redhat.lightblue.metadata.DataStore;
+
+public class LdapDataStore implements DataStore {
+
+    private static final long serialVersionUID = 7599798419158041647L;
+
+    public static final String BACKEND = "ldap";
+
+    private String database;
+
+    public String getBackend() {
+        return BACKEND;
+    }
+
+    public String getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(String database) {
+        this.database = database;
+    }
+
+    public LdapDataStore(){}
+
+    public LdapDataStore(String database){
+        this.database = database;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result
+                + ((database == null) ? 0 : database.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        LdapDataStore other = (LdapDataStore) obj;
+        if (database == null) {
+            if (other.database != null) {
+                return false;
+            }
+        }
+        else if (!database.equals(other.database)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "LdapDataStore [database=" + database + "]";
+    }
+
+}

@@ -21,24 +21,25 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   
     <modelVersion>4.0.0</modelVersion>
-    
+  
     <parent>
         <groupId>com.redhat.lightblue.ldap</groupId>
         <artifactId>lightblue-ldap-pom</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-    </parent>
-    
-    <artifactId>lightblue-ldap-crud</artifactId>
-    
-    <dependencies>
-        <dependency>
-            <groupId>com.redhat.lightblue</groupId>
-            <artifactId>crud</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.redhat.lightblue.ldap</groupId>
-            <artifactId>lightblue-ldap-common</artifactId>
-        </dependency>
-    </dependencies>
+      </parent>
+      
+      <artifactId>lightblue-ldap-common</artifactId>
   
+      <dependencies>
+          <dependency>
+              <groupId>com.redhat.lightblue</groupId>
+              <artifactId>metadata</artifactId>
+          </dependency>
+          
+          <dependency>
+              <groupId>com.unboundid</groupId>
+              <artifactId>unboundid-ldapsdk</artifactId>
+          </dependency>
+      </dependencies>
+      
 </project>

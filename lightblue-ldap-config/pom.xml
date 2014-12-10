@@ -44,16 +44,16 @@
             <artifactId>lightblue-ldap-metadata</artifactId>
         </dependency>
         
-         <dependency>
-             <groupId>com.unboundid</groupId>
-             <artifactId>unboundid-ldapsdk</artifactId>
-         </dependency>
-         
-         <dependency>
-             <groupId>com.redhat.lightblue.ldap</groupId>
-             <artifactId>lightblue-ldap-test</artifactId>
-             <scope>test</scope>
+        <dependency>
+            <groupId>com.unboundid</groupId>
+            <artifactId>unboundid-ldapsdk</artifactId>
         </dependency>
+        
+        <dependency>
+            <groupId>com.redhat.lightblue.ldap</groupId>
+            <artifactId>lightblue-ldap-test</artifactId>
+            <scope>test</scope>
+       </dependency>
     </dependencies>
     
 </project>

@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource.InMemoryLdapServer;
 import com.unboundid.ldap.sdk.Attribute;
+import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldif.LDIFException;
 
@@ -62,7 +63,15 @@ public class LdapDataSourceConfigurationTest {
         LdapDataSourceConfiguration configuration = new LdapDataSourceConfiguration();
         configuration.initializeFromJson(ldapDatasourcesNode.get("ldap"));
 
-        assertNotNull(configuration.getLdapConnection());
+        LDAPConnection conn = configuration.getLdapConnection();
+        assertNotNull(conn);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testInitializeFromJson_NullNode() throws IOException, LDAPException, LDIFException{
+        LdapDataSourceConfiguration configuration = new LdapDataSourceConfiguration();
+        configuration.initializeFromJson(null);
+        configuration.getLdapConnection();
     }
 
     @Test(expected = IllegalStateException.class)

@@ -18,6 +18,7 @@
  */
 package com.redhat.lightblue.crud.ldap;
 
+import com.redhat.lightblue.common.ldap.DBResolver;
 import com.redhat.lightblue.crud.CRUDController;
 import com.redhat.lightblue.crud.CRUDDeleteResponse;
 import com.redhat.lightblue.crud.CRUDFindResponse;
@@ -33,6 +34,12 @@ import com.redhat.lightblue.query.UpdateExpression;
 import com.redhat.lightblue.util.JsonDoc;
 
 public class LdapCRUDController implements CRUDController{
+
+    private final DBResolver dbResolver;
+
+    public LdapCRUDController(DBResolver dbResolver){
+        this.dbResolver = dbResolver;
+    }
 
     public CRUDInsertionResponse insert(CRUDOperationContext ctx,
             Projection projection) {
@@ -66,14 +73,14 @@ public class LdapCRUDController implements CRUDController{
         return null;
     }
 
-    public MetadataListener getMetadataListener() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
     public void updatePredefinedFields(CRUDOperationContext ctx, JsonDoc doc) {
         // TODO Auto-generated method stub
 
+    }
+
+    public MetadataListener getMetadataListener() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

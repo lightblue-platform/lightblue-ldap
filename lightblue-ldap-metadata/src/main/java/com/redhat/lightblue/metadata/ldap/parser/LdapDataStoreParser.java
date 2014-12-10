@@ -18,9 +18,9 @@
  */
 package com.redhat.lightblue.metadata.ldap.parser;
 
+import com.redhat.lightblue.common.ldap.LdapDataStore;
 import com.redhat.lightblue.metadata.DataStore;
 import com.redhat.lightblue.metadata.MetadataConstants;
-import com.redhat.lightblue.metadata.ldap.LdapDataStore;
 import com.redhat.lightblue.metadata.parser.DataStoreParser;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.util.Error;
