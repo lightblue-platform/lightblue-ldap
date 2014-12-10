@@ -20,6 +20,7 @@ package com.redhat.lightblue.ldap.test;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -46,6 +47,7 @@ public class LdapServerExternalResource extends ExternalResource {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD, ElementType.TYPE})
+    @Inherited
     @Documented
     public @interface InMemoryLdapServer {
         String[] baseDns() default {DEFAULT_BASE_DN};
@@ -77,11 +79,11 @@ public class LdapServerExternalResource extends ExternalResource {
     @Override
     public Statement apply(Statement base, Description description){
         imlsAnnotation = description.getAnnotation(InMemoryLdapServer.class);
-        if(description.isTest() && imlsAnnotation == null){
+        if((imlsAnnotation == null) && description.isTest()){
             imlsAnnotation = description.getTestClass().getAnnotation(InMemoryLdapServer.class);
         }
 
-        if(imlsAnnotation ==  null){
+        if(imlsAnnotation == null){
             throw new IllegalStateException("@InMemoryLdapServer must be set on suite or test level.");
         }
 
