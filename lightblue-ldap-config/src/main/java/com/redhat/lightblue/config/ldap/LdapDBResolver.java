@@ -4,6 +4,7 @@ import java.util.Map;
 
 import com.redhat.lightblue.common.ldap.DBResolver;
 import com.redhat.lightblue.common.ldap.LdapDataStore;
+import com.redhat.lightblue.metadata.DataStore;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 
@@ -15,8 +16,12 @@ public class LdapDBResolver implements DBResolver{
         this.ldapDataSources = ldapDataSources;
     }
 
-    public LDAPConnection get(LdapDataStore store) throws LDAPException {
-        return get(store.getDatabase());
+    public LDAPConnection get(DataStore store) throws LDAPException {
+        if(!(store instanceof LdapDataStore)){
+            throw new IllegalArgumentException("DataStore of type " + store.getClass() + " is not supported.");
+        }
+
+        return get(((LdapDataStore)store).getDatabase());
     }
 
     public LDAPConnection get(String database) throws LDAPException{

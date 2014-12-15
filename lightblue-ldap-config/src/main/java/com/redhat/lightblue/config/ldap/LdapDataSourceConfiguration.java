@@ -42,6 +42,14 @@ public class LdapDataSourceConfiguration implements DataSourceConfiguration{
     private static final long serialVersionUID = 3276072662352275664L;
     private static final Logger LOGGER = LoggerFactory.getLogger(LdapDataSourceConfiguration.class);
 
+    private static final String LDAP_CONFIG_DATABASE = "database";
+    private static final String LDAP_CONFIG_BINDABLE_DB = "bindableDn";
+    private static final String LDAP_CONFIG_PASSWORD = "password";
+    private static final String LDAP_CONFIG_NUMBER_OF_INITIAL_CONNECTIONS = "numberOfInitialConnections";
+    private static final String LDAP_CONFIG_MAX_NUMBER_OF_CONNECTIONS = "maxNumberOfConnections";
+    private static final String LDAP_SERVER_CONFIG_HOST = "host";
+    private static final String LDAP_SERVER_CONFIG_PORT = "port";
+
     private static final int DEFAULT_NUMBER_OF_INITIAL_CONNECTIONS = 5;
     private static final int DEFAULT_MAX_NUMBER_OF_CONNECTIONS = 10;
 
@@ -63,21 +71,21 @@ public class LdapDataSourceConfiguration implements DataSourceConfiguration{
             return;
         }
 
-        databaseName = parseJsonNode(node, "database", true).asText();
+        databaseName = parseJsonNode(node, LDAP_CONFIG_DATABASE, true).asText();
 
         //TODO Add functionality for other BindRequest Types
         BindRequest bindRequest = new SimpleBindRequest(
-                parseJsonNode(node, "bindableDn", true).asText(),
-                parseJsonNode(node, "password", true).asText());
+                parseJsonNode(node, LDAP_CONFIG_BINDABLE_DB, true).asText(),
+                parseJsonNode(node, LDAP_CONFIG_PASSWORD, true).asText());
 
         int initialConnections = DEFAULT_NUMBER_OF_INITIAL_CONNECTIONS;
-        JsonNode initialConnectionsNode = parseJsonNode(node, "numberOfInitialConnections", false);
+        JsonNode initialConnectionsNode = parseJsonNode(node, LDAP_CONFIG_NUMBER_OF_INITIAL_CONNECTIONS, false);
         if(initialConnectionsNode != null){
             initialConnections = initialConnectionsNode.asInt(DEFAULT_NUMBER_OF_INITIAL_CONNECTIONS);
         }
 
         int maxConnections = DEFAULT_MAX_NUMBER_OF_CONNECTIONS;
-        JsonNode maxConnectionsNode = parseJsonNode(node, "maxNumberOfConnections", false);
+        JsonNode maxConnectionsNode = parseJsonNode(node, LDAP_CONFIG_MAX_NUMBER_OF_CONNECTIONS, false);
         if(maxConnectionsNode != null){
             maxConnections = maxConnectionsNode.asInt(DEFAULT_MAX_NUMBER_OF_CONNECTIONS);
         }
@@ -89,8 +97,8 @@ public class LdapDataSourceConfiguration implements DataSourceConfiguration{
             while(serversIterator.hasNext()){
                 JsonNode serverNode = serversIterator.next();
                 hostPortMap.put(
-                        parseJsonNode(serverNode, "host", true).asText(),
-                        parseJsonNode(serverNode, "port", true).asInt());
+                        parseJsonNode(serverNode, LDAP_SERVER_CONFIG_HOST, true).asText(),
+                        parseJsonNode(serverNode, LDAP_SERVER_CONFIG_PORT, true).asInt());
             }
         }
         else{

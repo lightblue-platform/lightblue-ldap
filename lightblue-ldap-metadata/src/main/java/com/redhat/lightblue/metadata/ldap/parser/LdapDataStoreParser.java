@@ -27,10 +27,8 @@ import com.redhat.lightblue.util.Error;
 
 public class LdapDataStoreParser<T> implements DataStoreParser<T> {
 
-    public static final String NAME = "ldap";
-
     public DataStore parse(String name, MetadataParser<T> p, T node) {
-        if (!NAME.equals(name)) {
+        if (!LdapDataStore.BACKEND.equals(name)) {
             throw Error.get(MetadataConstants.ERR_ILL_FORMED_METADATA, name);
         }
 
@@ -39,13 +37,17 @@ public class LdapDataStoreParser<T> implements DataStoreParser<T> {
         return dataStore;
     }
 
-    public void convert(MetadataParser<T> p, T emptyNode, DataStore object) {
-        // TODO Auto-generated method stub
+    public void convert(MetadataParser<T> p, T emptyNode, DataStore store) {
+        if(!(store instanceof LdapDataStore)){
+            throw new IllegalArgumentException("DataStore of type " + store.getClass() + " is not supported.");
+        }
 
+        LdapDataStore ds = (LdapDataStore) store;
+        p.putString(emptyNode, "database", ds.getDatabase());
     }
 
     public String getDefaultName() {
-        return NAME;
+        return LdapDataStore.BACKEND;
     }
 
 }

@@ -35,10 +35,21 @@
             <groupId>com.redhat.lightblue</groupId>
             <artifactId>metadata</artifactId>
         </dependency>
+        
         <dependency>
             <groupId>com.redhat.lightblue.ldap</groupId>
             <artifactId>lightblue-ldap-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.redhat.lightblue.ldap</groupId>
+            <artifactId>lightblue-ldap-hystrix</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.redhat.lightblue.ldap</groupId>
+            <artifactId>lightblue-ldap-test</artifactId>
+            <scope>test</scope>
+       </dependency>
     </dependencies>
 
 </project>

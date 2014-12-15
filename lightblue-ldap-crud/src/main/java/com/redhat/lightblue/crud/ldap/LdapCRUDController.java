@@ -18,6 +18,11 @@
  */
 package com.redhat.lightblue.crud.ldap;
 
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.redhat.lightblue.common.ldap.DBResolver;
 import com.redhat.lightblue.crud.CRUDController;
 import com.redhat.lightblue.crud.CRUDDeleteResponse;
@@ -26,14 +31,26 @@ import com.redhat.lightblue.crud.CRUDInsertionResponse;
 import com.redhat.lightblue.crud.CRUDOperationContext;
 import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
+import com.redhat.lightblue.crud.DocCtx;
+import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
+import com.redhat.lightblue.eval.Projector;
+import com.redhat.lightblue.hystrix.ldap.InsertCommand;
+import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.MetadataListener;
 import com.redhat.lightblue.query.Projection;
 import com.redhat.lightblue.query.QueryExpression;
 import com.redhat.lightblue.query.Sort;
 import com.redhat.lightblue.query.UpdateExpression;
 import com.redhat.lightblue.util.JsonDoc;
+import com.unboundid.ldap.sdk.Entry;
+import com.unboundid.ldap.sdk.LDAPConnection;
+import com.unboundid.ldap.sdk.LDAPException;
+import com.unboundid.ldap.sdk.LDAPResult;
+import com.unboundid.ldap.sdk.ResultCode;
 
 public class LdapCRUDController implements CRUDController{
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(LdapCRUDController.class);
 
     private final DBResolver dbResolver;
 
@@ -43,8 +60,46 @@ public class LdapCRUDController implements CRUDController{
 
     public CRUDInsertionResponse insert(CRUDOperationContext ctx,
             Projection projection) {
-        // TODO Auto-generated method stub
-        return null;
+        CRUDInsertionResponse response = new CRUDInsertionResponse();
+        List<DocCtx> documents = ctx.getDocumentsWithoutErrors();
+        if (documents == null || documents.isEmpty()) {
+            response.setNumInserted(0);
+            return response;
+        }
+
+        EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
+
+        FieldAccessRoleEvaluator roleEval = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
+        Projection combinedProjection = Projection.add(
+                projection,
+                roleEval.getExcludedFields(FieldAccessRoleEvaluator.Operation.insert));
+
+        Projector projector = null;
+        if(combinedProjection != null){
+            projector = Projector.getInstance(combinedProjection, md);
+        }
+
+        try {
+            LDAPConnection connection = dbResolver.get(md.getDataStore());
+
+            for(DocCtx document : documents){
+                Entry entry = new Entry(""); //TODO populate Entry
+
+                InsertCommand command = new InsertCommand(connection, entry);
+
+                LDAPResult result = command.execute();
+                if(result.getResultCode() != ResultCode.SUCCESS){
+                    //TODO: Do something to indicate unsuccessful status
+                }
+
+            }
+        }
+        catch (LDAPException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return response;
     }
 
     public CRUDSaveResponse save(CRUDOperationContext ctx, boolean upsert,
@@ -75,11 +130,9 @@ public class LdapCRUDController implements CRUDController{
 
     public void updatePredefinedFields(CRUDOperationContext ctx, JsonDoc doc) {
         // TODO Auto-generated method stub
-
     }
 
     public MetadataListener getMetadataListener() {
-        // TODO Auto-generated method stub
         return null;
     }
 
