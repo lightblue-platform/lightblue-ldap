@@ -23,6 +23,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.redhat.lightblue.common.ldap.DBResolver;
 import com.redhat.lightblue.crud.CRUDController;
 import com.redhat.lightblue.crud.CRUDDeleteResponse;
@@ -61,9 +62,10 @@ public class LdapCRUDController implements CRUDController{
     public CRUDInsertionResponse insert(CRUDOperationContext ctx,
             Projection projection) {
         CRUDInsertionResponse response = new CRUDInsertionResponse();
+        response.setNumInserted(0);
+
         List<DocCtx> documents = ctx.getDocumentsWithoutErrors();
         if (documents == null || documents.isEmpty()) {
-            response.setNumInserted(0);
             return response;
         }
 
@@ -90,8 +92,18 @@ public class LdapCRUDController implements CRUDController{
                 LDAPResult result = command.execute();
                 if(result.getResultCode() != ResultCode.SUCCESS){
                     //TODO: Do something to indicate unsuccessful status
+                    continue;
                 }
 
+                if(projector != null){
+                    JsonDoc jsonDoc = null; //TODO: actually populate field.
+                    document.setOutputDocument(projector.project(jsonDoc, ctx.getFactory().getNodeFactory()));
+                }
+                else{
+                    document.setOutputDocument(new JsonDoc(new ObjectNode(ctx.getFactory().getNodeFactory())));
+                }
+
+                response.setNumInserted(response.getNumInserted() + 1);
             }
         }
         catch (LDAPException e) {

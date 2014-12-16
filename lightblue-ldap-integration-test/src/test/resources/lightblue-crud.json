@@ -1,0 +1,8 @@
+{
+   "controllers" : [
+      {
+        "backend" : "ldap",
+        "controllerFactory" : "com.redhat.lightblue.config.ldap.LdapControllerFactory"
+      }
+   ]
+}

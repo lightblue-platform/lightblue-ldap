@@ -45,6 +45,25 @@ public class LdapServerExternalResource extends ExternalResource {
     public static final String DEFAULT_PASSWORD = "password";
     public static final int DEFAULT_PORT = 38900;
 
+    /**
+     * Creates a simple instance of {@link LdapServerExternalResource} with
+     * "dc=example,dc=com" already existing.
+     * @return simple instance of {@link LdapServerExternalResource}.
+     */
+    @SuppressWarnings("serial")
+    public static LdapServerExternalResource createDefaultInstance(){
+        return new LdapServerExternalResource(new LinkedHashMap<String, Attribute[]>(){{
+            put("dc=com", new Attribute[]{
+                    new Attribute("objectClass", "top"),
+                    new Attribute("objectClass", "domain"),
+                    new Attribute("dc", "com")});
+            put("dc=example,dc=com", new Attribute[]{
+                    new Attribute("objectClass", "top"),
+                    new Attribute("objectClass", "domain"),
+                    new Attribute("dc", "example")});
+        }});
+    }
+
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD, ElementType.TYPE})
     @Inherited

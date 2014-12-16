@@ -45,6 +45,7 @@
         <module>lightblue-ldap-crud</module>
         <module>lightblue-ldap-metadata</module>
         <module>lightblue-ldap-hystrix</module>
+        <module>lightblue-ldap-integration-test</module>
     </modules>
     
     <dependencies>

@@ -1,0 +1,22 @@
+{
+        "objectType": "some_entity",
+        "client": {"id": "1"},
+        "execution": {
+            "timeLimit": 5000,
+            "asynchronous": 4500
+        },
+        "projection": {
+            "field": "uid",
+            "include": true,
+            "recursive": true
+        },
+        "data": {
+            "objectType": "some_entity",
+            "dn": "uid=john.doe,dc=example,dc=com",
+            "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
+            "uid": "john.doe",
+            "givenName": "John",
+            "sn": "Doe",
+            "cn": "John Doe"
+        }
+}

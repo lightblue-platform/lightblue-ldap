@@ -1,0 +1,27 @@
+{
+    "entityInfo": {
+        "name": "test",
+        "datastore": {
+            "backend":"ldap",
+            "database": "test"
+        }
+    },
+    "schema": {
+        "name": "test",
+        "version": {
+            "value": "1.0",
+            "changelog": "blahblah"
+        },
+        "status": {
+            "value": "active"
+        },
+        "access" : {
+             "insert" : ["test-insert"],
+             "update" : ["test-update"],
+             "delete" : ["test-delete"],
+             "find" : ["test-find"]
+        },
+        "fields": {
+        }
+    }
+}
