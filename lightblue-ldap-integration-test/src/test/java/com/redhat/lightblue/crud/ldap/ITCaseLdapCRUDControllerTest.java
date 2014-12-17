@@ -32,13 +32,19 @@ import com.redhat.lightblue.config.LightblueFactory;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource.InMemoryLdapServer;
 import com.redhat.lightblue.mediator.Mediator;
+import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
+import com.redhat.lightblue.mongo.test.MongoServerExternalResource.InMemoryMongoServer;
 import com.redhat.lightblue.util.test.AbstractJsonNodeTest;
 
 @InMemoryLdapServer
+@InMemoryMongoServer
 public class ITCaseLdapCRUDControllerTest{
 
     @Rule
     public LdapServerExternalResource ldapServer = LdapServerExternalResource.createDefaultInstance();
+
+    @Rule
+    public MongoServerExternalResource mongoServer = new MongoServerExternalResource();
 
     @Before
     public void before() throws IOException, ClassNotFoundException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, InstantiationException{
