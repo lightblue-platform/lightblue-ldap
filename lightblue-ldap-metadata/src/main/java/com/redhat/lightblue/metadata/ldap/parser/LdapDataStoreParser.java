@@ -33,6 +33,7 @@ public class LdapDataStoreParser<T> implements DataStoreParser<T> {
         }
 
         LdapDataStore dataStore = new LdapDataStore();
+        dataStore.setDatabase(p.getRequiredStringProperty(node, "database"));
 
         return dataStore;
     }

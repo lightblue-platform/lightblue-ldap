@@ -18,7 +18,7 @@
  */
 package com.redhat.lightblue.config.ldap;
 
-import java.util.Map;
+import java.util.Set;
 
 import com.redhat.lightblue.common.ldap.DBResolver;
 import com.redhat.lightblue.common.ldap.LdapDataStore;
@@ -28,9 +28,9 @@ import com.unboundid.ldap.sdk.LDAPException;
 
 public class LdapDBResolver implements DBResolver{
 
-    private final Map<String, LdapDataSourceConfiguration> ldapDataSources;
+    private final Set<LdapDataSourceConfiguration> ldapDataSources;
 
-    public LdapDBResolver(Map<String, LdapDataSourceConfiguration> ldapDataSources){
+    public LdapDBResolver(Set<LdapDataSourceConfiguration> ldapDataSources){
         this.ldapDataSources = ldapDataSources;
     }
 
@@ -43,11 +43,24 @@ public class LdapDBResolver implements DBResolver{
     }
 
     public LDAPConnection get(String database) throws LDAPException{
-        LdapDataSourceConfiguration cnf = ldapDataSources.get(database);
+        LdapDataSourceConfiguration cnf = findByDatabase(database);
         if(cnf == null){
             throw new IllegalArgumentException("No database for " + database);
         }
         return cnf.getLdapConnection();
+    }
+
+    private LdapDataSourceConfiguration findByDatabase(String database){
+        if(database == null){
+            return null;
+        }
+
+        for(LdapDataSourceConfiguration cnf : ldapDataSources){
+            if(database.equals(cnf.getDatabaseName())){
+                return cnf;
+            }
+        }
+        return null;
     }
 
 }

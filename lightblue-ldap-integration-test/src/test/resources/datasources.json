@@ -1,7 +1,7 @@
 {
     "ldap": {
         "type" : "com.redhat.lightblue.config.ldap.LdapDataSourceConfiguration",
-        "database" : "name of ldap server",
+        "database" : "${ldap.database}",
 
         "bindableDn" : "uid=admin,dc=example,dc=com",
         "password" : "password",
@@ -18,11 +18,11 @@
         "type" : "com.redhat.lightblue.mongo.config.MongoConfiguration",
          "metadataBackendParser" : "com.redhat.lightblue.metadata.mongo.MongoBackendParser",
         "ssl" : false,
-        "database" : "mongo",
+        "database" : "${mongo.database}",
         "servers" : [
             {
-                "host" : "${mongodb.host}",
-                "port" : "${mongodb.port}"
+                "host" : "${mongo.host}",
+                "port" : "${mongo.port}"
             }
         ]
    }

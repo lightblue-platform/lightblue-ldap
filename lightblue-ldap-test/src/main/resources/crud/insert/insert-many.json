@@ -1,0 +1,25 @@
+{
+        "entity": "person",
+        "entityVersion": "1.0.0",
+        "projection": {
+            "field": "uid"
+        },
+        "data": [
+            {
+                "dn": "uid=john.doe,dc=example,dc=com",
+                "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
+                "uid": "john.doe",
+                "givenName": "John",
+                "sn": "Doe",
+                "cn": "John Doe"
+            },
+            {
+                "dn": "uid=jane.doe,dc=example,dc=com",
+                "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
+                "uid": "jane.doe",
+                "givenName": "Jane",
+                "sn": "Doe",
+                "cn": "Jane Doe"
+            }
+        ]
+}

@@ -18,7 +18,7 @@
  */
 package com.redhat.lightblue.config.ldap;
 
-import java.util.HashMap;
+import java.util.HashSet;
 
 import org.junit.Test;
 
@@ -28,7 +28,7 @@ public class LdapDBResolverTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testGet_UnknownDatabase() throws LDAPException{
-        LdapDBResolver resolver = new LdapDBResolver(new HashMap<String, LdapDataSourceConfiguration>());
+        LdapDBResolver resolver = new LdapDBResolver(new HashSet<LdapDataSourceConfiguration>());
         resolver.get("Does Not Exist");
     }
 

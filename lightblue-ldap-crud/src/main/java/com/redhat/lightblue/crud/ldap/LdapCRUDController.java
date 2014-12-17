@@ -18,12 +18,15 @@
  */
 package com.redhat.lightblue.crud.ldap;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.common.ldap.DBResolver;
 import com.redhat.lightblue.crud.CRUDController;
 import com.redhat.lightblue.crud.CRUDDeleteResponse;
@@ -34,7 +37,6 @@ import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.DocCtx;
 import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
-import com.redhat.lightblue.eval.Projector;
 import com.redhat.lightblue.hystrix.ldap.InsertCommand;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.MetadataListener;
@@ -43,6 +45,7 @@ import com.redhat.lightblue.query.QueryExpression;
 import com.redhat.lightblue.query.Sort;
 import com.redhat.lightblue.query.UpdateExpression;
 import com.redhat.lightblue.util.JsonDoc;
+import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldap.sdk.Entry;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
@@ -52,6 +55,8 @@ import com.unboundid.ldap.sdk.ResultCode;
 public class LdapCRUDController implements CRUDController{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LdapCRUDController.class);
+
+    private static final String DN = "dn";
 
     private final DBResolver dbResolver;
 
@@ -76,16 +81,44 @@ public class LdapCRUDController implements CRUDController{
                 projection,
                 roleEval.getExcludedFields(FieldAccessRoleEvaluator.Operation.insert));
 
-        Projector projector = null;
+        //TODO Revisit Projection
+        /*        Projector projector = null;
         if(combinedProjection != null){
             projector = Projector.getInstance(combinedProjection, md);
-        }
+        }*/
 
         try {
             LDAPConnection connection = dbResolver.get(md.getDataStore());
 
             for(DocCtx document : documents){
-                Entry entry = new Entry(""); //TODO populate Entry
+                //document.setOriginalDocument(document);
+                JsonNode rootNode = document.getRoot();
+                JsonNode dnNode = rootNode.get(DN);
+                if(dnNode == null){
+                    throw new IllegalArgumentException("dn is a required field");
+                }
+
+                Entry entry = new Entry(dnNode.asText());
+
+                Iterator<Map.Entry<String, JsonNode>> nodeIterator = rootNode.fields();
+                while(nodeIterator.hasNext()){
+                    Map.Entry<String, JsonNode> node = nodeIterator.next();
+                    if(DN.equalsIgnoreCase(node.getKey())){
+                        continue;
+                    }
+
+                    JsonNode valueNode = node.getValue();
+                    if(valueNode.isArray()){
+                        List<String> values = new ArrayList<String>();
+                        for(JsonNode string : valueNode){
+                            values.add(string.asText());
+                        }
+                        entry.addAttribute(new Attribute(node.getKey(), values));
+                    }
+                    else{
+                        entry.addAttribute(new Attribute(node.getKey(), node.getValue().asText()));
+                    }
+                }
 
                 InsertCommand command = new InsertCommand(connection, entry);
 
@@ -95,13 +128,13 @@ public class LdapCRUDController implements CRUDController{
                     continue;
                 }
 
-                if(projector != null){
+                /*if(projector != null){
                     JsonDoc jsonDoc = null; //TODO: actually populate field.
                     document.setOutputDocument(projector.project(jsonDoc, ctx.getFactory().getNodeFactory()));
                 }
-                else{
-                    document.setOutputDocument(new JsonDoc(new ObjectNode(ctx.getFactory().getNodeFactory())));
-                }
+                else{*/
+                //document.setOutputDocument(new JsonDoc(new ObjectNode(ctx.getFactory().getNodeFactory())));
+                //}
 
                 response.setNumInserted(response.getNumInserted() + 1);
             }

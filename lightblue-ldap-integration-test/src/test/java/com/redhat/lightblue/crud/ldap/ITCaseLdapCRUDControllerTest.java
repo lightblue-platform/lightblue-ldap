@@ -18,15 +18,18 @@
  */
 package com.redhat.lightblue.crud.ldap;
 
+import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
 import java.io.IOException;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ErrorCollector;
 
 import com.redhat.lightblue.DataError;
 import com.redhat.lightblue.Response;
@@ -36,11 +39,12 @@ import com.redhat.lightblue.config.LightblueFactory;
 import com.redhat.lightblue.crud.InsertionRequest;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource.InMemoryLdapServer;
+import com.redhat.lightblue.mediator.Mediator;
+import com.redhat.lightblue.metadata.EntityMetadata;
+import com.redhat.lightblue.metadata.Metadata;
 import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
 import com.redhat.lightblue.mongo.test.MongoServerExternalResource.InMemoryMongoServer;
 import com.redhat.lightblue.util.Error;
-import com.redhat.lightblue.util.JsonUtils;
-import com.redhat.lightblue.util.test.AbstractJsonNodeTest;
 
 @InMemoryLdapServer
 @InMemoryMongoServer
@@ -52,18 +56,23 @@ public class ITCaseLdapCRUDControllerTest{
     @ClassRule
     public static MongoServerExternalResource mongoServer = new MongoServerExternalResource();
 
+    @Rule
+    public ErrorCollector collector = new ErrorCollector();
+
     public static LightblueFactory lightblueFactory;
 
     @BeforeClass
     public static void beforeClass() throws IOException {
         System.setProperty("ldap.host", "localhost");
         System.setProperty("ldap.port", String.valueOf(LdapServerExternalResource.DEFAULT_PORT));
+        System.setProperty("ldap.database", "test");
 
         System.setProperty("mongo.host", "localhost");
         System.setProperty("mongo.port", String.valueOf(MongoServerExternalResource.DEFAULT_PORT));
-        
+        System.setProperty("mongo.database", "lightblue");
+
         lightblueFactory = new LightblueFactory(
-                new DataSourcesConfiguration(AbstractJsonNodeTest.loadJsonNode("./datasources.json")));
+                new DataSourcesConfiguration(loadJsonNode("./datasources.json")));
     }
 
     @AfterClass
@@ -74,35 +83,32 @@ public class ITCaseLdapCRUDControllerTest{
     @Test
     public void testInsert() throws Exception{
         JsonTranslator tx = lightblueFactory.getJsonTranslator();
-        InsertionRequest insertIequest = tx.parse(InsertionRequest.class, JsonUtils.json("{}"));
-        Response response = lightblueFactory.getMediator().insert(insertIequest);
+
+        Metadata metadata = lightblueFactory.getMetadata();
+        metadata.createNewMetadata(tx.parse(EntityMetadata.class, loadJsonNode("./metadata/ldap-person-metadata.json")));
+
+        InsertionRequest insertIequest = tx.parse(InsertionRequest.class, loadJsonNode("./crud/insert/insert-single.json"));
+
+        Mediator mediator = lightblueFactory.getMediator();
+        Response response = mediator.insert(insertIequest);
 
         assertNotNull(response);
-        //assertNoErrors(response);
+        assertNoErrors(response);
+        assertEquals(1, response.getModifiedCount());
     }
 
     private void assertNoErrors(Response response){
-        if(response.getErrors().isEmpty() && response.getDataErrors().isEmpty()){
-            return;
+        for(Error error : response.getErrors()){
+            Exception e = new Exception(error.getMessage(), error);
+            e.printStackTrace();
+            collector.addError(e);
         }
 
-        StringBuilder builder = new StringBuilder();
-
-        if(!response.getErrors().isEmpty()){
-            builder.append("Response has Errors: \n");
-            for(Error error : response.getErrors()){
-                builder.append(error.toJson()+ "\n");
-            }
+        for(DataError error : response.getDataErrors()){
+            Exception e = new Exception("DataError: " + error.toJson().asText());
+            e.printStackTrace();
+            collector.addError(e);
         }
-
-        if(!response.getDataErrors().isEmpty()){
-            builder.append("Response has Data Errors: \n");
-            for(DataError error : response.getDataErrors()){
-                builder.append(error.toJson() + "\n");
-            }
-        }
-
-        fail(builder.toString());
     }
 
 }
