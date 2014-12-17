@@ -23,9 +23,9 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import com.redhat.lightblue.DataError;
@@ -46,32 +46,30 @@ import com.redhat.lightblue.util.test.AbstractJsonNodeTest;
 @InMemoryMongoServer
 public class ITCaseLdapCRUDControllerTest{
 
-    @Rule
-    public LdapServerExternalResource ldapServer = LdapServerExternalResource.createDefaultInstance();
+    @ClassRule
+    public static LdapServerExternalResource ldapServer = LdapServerExternalResource.createDefaultInstance();
 
-    @Rule
-    public MongoServerExternalResource mongoServer = new MongoServerExternalResource();
+    @ClassRule
+    public static MongoServerExternalResource mongoServer = new MongoServerExternalResource();
 
-    @Before
-    public void before() throws IOException {
-        lightblueFactory = new LightblueFactory(
-                new DataSourcesConfiguration(AbstractJsonNodeTest.loadJsonNode("./datasources.json")));
-    }
+    public static LightblueFactory lightblueFactory;
 
-    @After
-    public void after(){
-        lightblueFactory = null;
-    }
-
-    public ITCaseLdapCRUDControllerTest(){
+    @BeforeClass
+    public static void beforeClass() throws IOException {
         System.setProperty("ldap.host", "localhost");
         System.setProperty("ldap.port", String.valueOf(LdapServerExternalResource.DEFAULT_PORT));
 
         System.setProperty("mongo.host", "localhost");
         System.setProperty("mongo.port", String.valueOf(MongoServerExternalResource.DEFAULT_PORT));
+        
+        lightblueFactory = new LightblueFactory(
+                new DataSourcesConfiguration(AbstractJsonNodeTest.loadJsonNode("./datasources.json")));
     }
 
-    public LightblueFactory lightblueFactory;
+    @AfterClass
+    public static void after(){
+        lightblueFactory = null;
+    }
 
     @Test
     public void testInsert() throws Exception{
