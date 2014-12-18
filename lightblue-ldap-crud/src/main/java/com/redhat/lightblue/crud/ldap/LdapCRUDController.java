@@ -36,7 +36,6 @@ import com.redhat.lightblue.crud.CRUDOperationContext;
 import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.DocCtx;
-import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
 import com.redhat.lightblue.hystrix.ldap.InsertCommand;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.MetadataListener;
@@ -76,12 +75,12 @@ public class LdapCRUDController implements CRUDController{
 
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
 
-        FieldAccessRoleEvaluator roleEval = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
-        Projection combinedProjection = Projection.add(
-                projection,
-                roleEval.getExcludedFields(FieldAccessRoleEvaluator.Operation.insert));
-
         //TODO Revisit Projection
+        //FieldAccessRoleEvaluator roleEval = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
+        /*Projection combinedProjection = Projection.add(
+                projection,
+                roleEval.getExcludedFields(FieldAccessRoleEvaluator.Operation.insert));*/
+
         /*        Projector projector = null;
         if(combinedProjection != null){
             projector = Projector.getInstance(combinedProjection, md);
