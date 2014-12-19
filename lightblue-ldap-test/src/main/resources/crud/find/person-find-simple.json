@@ -7,7 +7,7 @@
         "query": {
             "field": "uid",
             "op": "$eq",
-            "rfield": "john.doe"
+            "rvalue": "john.doe"
         },
         "range": [
             0,
