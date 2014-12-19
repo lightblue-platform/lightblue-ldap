@@ -35,9 +35,17 @@
     <packaging>pom</packaging>
     
     <properties>
+        <!-- Lightblue Core -->
         <lightblue-core.version>1.3.0-SNAPSHOT</lightblue-core.version>
         
+        <!-- 3rd Party -->
+        <unboundid.version>2.3.8</unboundid.version>
+        <hystrix.version>1.3.16</hystrix.version>
         <slf4j.version>1.7.7</slf4j.version>
+        
+        <!-- Test -->
+        <junit.version>4.11</junit.version>
+        <mockito.version>1.10.8</mockito.version>
     </properties>
     
     <modules>
@@ -129,19 +137,19 @@
             <dependency>
                 <groupId>com.unboundid</groupId>
                 <artifactId>unboundid-ldapsdk</artifactId>
-                <version>2.3.7</version>
+                <version>${unboundid.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.netflix.hystrix</groupId>
                 <artifactId>hystrix-core</artifactId>
-                <version>1.3.16</version>
+                <version>${hystrix.version}</version>
             </dependency>
             
             <!-- Test -->
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
-                <version>4.11</version>
+                <version>${junit.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -153,7 +161,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>1.10.8</version>
+                <version>${mockito.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
