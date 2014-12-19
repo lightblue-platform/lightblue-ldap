@@ -27,6 +27,8 @@ public class LdapDataStore implements DataStore {
     public static final String BACKEND = "ldap";
 
     private String database;
+    private String baseDN;
+    private String uniqueField;
 
     public String getBackend() {
         return BACKEND;
@@ -40,6 +42,22 @@ public class LdapDataStore implements DataStore {
         this.database = database;
     }
 
+    public String getBaseDN() {
+        return baseDN;
+    }
+
+    public void setBaseDN(String baseDN) {
+        this.baseDN = baseDN;
+    }
+
+    public String getUniqueField() {
+        return uniqueField;
+    }
+
+    public void setUniqueField(String uniqueField) {
+        this.uniqueField = uniqueField;
+    }
+
     public LdapDataStore(){}
 
     public LdapDataStore(String database){
@@ -50,8 +68,11 @@ public class LdapDataStore implements DataStore {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
+        result = prime * result + ((baseDN == null) ? 0 : baseDN.hashCode());
         result = prime * result
                 + ((database == null) ? 0 : database.hashCode());
+        result = prime * result
+                + ((uniqueField == null) ? 0 : uniqueField.hashCode());
         return result;
     }
 
@@ -67,6 +88,14 @@ public class LdapDataStore implements DataStore {
             return false;
         }
         LdapDataStore other = (LdapDataStore) obj;
+        if (baseDN == null) {
+            if (other.baseDN != null) {
+                return false;
+            }
+        }
+        else if (!baseDN.equals(other.baseDN)) {
+            return false;
+        }
         if (database == null) {
             if (other.database != null) {
                 return false;
@@ -75,12 +104,21 @@ public class LdapDataStore implements DataStore {
         else if (!database.equals(other.database)) {
             return false;
         }
+        if (uniqueField == null) {
+            if (other.uniqueField != null) {
+                return false;
+            }
+        }
+        else if (!uniqueField.equals(other.uniqueField)) {
+            return false;
+        }
         return true;
     }
 
     @Override
     public String toString() {
-        return "LdapDataStore [database=" + database + "]";
+        return "LdapDataStore [database=" + database + ", baseDN=" + baseDN
+                + ", uniqueField=" + uniqueField + "]";
     }
 
 }

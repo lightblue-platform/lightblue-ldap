@@ -23,11 +23,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.common.ldap.DBResolver;
+import com.redhat.lightblue.common.ldap.LdapDataStore;
 import com.redhat.lightblue.crud.CRUDController;
 import com.redhat.lightblue.crud.CRUDDeleteResponse;
 import com.redhat.lightblue.crud.CRUDFindResponse;
@@ -36,7 +34,10 @@ import com.redhat.lightblue.crud.CRUDOperationContext;
 import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.DocCtx;
+import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
+import com.redhat.lightblue.eval.Projector;
 import com.redhat.lightblue.hystrix.ldap.InsertCommand;
+import com.redhat.lightblue.metadata.DataStore;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.MetadataListener;
 import com.redhat.lightblue.query.Projection;
@@ -46,16 +47,17 @@ import com.redhat.lightblue.query.UpdateExpression;
 import com.redhat.lightblue.util.JsonDoc;
 import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldap.sdk.Entry;
+import com.unboundid.ldap.sdk.Filter;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.LDAPResult;
 import com.unboundid.ldap.sdk.ResultCode;
+import com.unboundid.ldap.sdk.SearchRequest;
+import com.unboundid.ldap.sdk.SearchResult;
+import com.unboundid.ldap.sdk.SearchResultEntry;
+import com.unboundid.ldap.sdk.SearchScope;
 
 public class LdapCRUDController implements CRUDController{
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(LdapCRUDController.class);
-
-    private static final String DN = "dn";
 
     private final DBResolver dbResolver;
 
@@ -74,6 +76,7 @@ public class LdapCRUDController implements CRUDController{
         }
 
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
+        LdapDataStore store = getLdapDataStore(md);
 
         //TODO Revisit Projection
         //FieldAccessRoleEvaluator roleEval = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
@@ -87,23 +90,26 @@ public class LdapCRUDController implements CRUDController{
         }*/
 
         try {
-            LDAPConnection connection = dbResolver.get(md.getDataStore());
+            LDAPConnection connection = dbResolver.get(store);
 
             for(DocCtx document : documents){
                 //document.setOriginalDocument(document);
                 JsonNode rootNode = document.getRoot();
-                JsonNode dnNode = rootNode.get(DN);
-                if(dnNode == null){
-                    throw new IllegalArgumentException("dn is a required field");
+
+                JsonNode uniqueNode = rootNode.get(store.getUniqueField());
+                if(uniqueNode == null){
+                    throw new IllegalArgumentException(store.getUniqueField() + " is a required field");
                 }
 
-                Entry entry = new Entry(dnNode.asText());
+                Entry entry = new Entry(createDN(store, uniqueNode.asText()));
 
                 Iterator<Map.Entry<String, JsonNode>> nodeIterator = rootNode.fields();
                 while(nodeIterator.hasNext()){
                     Map.Entry<String, JsonNode> node = nodeIterator.next();
-                    if(DN.equalsIgnoreCase(node.getKey())){
-                        continue;
+                    if("dn".equalsIgnoreCase(node.getKey())){
+                        throw new IllegalArgumentException(
+                                "DN should not be included as it's value will be derived from the metadata.basedn and" +
+                                " the metadata.uniqueattr. Including the DN as an insert attribute is confusing.");
                     }
 
                     JsonNode valueNode = node.getValue();
@@ -168,8 +174,50 @@ public class LdapCRUDController implements CRUDController{
     public CRUDFindResponse find(CRUDOperationContext ctx,
             QueryExpression query, Projection projection, Sort sort, Long from,
             Long to) {
-        // TODO Auto-generated method stub
-        return null;
+
+        if (query == null) {
+            throw new IllegalArgumentException("No query was provided.");
+        }
+        if (projection == null) {
+            throw new IllegalArgumentException("No projection was provided");
+        }
+
+        EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
+        LdapDataStore store = getLdapDataStore(md);
+
+        CRUDFindResponse response = new CRUDFindResponse();
+        response.setSize(0);
+
+        try {
+            LDAPConnection connection = dbResolver.get(store);
+
+            Filter filter = new FilterTranslator().translate(query);
+            SearchRequest request = new SearchRequest(store.getBaseDN(), SearchScope.SUB, filter, "*");
+            SearchResult result = connection.search(request);
+
+            response.setSize(result.getEntryCount());
+            for(SearchResultEntry resultEntry : result.getSearchEntries()){
+                resultEntry.getDN();
+            }
+
+            Projector projector = Projector.getInstance(
+                    Projection.add(
+                            projection,
+                            new FieldAccessRoleEvaluator(
+                                    md,
+                                    ctx.getCallerRoles()).getExcludedFields(FieldAccessRoleEvaluator.Operation.find)
+                            ),
+                            md);
+            for (DocCtx document : ctx.getDocuments()) {
+                document.setOutputDocument(projector.project(document, ctx.getFactory().getNodeFactory()));
+            }
+        }
+        catch (LDAPException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return response;
     }
 
     public void updatePredefinedFields(CRUDOperationContext ctx, JsonDoc doc) {
@@ -178,6 +226,18 @@ public class LdapCRUDController implements CRUDController{
 
     public MetadataListener getMetadataListener() {
         return null;
+    }
+
+    private LdapDataStore getLdapDataStore(EntityMetadata md){
+        DataStore store = md.getDataStore();
+        if(!(store instanceof LdapDataStore)){
+            throw new IllegalArgumentException("DataStore of type " + store.getClass() + " is not supported.");
+        }
+        return (LdapDataStore) store;
+    }
+
+    private String createDN(LdapDataStore store, String uniqueValue){
+        return store.getUniqueField() + "=" + uniqueValue + "," + store.getBaseDN();
     }
 
 }

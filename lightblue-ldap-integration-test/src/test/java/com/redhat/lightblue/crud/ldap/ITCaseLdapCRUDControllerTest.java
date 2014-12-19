@@ -27,27 +27,37 @@ import java.io.IOException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
+import org.junit.runners.MethodSorters;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.DataError;
 import com.redhat.lightblue.Response;
 import com.redhat.lightblue.config.DataSourcesConfiguration;
 import com.redhat.lightblue.config.JsonTranslator;
 import com.redhat.lightblue.config.LightblueFactory;
+import com.redhat.lightblue.crud.FindRequest;
 import com.redhat.lightblue.crud.InsertionRequest;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource.InMemoryLdapServer;
-import com.redhat.lightblue.mediator.Mediator;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.Metadata;
 import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
 import com.redhat.lightblue.mongo.test.MongoServerExternalResource.InMemoryMongoServer;
 import com.redhat.lightblue.util.Error;
 
+/**
+ * <b>NOTE:</b> This test suite is intended to be run in a certain order. Selectivly running unit tests
+ * may produce unwanted results.
+ *
+ * @author dcrissma
+ */
 @InMemoryLdapServer
 @InMemoryMongoServer
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ITCaseLdapCRUDControllerTest{
 
     @ClassRule
@@ -62,10 +72,11 @@ public class ITCaseLdapCRUDControllerTest{
     public static LightblueFactory lightblueFactory;
 
     @BeforeClass
-    public static void beforeClass() throws IOException {
+    public static void beforeClass() throws Exception {
         System.setProperty("ldap.host", "localhost");
         System.setProperty("ldap.port", String.valueOf(LdapServerExternalResource.DEFAULT_PORT));
         System.setProperty("ldap.database", "test");
+        System.setProperty("ldap.person.basedn", "dc=example,dc=com");
 
         System.setProperty("mongo.host", "localhost");
         System.setProperty("mongo.port", String.valueOf(MongoServerExternalResource.DEFAULT_PORT));
@@ -73,28 +84,16 @@ public class ITCaseLdapCRUDControllerTest{
 
         lightblueFactory = new LightblueFactory(
                 new DataSourcesConfiguration(loadJsonNode("./datasources.json")));
+
+        JsonTranslator tx = lightblueFactory.getJsonTranslator();
+
+        Metadata metadata = lightblueFactory.getMetadata();
+        metadata.createNewMetadata(tx.parse(EntityMetadata.class, loadJsonNode("./metadata/person-metadata.json")));
     }
 
     @AfterClass
     public static void after(){
         lightblueFactory = null;
-    }
-
-    @Test
-    public void testInsert() throws Exception{
-        JsonTranslator tx = lightblueFactory.getJsonTranslator();
-
-        Metadata metadata = lightblueFactory.getMetadata();
-        metadata.createNewMetadata(tx.parse(EntityMetadata.class, loadJsonNode("./metadata/ldap-person-metadata.json")));
-
-        InsertionRequest insertIequest = tx.parse(InsertionRequest.class, loadJsonNode("./crud/insert/insert-single.json"));
-
-        Mediator mediator = lightblueFactory.getMediator();
-        Response response = mediator.insert(insertIequest);
-
-        assertNotNull(response);
-        assertNoErrors(response);
-        assertEquals(1, response.getModifiedCount());
     }
 
     private void assertNoErrors(Response response){
@@ -109,6 +108,34 @@ public class ITCaseLdapCRUDControllerTest{
             e.printStackTrace();
             collector.addError(e);
         }
+    }
+
+    private <T> T createRequest(Class<T> type, String jsonFile) throws IOException{
+        JsonTranslator tx = lightblueFactory.getJsonTranslator();
+        return tx.parse(type, loadJsonNode(jsonFile));
+    }
+
+    @Test
+    public void test1Insert() throws Exception{
+        Response response = lightblueFactory.getMediator().insert(
+                createRequest(InsertionRequest.class, "./crud/insert/person-insert-single.json"));
+
+        assertNotNull(response);
+        assertNoErrors(response);
+        assertEquals(1, response.getModifiedCount());
+    }
+
+    @Test
+    public void test2Find() throws Exception{
+        Response response = lightblueFactory.getMediator().find(
+                createRequest(FindRequest.class, "./crud/find/person-find-simple.json"));
+
+        assertNotNull(response);
+        assertNoErrors(response);
+        assertEquals(1, response.getMatchCount());
+
+        JsonNode responseNode = response.toJson();
+        assertNotNull(responseNode);
     }
 
 }

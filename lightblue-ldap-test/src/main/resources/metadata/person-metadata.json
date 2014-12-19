@@ -3,7 +3,9 @@
         "name": "person",
         "datastore": {
             "backend":"ldap",
-            "database": "${ldap.database}"
+            "database": "${ldap.database}",
+            "basedn": "${ldap.person.basedn}",
+            "uniqueattr": "uid"
         }
     },
     "schema": {

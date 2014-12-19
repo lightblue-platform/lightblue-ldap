@@ -5,7 +5,6 @@
             "field": "uid"
         },
         "data": {
-            "dn": "uid=john.doe,dc=example,dc=com",
             "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
             "uid": "john.doe",
             "givenName": "John",
