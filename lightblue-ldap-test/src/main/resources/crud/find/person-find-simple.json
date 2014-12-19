@@ -1,0 +1,19 @@
+{
+        "entity": "person",
+        "entityVersion": "1.0.0",
+        "projection": {
+            "field": "uid"
+        },
+        "query": {
+            "field": "uid",
+            "op": "$eq",
+            "rfield": "john.doe"
+        },
+        "range": [
+            0,
+            10
+        ],
+        "sort": {
+            "uid": "$asc"
+        }
+ }

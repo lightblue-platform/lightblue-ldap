@@ -1,0 +1,12 @@
+{
+        "entity": "person",
+        "entityVersion": "1.0.0",
+        "projection": {
+            "field": "uid"
+        },
+        "query": {
+            "field": "login",
+            "op": "$eq",
+            "rfield": "someuser"
+        }
+}

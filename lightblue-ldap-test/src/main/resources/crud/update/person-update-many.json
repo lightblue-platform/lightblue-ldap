@@ -1,0 +1,52 @@
+{
+        "entity": "person",
+        "entityVersion": "1.0.0",
+        "projection": {
+            "field": "uid"
+        },
+        "query": {
+            "field": "login",
+            "op": "$eq",
+            "rfield": "someuser"
+        },
+        "update": [
+            {
+                "$set": {
+                    "firstName": "new name",
+                    "lastName": "new name"
+                }
+            },
+            {
+                "$unset": ["lastName"]
+            },
+            {
+                "$add": {
+                    "someField": 10
+                }
+            },
+            {
+                "$append": {
+                    "arrayFieldName": "first",
+                    "otherArray": "last"
+                }
+            },
+            {
+                "$insert": {
+                    "arrayFieldName": "first",
+                    "otherArray": "last"
+                }
+            },
+            {
+                "$foreach": {
+                    "fieldName": { "field":"f", "op":"$eq","rvalue":"value" },
+                    "$update": { "$set" : {"x":"y"} } 
+                }
+            },
+            {
+                "$foreach": {
+                    "fieldName": { "field":"f", "op":"$eq","rvalue":"value" },
+                    "$update": "$remove"
+                }
+            }
+        ]
+}

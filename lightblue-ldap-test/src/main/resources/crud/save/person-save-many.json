@@ -1,0 +1,18 @@
+{
+        "entity": "person",
+        "entityVersion": "1.0.0",
+        "projection": {
+            "field": "uid"
+        },
+        "data": [
+            {
+                "objectType": "some_entity",
+                "login": "nmalik1"
+            },
+            {
+                "objectType": "some_entity",
+                "login": "nmalik2"
+            }
+        ],
+        "upsert": true
+}
