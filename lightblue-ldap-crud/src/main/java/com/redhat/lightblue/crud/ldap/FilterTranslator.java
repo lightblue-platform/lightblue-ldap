@@ -33,8 +33,19 @@ import com.redhat.lightblue.query.Value;
 import com.redhat.lightblue.query.ValueComparisonExpression;
 import com.unboundid.ldap.sdk.Filter;
 
+/**
+ * Translates a Lightblue {@link QueryExpression} into a UnboundID {@link Filter}.
+ *
+ * @author dcrissman
+ */
 public class FilterTranslator {
 
+    /**
+     * <p>Translates a Lightblue {@link QueryExpression} into a UnboundID {@link Filter}.</p>
+     * @param query - {@link QueryExpression}
+     * @return {@link Filter}
+     */
+    //NOTE: This method is internally called recursively.
     public Filter translate(QueryExpression query){
         Filter filter;
         if (query instanceof ArrayContainsExpression) {
@@ -88,10 +99,12 @@ public class FilterTranslator {
     }
 
     private Filter translate(ArrayMatchExpression query){
+        //TODO: Support
         throw new UnsupportedOperationException("Operation not yet supported");
     }
 
     private Filter translate(FieldComparisonExpression query){
+        //TODO: Support
         throw new UnsupportedOperationException("Operation not yet supported");
     }
 
@@ -128,11 +141,17 @@ public class FilterTranslator {
     }
 
     private Filter translate(RegexMatchExpression query){
+        //TODO: Support
         throw new UnsupportedOperationException("Operation not yet supported");
     }
 
     private Filter translate(UnaryLogicalExpression query){
-        return null;
+        switch(query.getOp()){
+            case _not:
+                return Filter.createNOTFilter(translate(query.getQuery()));
+            default:
+                throw new UnsupportedOperationException("Unsupported operation: " + query.getOp());
+        }
     }
 
     private Filter translate(ValueComparisonExpression query){
@@ -148,7 +167,11 @@ public class FilterTranslator {
                 return Filter.createGreaterOrEqualFilter(field, rValue);
             case _lte:
                 return Filter.createLessOrEqualFilter(field, rValue);
-            default: //TODO gt, lt
+            case _gt: //!lte
+                return Filter.createNOTFilter(Filter.createLessOrEqualFilter(field, rValue));
+            case _lt: //!gte
+                return Filter.createNOTFilter(Filter.createGreaterOrEqualFilter(field, rValue));
+            default:
                 throw new UnsupportedOperationException("Unsupported operation: " + query.getOp());
         }
     }
