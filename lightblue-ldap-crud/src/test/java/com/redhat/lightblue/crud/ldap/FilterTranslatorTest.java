@@ -20,9 +20,21 @@ package com.redhat.lightblue.crud.ldap;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.junit.Test;
 
+import com.redhat.lightblue.query.ArrayContainsExpression;
 import com.redhat.lightblue.query.BinaryComparisonOperator;
+import com.redhat.lightblue.query.ContainsOperator;
+import com.redhat.lightblue.query.NaryLogicalExpression;
+import com.redhat.lightblue.query.NaryLogicalOperator;
+import com.redhat.lightblue.query.NaryRelationalExpression;
+import com.redhat.lightblue.query.NaryRelationalOperator;
+import com.redhat.lightblue.query.QueryExpression;
+import com.redhat.lightblue.query.UnaryLogicalExpression;
+import com.redhat.lightblue.query.UnaryLogicalOperator;
 import com.redhat.lightblue.query.Value;
 import com.redhat.lightblue.query.ValueComparisonExpression;
 import com.redhat.lightblue.util.Path;
@@ -31,8 +43,8 @@ import com.unboundid.ldap.sdk.Filter;
 public class FilterTranslatorTest {
 
     @Test
-    public void testTranslate_ValueEquals(){
-        ValueComparisonExpression query = new ValueComparisonExpression(
+    public void testTranslate_ValueComparisonExpression_Equals(){
+        QueryExpression query = new ValueComparisonExpression(
                 new Path("somekey"), BinaryComparisonOperator._eq, new Value("somevalue"));
 
         Filter filter = new FilterTranslator().translate(query);
@@ -40,8 +52,8 @@ public class FilterTranslatorTest {
     }
 
     @Test
-    public void testTranslate_ValueNotEquals(){
-        ValueComparisonExpression query = new ValueComparisonExpression(
+    public void testTranslate_ValueComparisonExpression_NotEquals(){
+        QueryExpression query = new ValueComparisonExpression(
                 new Path("somekey"), BinaryComparisonOperator._neq, new Value("somevalue"));
 
         Filter filter = new FilterTranslator().translate(query);
@@ -49,8 +61,8 @@ public class FilterTranslatorTest {
     }
 
     @Test
-    public void testTranslate_ValueGTE(){
-        ValueComparisonExpression query = new ValueComparisonExpression(
+    public void testTranslate_ValueComparisonExpression_GTE(){
+        QueryExpression query = new ValueComparisonExpression(
                 new Path("somekey"), BinaryComparisonOperator._gte, new Value("somevalue"));
 
         Filter filter = new FilterTranslator().translate(query);
@@ -58,8 +70,8 @@ public class FilterTranslatorTest {
     }
 
     @Test
-    public void testTranslate_ValueGT(){
-        ValueComparisonExpression query = new ValueComparisonExpression(
+    public void testTranslate_ValueComparisonExpression_GT(){
+        QueryExpression query = new ValueComparisonExpression(
                 new Path("somekey"), BinaryComparisonOperator._gt, new Value("somevalue"));
 
         Filter filter = new FilterTranslator().translate(query);
@@ -67,8 +79,8 @@ public class FilterTranslatorTest {
     }
 
     @Test
-    public void testTranslate_ValueLTE(){
-        ValueComparisonExpression query = new ValueComparisonExpression(
+    public void testTranslate_ValueComparisonExpression_LTE(){
+        QueryExpression query = new ValueComparisonExpression(
                 new Path("somekey"), BinaryComparisonOperator._lte, new Value("somevalue"));
 
         Filter filter = new FilterTranslator().translate(query);
@@ -76,12 +88,99 @@ public class FilterTranslatorTest {
     }
 
     @Test
-    public void testTranslate_ValueLT(){
-        ValueComparisonExpression query = new ValueComparisonExpression(
+    public void testTranslate_ValueComparisonExpression_LT(){
+        QueryExpression query = new ValueComparisonExpression(
                 new Path("somekey"), BinaryComparisonOperator._lt, new Value("somevalue"));
 
         Filter filter = new FilterTranslator().translate(query);
         assertEquals("(!(somekey>=somevalue))", filter.toString());
+    }
+
+    @Test
+    public void testTranslate_UnaryLogicalExpression_NOT(){
+        QueryExpression query = new UnaryLogicalExpression(
+                UnaryLogicalOperator._not,
+                new ValueComparisonExpression(new Path("somekey"), BinaryComparisonOperator._eq, new Value("somevalue")));
+
+        Filter filter = new FilterTranslator().translate(query);
+        assertEquals("(!(somekey=somevalue))", filter.toString());
+    }
+
+    @Test
+    public void testTranslate_NaryRelationalExpression_IN(){
+        QueryExpression query = new NaryRelationalExpression(
+                new Path("somekey"),
+                NaryRelationalOperator._in,
+                Arrays.asList(new Value("somevalue"), new Value("someothervalue")));
+
+        Filter filter = new FilterTranslator().translate(query);
+        assertEquals("(|(somekey=somevalue)(somekey=someothervalue))", filter.toString());
+    }
+
+    @Test
+    public void testTranslate_NaryRelationalExpression_NOT_IN(){
+        QueryExpression query = new NaryRelationalExpression(
+                new Path("somekey"),
+                NaryRelationalOperator._not_in,
+                Arrays.asList(new Value("somevalue"), new Value("someothervalue")));
+
+        Filter filter = new FilterTranslator().translate(query);
+        assertEquals("(!(|(somekey=somevalue)(somekey=someothervalue)))", filter.toString());
+    }
+
+    @Test
+    public void testTranslate_NaryLogicalExpression_AND(){
+        QueryExpression query = new NaryLogicalExpression(
+                NaryLogicalOperator._and, new ArrayList<QueryExpression>(Arrays.asList(
+                        new ValueComparisonExpression(new Path("somekey"), BinaryComparisonOperator._eq, new Value("somevalue")),
+                        new ValueComparisonExpression(new Path("someotherkey"), BinaryComparisonOperator._eq, new Value("someothervalue")))));
+
+        Filter filter = new FilterTranslator().translate(query);
+        assertEquals("(&(somekey=somevalue)(someotherkey=someothervalue))", filter.toString());
+    }
+
+    @Test
+    public void testTranslate_NaryLogicalExpression_OR(){
+        QueryExpression query = new NaryLogicalExpression(
+                NaryLogicalOperator._or, new ArrayList<QueryExpression>(Arrays.asList(
+                        new ValueComparisonExpression(new Path("somekey"), BinaryComparisonOperator._eq, new Value("somevalue")),
+                        new ValueComparisonExpression(new Path("someotherkey"), BinaryComparisonOperator._eq, new Value("someothervalue")))));
+
+        Filter filter = new FilterTranslator().translate(query);
+        assertEquals("(|(somekey=somevalue)(someotherkey=someothervalue))", filter.toString());
+    }
+
+    @Test
+    public void testTranslate_ArrayContainsExpression_ANY(){
+        QueryExpression query = new ArrayContainsExpression(
+                new Path("somekey"),
+                ContainsOperator._any,
+                Arrays.asList(new Value("somevalue"), new Value("someothervalue")));
+
+        Filter filter = new FilterTranslator().translate(query);
+        assertEquals("(|(somekey=somevalue)(somekey=someothervalue))", filter.toString());
+    }
+
+    @Test
+    public void testTranslate_ArrayContainsExpression_ALL(){
+        QueryExpression query = new ArrayContainsExpression(
+                new Path("somekey"),
+                ContainsOperator._all,
+                Arrays.asList(new Value("somevalue"), new Value("someothervalue")));
+
+        Filter filter = new FilterTranslator().translate(query);
+        assertEquals("(&(somekey=somevalue)(somekey=someothervalue))", filter.toString());
+    }
+
+    @Test
+    public void testTranslate_ArrayContainsExpression_NONE(){
+        QueryExpression query = new ArrayContainsExpression(
+                new Path("somekey"),
+                ContainsOperator._none,
+                Arrays.asList(new Value("somevalue"), new Value("someothervalue")));
+
+        Filter filter = new FilterTranslator().translate(query);
+        assertEquals("(!(&(somekey=somevalue)(somekey=someothervalue)))", filter.toString());
     }
 
 }

@@ -111,7 +111,7 @@ public class FilterTranslator {
     private Filter translate(NaryLogicalExpression query){
         List<Filter> filters = new ArrayList<Filter>();
         for(QueryExpression subQuery : query.getQueries()){
-            translate(subQuery);
+            filters.add(translate(subQuery));
         }
         switch (query.getOp()){
             case _and:
@@ -167,9 +167,9 @@ public class FilterTranslator {
                 return Filter.createGreaterOrEqualFilter(field, rValue);
             case _lte:
                 return Filter.createLessOrEqualFilter(field, rValue);
-            case _gt: //!lte
+            case _gt: //aka. !lte
                 return Filter.createNOTFilter(Filter.createLessOrEqualFilter(field, rValue));
-            case _lt: //!gte
+            case _lt: //aka. !gte
                 return Filter.createNOTFilter(Filter.createGreaterOrEqualFilter(field, rValue));
             default:
                 throw new UnsupportedOperationException("Unsupported operation: " + query.getOp());
