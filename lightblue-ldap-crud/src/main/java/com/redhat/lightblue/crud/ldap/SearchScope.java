@@ -16,7 +16,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.redhat.lightblue.metadata.ldap.enums;
+package com.redhat.lightblue.crud.ldap;
 
 public enum SearchScope {
     BASE_ONLY(com.unboundid.ldap.sdk.SearchScope.BASE),

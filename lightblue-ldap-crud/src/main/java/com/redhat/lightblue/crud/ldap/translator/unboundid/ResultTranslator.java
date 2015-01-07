@@ -16,7 +16,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.redhat.lightblue.crud.ldap;
+package com.redhat.lightblue.crud.ldap.translator.unboundid;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,11 +44,16 @@ import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldap.sdk.SearchResult;
 import com.unboundid.ldap.sdk.SearchResultEntry;
 
-public class LdapTranslator {
+/**
+ * Translator to convert UnboundID {@link SearchResultEntry} into json that Lightblue can understand.
+ *
+ * @author dcrissman
+ */
+public class ResultTranslator {
 
     private final JsonNodeFactory factory;
 
-    public LdapTranslator(JsonNodeFactory factory){
+    public ResultTranslator(JsonNodeFactory factory){
         this.factory = factory;
     }
 

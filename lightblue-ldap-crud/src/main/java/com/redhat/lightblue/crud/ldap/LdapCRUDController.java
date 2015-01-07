@@ -34,6 +34,8 @@ import com.redhat.lightblue.crud.CRUDOperationContext;
 import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.DocCtx;
+import com.redhat.lightblue.crud.ldap.translator.unboundid.FilterTranslator;
+import com.redhat.lightblue.crud.ldap.translator.unboundid.ResultTranslator;
 import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
 import com.redhat.lightblue.eval.Projector;
 import com.redhat.lightblue.hystrix.ldap.InsertCommand;
@@ -47,7 +49,6 @@ import com.redhat.lightblue.query.UpdateExpression;
 import com.redhat.lightblue.util.JsonDoc;
 import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldap.sdk.Entry;
-import com.unboundid.ldap.sdk.Filter;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.LDAPResult;
@@ -190,12 +191,15 @@ public class LdapCRUDController implements CRUDController{
         try {
             LDAPConnection connection = dbResolver.get(store);
 
-            Filter filter = new FilterTranslator().translate(query);
-            SearchRequest request = new SearchRequest(store.getBaseDN(), SearchScope.SUB, filter, "*");
+            SearchRequest request = new SearchRequest(
+                    store.getBaseDN(),
+                    SearchScope.SUB,
+                    new FilterTranslator().translate(query),
+                    "*");
             SearchResult result = connection.search(request);
 
             response.setSize(result.getEntryCount());
-            ctx.setDocuments(new LdapTranslator(ctx.getFactory().getNodeFactory()).translate(result, md));
+            ctx.setDocuments(new ResultTranslator(ctx.getFactory().getNodeFactory()).translate(result, md));
 
             Projector projector = Projector.getInstance(
                     Projection.add(
