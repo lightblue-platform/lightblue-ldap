@@ -2,7 +2,7 @@
         "entity": "person",
         "entityVersion": "1.0.0",
         "projection": {
-            "field": "uid"
+            "field": "dn"
         },
         "data": {
             "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],

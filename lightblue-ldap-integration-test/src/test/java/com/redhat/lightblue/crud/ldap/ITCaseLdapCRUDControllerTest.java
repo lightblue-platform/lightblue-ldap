@@ -117,19 +117,19 @@ public class ITCaseLdapCRUDControllerTest{
     }
 
     @Test
-    public void test1Insert() throws Exception{
+    public void step1Insert() throws Exception{
         Response response = lightblueFactory.getMediator().insert(
-                createRequest(InsertionRequest.class, "./crud/insert/person-insert-single.json"));
+                createRequest(InsertionRequest.class, "./crud/insert/person-insert-many.json"));
 
         assertNotNull(response);
         assertNoErrors(response);
-        assertEquals(1, response.getModifiedCount());
+        assertEquals(2, response.getModifiedCount());
     }
 
     @Test
-    public void test2Find() throws Exception{
+    public void step2Find() throws Exception{
         Response response = lightblueFactory.getMediator().find(
-                createRequest(FindRequest.class, "./crud/find/person-find-simple.json"));
+                createRequest(FindRequest.class, "./crud/find/person-find-single.json"));
 
         assertNotNull(response);
         assertNoErrors(response);
@@ -138,6 +138,20 @@ public class ITCaseLdapCRUDControllerTest{
         JsonNode entityData = response.getEntityData();
         assertNotNull(entityData);
         JSONAssert.assertEquals("[{\"dn\":\"uid=john.doe,dc=example,dc=com\",\"uid\":\"john.doe\"}]", entityData.toString(), false);
+    }
+
+    @Test
+    public void step2FindMultiple() throws Exception{
+        Response response = lightblueFactory.getMediator().find(
+                createRequest(FindRequest.class, "./crud/find/person-find-many.json"));
+
+        assertNotNull(response);
+        assertNoErrors(response);
+        assertEquals(2, response.getMatchCount());
+
+        JsonNode entityData = response.getEntityData();
+        assertNotNull(entityData);
+        JSONAssert.assertEquals("[{\"dn\":\"uid=john.doe,dc=example,dc=com\"},{\"dn\":\"uid=jane.doe,dc=example,dc=com\"}]", entityData.toString(), false);
     }
 
 }
