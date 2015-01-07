@@ -32,6 +32,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
 import org.junit.runners.MethodSorters;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.DataError;
@@ -134,8 +135,9 @@ public class ITCaseLdapCRUDControllerTest{
         assertNoErrors(response);
         assertEquals(1, response.getMatchCount());
 
-        JsonNode responseNode = response.toJson();
-        assertNotNull(responseNode);
+        JsonNode entityData = response.getEntityData();
+        assertNotNull(entityData);
+        JSONAssert.assertEquals("[{\"uid\":\"john.doe\"}]", entityData.toString(), false);
     }
 
 }

@@ -54,7 +54,6 @@ import com.unboundid.ldap.sdk.LDAPResult;
 import com.unboundid.ldap.sdk.ResultCode;
 import com.unboundid.ldap.sdk.SearchRequest;
 import com.unboundid.ldap.sdk.SearchResult;
-import com.unboundid.ldap.sdk.SearchResultEntry;
 import com.unboundid.ldap.sdk.SearchScope;
 
 public class LdapCRUDController implements CRUDController{
@@ -196,9 +195,7 @@ public class LdapCRUDController implements CRUDController{
             SearchResult result = connection.search(request);
 
             response.setSize(result.getEntryCount());
-            for(SearchResultEntry resultEntry : result.getSearchEntries()){
-                resultEntry.getDN();
-            }
+            ctx.setDocuments(new LdapTranslator(ctx.getFactory().getNodeFactory()).translate(result, md));
 
             Projector projector = Projector.getInstance(
                     Projection.add(
