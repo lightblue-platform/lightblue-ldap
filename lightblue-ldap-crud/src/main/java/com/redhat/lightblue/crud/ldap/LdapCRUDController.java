@@ -19,9 +19,11 @@
 package com.redhat.lightblue.crud.ldap;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.common.ldap.DBResolver;
@@ -41,12 +43,14 @@ import com.redhat.lightblue.eval.Projector;
 import com.redhat.lightblue.hystrix.ldap.InsertCommand;
 import com.redhat.lightblue.metadata.DataStore;
 import com.redhat.lightblue.metadata.EntityMetadata;
+import com.redhat.lightblue.metadata.FieldCursor;
 import com.redhat.lightblue.metadata.MetadataListener;
 import com.redhat.lightblue.query.Projection;
 import com.redhat.lightblue.query.QueryExpression;
 import com.redhat.lightblue.query.Sort;
 import com.redhat.lightblue.query.UpdateExpression;
 import com.redhat.lightblue.util.JsonDoc;
+import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldap.sdk.Entry;
 import com.unboundid.ldap.sdk.LDAPConnection;
@@ -57,6 +61,11 @@ import com.unboundid.ldap.sdk.SearchRequest;
 import com.unboundid.ldap.sdk.SearchResult;
 import com.unboundid.ldap.sdk.SearchScope;
 
+/**
+ * {@link CRUDController} implementation for LDAP.
+ *
+ * @author dcrissman
+ */
 public class LdapCRUDController implements CRUDController{
 
     private final DBResolver dbResolver;
@@ -121,6 +130,11 @@ public class LdapCRUDController implements CRUDController{
                         entry.addAttribute(new Attribute(node.getKey(), values));
                     }
                     else{
+                        if(node.getKey().endsWith("#")){
+                            //TODO: Indicates the field is an auto-generated array count. Skip for now. See PredefinedFields
+                            continue;
+                        }
+
                         entry.addAttribute(new Attribute(node.getKey(), node.getValue().asText()));
                     }
                 }
@@ -191,11 +205,12 @@ public class LdapCRUDController implements CRUDController{
         try {
             LDAPConnection connection = dbResolver.get(store);
 
+            //TODO: Support scopes other than SUB
             SearchRequest request = new SearchRequest(
                     store.getBaseDN(),
                     SearchScope.SUB,
                     new FilterTranslator().translate(query),
-                    "*");
+                    collectRequiredFields(md, projection, query, sort));
             SearchResult result = connection.search(request);
 
             response.setSize(result.getEntryCount());
@@ -229,6 +244,14 @@ public class LdapCRUDController implements CRUDController{
         return null;
     }
 
+    /**
+     * Shortcut method to get and return the {@link LdapDataStore} on the passed in
+     * {@link EntityMetadata}.
+     * @param md - {@link EntityMetadata}
+     * @return {@link LdapDataStore}
+     * @throws IllegalArgumentException if an {@link LdapDataStore} is not set
+     * on the {@link EntityMetadata}.
+     */
     private LdapDataStore getLdapDataStore(EntityMetadata md){
         DataStore store = md.getDataStore();
         if(!(store instanceof LdapDataStore)){
@@ -237,8 +260,41 @@ public class LdapCRUDController implements CRUDController{
         return (LdapDataStore) store;
     }
 
+    /**
+     * Creates and returns a unique DN.
+     * @param store - {@link LdapDataStore} to use as the BaseDN and field that
+     * is used to represent uniqueness.
+     * @param uniqueValue - value that makes the entity unique.
+     * @return a string representation of the DN.
+     */
     private String createDN(LdapDataStore store, String uniqueValue){
         return store.getUniqueField() + "=" + uniqueValue + "," + store.getBaseDN();
+    }
+
+    /**
+     * Returns a list of the field names that are needed for the operation to be
+     * successful.
+     * @param md - {@link EntityMetadata}.
+     * @param projection - (optional) {@link Projection}.
+     * @param query - (optional) {@link QueryExpression}.
+     * @param sort - (optional) {@link Sort}.
+     * @return list of field names.
+     */
+    private String[] collectRequiredFields(EntityMetadata md,
+            Projection projection, QueryExpression query, Sort sort){
+        Set<String> fields = new HashSet<String>();
+
+        FieldCursor cursor = md.getFieldCursor();
+        while(cursor.next()) {
+            Path field = cursor.getCurrentPath();
+            if( ((projection != null) && projection.isFieldRequiredToEvaluateProjection(field))
+                    || ((query != null) && query.isRequired(field))
+                    || ((sort != null) && sort.isRequired(field)) ) {
+                fields.add(field.getLast());
+            }
+        }
+
+        return fields.toArray(new String[0]);
     }
 
 }

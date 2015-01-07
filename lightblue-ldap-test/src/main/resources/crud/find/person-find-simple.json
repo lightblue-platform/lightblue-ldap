@@ -1,9 +1,10 @@
 {
         "entity": "person",
         "entityVersion": "1.0.0",
-        "projection": {
-            "field": "uid"
-        },
+        "projection": [
+            {"field": "dn"},
+            {"field": "uid"}
+        ],
         "query": {
             "field": "uid",
             "op": "$eq",

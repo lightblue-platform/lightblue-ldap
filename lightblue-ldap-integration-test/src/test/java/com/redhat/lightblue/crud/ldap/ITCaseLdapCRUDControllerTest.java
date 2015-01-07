@@ -137,7 +137,7 @@ public class ITCaseLdapCRUDControllerTest{
 
         JsonNode entityData = response.getEntityData();
         assertNotNull(entityData);
-        JSONAssert.assertEquals("[{\"uid\":\"john.doe\"}]", entityData.toString(), false);
+        JSONAssert.assertEquals("[{\"dn\":\"uid=john.doe,dc=example,dc=com\",\"uid\":\"john.doe\"}]", entityData.toString(), false);
     }
 
 }

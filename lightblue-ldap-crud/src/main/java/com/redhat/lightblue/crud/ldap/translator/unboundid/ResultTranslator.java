@@ -81,6 +81,7 @@ public class ResultTranslator {
         do {
             FieldTreeNode field = fieldCursor.getCurrentNode();
             String fieldName = field.getName();
+
             Attribute attr = entry.getAttribute(fieldName);
 
             JsonNode value = null;
@@ -105,6 +106,7 @@ public class ResultTranslator {
             node.set(fieldName, value);
         } while(fieldCursor.nextSibling());
 
+        node.set("dn", StringType.TYPE.toJson(factory, entry.getDN()));
         return node;
     }
 
