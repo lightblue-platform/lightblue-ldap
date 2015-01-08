@@ -46,10 +46,17 @@ import com.redhat.lightblue.crud.ldap.translator.unboundid.SortTranslator;
 import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
 import com.redhat.lightblue.eval.Projector;
 import com.redhat.lightblue.hystrix.ldap.InsertCommand;
+import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.DataStore;
+import com.redhat.lightblue.metadata.EntityInfo;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.FieldCursor;
+import com.redhat.lightblue.metadata.Fields;
+import com.redhat.lightblue.metadata.Metadata;
 import com.redhat.lightblue.metadata.MetadataListener;
+import com.redhat.lightblue.metadata.SimpleArrayElement;
+import com.redhat.lightblue.metadata.SimpleField;
+import com.redhat.lightblue.metadata.types.IntegerType;
 import com.redhat.lightblue.metadata.types.StringType;
 import com.redhat.lightblue.query.Projection;
 import com.redhat.lightblue.query.QueryExpression;
@@ -175,7 +182,6 @@ public class LdapCRUDController implements CRUDController{
             for(Entry<DocCtx, String> insertedDn : insertedDns.entrySet()){
                 DocCtx document = insertedDn.getKey();
                 String dn = insertedDn.getValue();
-
                 DocCtx projectionResponseJson = null;
 
                 if((requiredFields.size() == 1) && requiredFields.contains(DN)){
@@ -183,20 +189,8 @@ public class LdapCRUDController implements CRUDController{
                     node.set(DN, StringType.TYPE.toJson(factory, dn));
                     projectionResponseJson = new DocCtx(new JsonDoc(node));
                 }
-                /*                else{
-                    try {
-                        SearchRequest request = new SearchRequest(
-                                store.getBaseDN(),
-                                SearchScope.BASE,
-                                "",
-                                requiredFields.toArray(new String[0]));
-                        SearchResult result = connection.search(request);
-                    }
-                    catch (LDAPException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }*/
+                //TODO: else fetch entity from LDAP and project results.
+                //TODO: Probably want to batch fetch as opposed to individual fetches.
 
                 document.setOutputDocument(projector.project(projectionResponseJson, factory));
             }
@@ -287,7 +281,34 @@ public class LdapCRUDController implements CRUDController{
     }
 
     public MetadataListener getMetadataListener() {
-        return null;
+        return new MetadataListener() {
+
+            public void beforeUpdateEntityInfo(Metadata m, EntityInfo ei, boolean newEntity) {
+                //Do Nothing!!
+            }
+
+            /**
+             * Ensure that dn and objectClass are on the entity.
+             */
+            public void beforeCreateNewSchema(Metadata m, EntityMetadata md) {
+                Fields fields = md.getEntitySchema().getFields();
+                if(!fields.has(DN)){
+                    fields.addNew(new SimpleField(DN, StringType.TYPE));
+                }
+                if(!fields.has("objectClass")){
+                    fields.addNew(new ArrayField("objectClass", new SimpleArrayElement(StringType.TYPE)));
+                    fields.addNew(new SimpleField("objectClass#", IntegerType.TYPE));
+                }
+            }
+
+            public void afterUpdateEntityInfo(Metadata m, EntityInfo ei, boolean newEntity) {
+                //Do Nothing!!
+            }
+
+            public void afterCreateNewSchema(Metadata m, EntityMetadata md) {
+                //Do Nothing!!
+            }
+        };
     }
 
     /**

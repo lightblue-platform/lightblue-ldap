@@ -24,11 +24,6 @@
              "find" : ["anyone"]
         },
         "fields": {
-            "dn" : {"type": "string"},
-            "objectClass" : {
-                "type": "array",
-                "items": {"type": "string"}
-            },
             "uid" : {"type": "string"},
             "givenName" : {"type": "string"},
             "sn" : {"type": "string"},
