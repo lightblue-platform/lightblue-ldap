@@ -1,23 +1,37 @@
 {
-        "entity": "person",
-        "entityVersion": "1.0.0",
-        "projection": {
-            "field": "dn"
+    "entity": "person",
+    "entityVersion": "1.0.0",
+    "projection": {
+        "field": "dn"
+    },
+    "data": [
+        {
+            "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
+            "uid": "john.doe",
+            "givenName": "John",
+            "sn": "Doe",
+            "cn": "John Doe"
         },
-        "data": [
-            {
-                "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
-                "uid": "john.doe",
-                "givenName": "John",
-                "sn": "Doe",
-                "cn": "John Doe"
-            },
-            {
-                "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
-                "uid": "jane.doe",
-                "givenName": "Jane",
-                "sn": "Doe",
-                "cn": "Jane Doe"
-            }
-        ]
+        {
+            "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
+            "uid": "jane.doe",
+            "givenName": "Jane",
+            "sn": "Doe",
+            "cn": "Jane Doe"
+        },
+        {
+            "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
+            "uid": "junior.doe",
+            "givenName": "Junior",
+            "sn": "Doe",
+            "cn": "Junior Doe"
+        },
+        {
+            "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
+            "uid": "jack.buck",
+            "givenName": "Jack",
+            "sn": "Buck",
+            "cn": "Jack Buck"
+        }
+    ]
 }

@@ -67,20 +67,27 @@ public class ResultTranslator {
 
     public DocCtx translate(SearchResultEntry entry, EntityMetadata md){
         FieldCursor cursor = md.getFieldCursor();
-
+        String entityName = md.getEntityInfo().getName();
         if (cursor.firstChild()) {
-            return new DocCtx(new JsonDoc(toJson(entry, cursor)));
+            return new DocCtx(new JsonDoc(toJson(entry, cursor, entityName)));
         }
 
         return null;
     }
 
-    private JsonNode toJson(SearchResultEntry entry, FieldCursor fieldCursor){
+    private JsonNode toJson(SearchResultEntry entry, FieldCursor fieldCursor, String entityName){
         ObjectNode node = factory.objectNode();
 
         do {
             FieldTreeNode field = fieldCursor.getCurrentNode();
             String fieldName = field.getName();
+            if(fieldName.endsWith("#")){
+                /*
+                 * This case will be handled by the array itself, allowing this to
+                 * process runs the risk of nulling out the correct value.
+                 */
+                continue;
+            }
 
             Attribute attr = entry.getAttribute(fieldName);
 
@@ -94,6 +101,7 @@ public class ResultTranslator {
                 }
                 else if (field instanceof ArrayField){
                     value = toJson((ArrayField)field, attr, fieldCursor);
+                    node.set(fieldName + "#", IntegerType.TYPE.toJson(factory, attr.getValues().length));
                 }
                 else if (field instanceof ReferenceField) {
                     value = toJson((ReferenceField)field, attr);
@@ -101,6 +109,9 @@ public class ResultTranslator {
                 else{
                     throw new UnsupportedOperationException("Unknown Field type: " + field.getClass().getName());
                 }
+            }
+            else if(fieldName.equalsIgnoreCase("objectType")){
+                value = StringType.TYPE.toJson(factory, entityName);
             }
 
             node.set(fieldName, value);

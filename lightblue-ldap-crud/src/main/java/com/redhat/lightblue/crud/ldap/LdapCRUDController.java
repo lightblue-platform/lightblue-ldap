@@ -38,6 +38,7 @@ import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.DocCtx;
 import com.redhat.lightblue.crud.ldap.translator.unboundid.FilterTranslator;
 import com.redhat.lightblue.crud.ldap.translator.unboundid.ResultTranslator;
+import com.redhat.lightblue.crud.ldap.translator.unboundid.SortTranslator;
 import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
 import com.redhat.lightblue.eval.Projector;
 import com.redhat.lightblue.hystrix.ldap.InsertCommand;
@@ -60,6 +61,8 @@ import com.unboundid.ldap.sdk.ResultCode;
 import com.unboundid.ldap.sdk.SearchRequest;
 import com.unboundid.ldap.sdk.SearchResult;
 import com.unboundid.ldap.sdk.SearchScope;
+import com.unboundid.ldap.sdk.controls.ServerSideSortRequestControl;
+import com.unboundid.ldap.sdk.controls.VirtualListViewRequestControl;
 
 /**
  * {@link CRUDController} implementation for LDAP.
@@ -130,7 +133,7 @@ public class LdapCRUDController implements CRUDController{
                         entry.addAttribute(new Attribute(node.getKey(), values));
                     }
                     else{
-                        if(node.getKey().endsWith("#")){
+                        if(node.getKey().endsWith("#") || node.getKey().equalsIgnoreCase("objectType")){
                             //TODO: Indicates the field is an auto-generated array count. Skip for now. See PredefinedFields
                             continue;
                         }
@@ -211,6 +214,13 @@ public class LdapCRUDController implements CRUDController{
                     SearchScope.SUB,
                     new FilterTranslator().translate(query),
                     collectRequiredFields(md, projection, query, sort));
+            if(sort != null){
+                request.addControl(new ServerSideSortRequestControl(true, new SortTranslator().translate(sort)));
+            }
+            if((from != null) && (from > 0)){
+                request.addControl(new VirtualListViewRequestControl(from.intValue(), 0, new Long(to - from).intValue(), 0, null, false));
+            }
+
             SearchResult result = connection.search(request);
 
             response.setSize(result.getEntryCount());
@@ -286,11 +296,18 @@ public class LdapCRUDController implements CRUDController{
 
         FieldCursor cursor = md.getFieldCursor();
         while(cursor.next()) {
-            Path field = cursor.getCurrentPath();
-            if( ((projection != null) && projection.isFieldRequiredToEvaluateProjection(field))
-                    || ((query != null) && query.isRequired(field))
-                    || ((sort != null) && sort.isRequired(field)) ) {
-                fields.add(field.getLast());
+            Path node = cursor.getCurrentPath();
+            String fieldName = node.getLast();
+
+            if(fieldName.endsWith("#")){
+                fields.add(fieldName.substring(0, fieldName.length() - 1));
+            }
+            else{
+                if(((projection != null) && projection.isFieldRequiredToEvaluateProjection(node))
+                        || ((query != null) && query.isRequired(node))
+                        || ((sort != null) && sort.isRequired(node))) {
+                    fields.add(fieldName);
+                }
             }
         }
 

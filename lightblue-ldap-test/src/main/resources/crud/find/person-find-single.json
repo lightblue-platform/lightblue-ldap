@@ -1,20 +1,15 @@
 {
-        "entity": "person",
-        "entityVersion": "1.0.0",
-        "projection": [
-            {"field": "dn"},
-            {"field": "uid"}
-        ],
-        "query": {
-            "field": "uid",
-            "op": "$eq",
-            "rvalue": "john.doe"
-        },
-        "range": [
-            0,
-            10
-        ],
-        "sort": {
-            "uid": "$asc"
-        }
+    "entity": "person",
+    "entityVersion": "1.0.0",
+    "projection": [
+        {"field": "dn"},
+        {"field": "uid"},
+        {"field": "objectType"},
+        {"field": "objectClass#"}
+    ],
+    "query": {
+        "field": "uid",
+        "op": "$eq",
+        "rvalue": "john.doe"
+    }
  }

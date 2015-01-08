@@ -9,7 +9,11 @@
         "op": "$eq",
         "rvalue": "Doe"
     },
+    "range": [
+        2,
+        2
+    ],
     "sort": {
         "givenName": "$desc"
     }
-}
+ }

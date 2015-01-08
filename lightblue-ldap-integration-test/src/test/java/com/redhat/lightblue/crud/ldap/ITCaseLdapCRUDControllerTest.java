@@ -123,11 +123,11 @@ public class ITCaseLdapCRUDControllerTest{
 
         assertNotNull(response);
         assertNoErrors(response);
-        assertEquals(2, response.getModifiedCount());
+        assertEquals(4, response.getModifiedCount());
     }
 
     @Test
-    public void step2Find() throws Exception{
+    public void step2FindSingle() throws Exception{
         Response response = lightblueFactory.getMediator().find(
                 createRequest(FindRequest.class, "./crud/find/person-find-single.json"));
 
@@ -137,21 +137,44 @@ public class ITCaseLdapCRUDControllerTest{
 
         JsonNode entityData = response.getEntityData();
         assertNotNull(entityData);
-        JSONAssert.assertEquals("[{\"dn\":\"uid=john.doe,dc=example,dc=com\",\"uid\":\"john.doe\"}]", entityData.toString(), false);
+        JSONAssert.assertEquals(
+                "[{\"dn\":\"uid=john.doe,dc=example,dc=com\",\"uid\":\"john.doe\",\"objectType\":\"person\",\"objectClass#\":4}]",
+                entityData.toString(), false);
     }
 
     @Test
-    public void step2FindMultiple() throws Exception{
+    public void step2FindMany() throws Exception{
         Response response = lightblueFactory.getMediator().find(
                 createRequest(FindRequest.class, "./crud/find/person-find-many.json"));
 
         assertNotNull(response);
         assertNoErrors(response);
-        assertEquals(2, response.getMatchCount());
+        assertEquals(3, response.getMatchCount());
 
         JsonNode entityData = response.getEntityData();
         assertNotNull(entityData);
-        JSONAssert.assertEquals("[{\"dn\":\"uid=john.doe,dc=example,dc=com\"},{\"dn\":\"uid=jane.doe,dc=example,dc=com\"}]", entityData.toString(), false);
+
+        //Search requests results in desc order, strict mode is enforced to assure this.
+        JSONAssert.assertEquals(
+                "[{\"dn\":\"uid=junior.doe,dc=example,dc=com\"},{\"dn\":\"uid=john.doe,dc=example,dc=com\"},{\"dn\":\"uid=jane.doe,dc=example,dc=com\"}]",
+                entityData.toString(), true);
+    }
+
+    @Test
+    public void step2FindMany_WithPagination() throws Exception{
+        Response response = lightblueFactory.getMediator().find(
+                createRequest(FindRequest.class, "./crud/find/person-find-many-paginated.json"));
+
+        assertNotNull(response);
+        assertNoErrors(response);
+        assertEquals(1, response.getMatchCount());
+
+        JsonNode entityData = response.getEntityData();
+        assertNotNull(entityData);
+
+        JSONAssert.assertEquals(
+                "[{\"dn\":\"uid=john.doe,dc=example,dc=com\"}]",
+                entityData.toString(), false);
     }
 
 }
