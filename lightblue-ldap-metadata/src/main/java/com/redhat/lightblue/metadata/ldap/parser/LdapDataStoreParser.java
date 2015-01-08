@@ -18,6 +18,7 @@
  */
 package com.redhat.lightblue.metadata.ldap.parser;
 
+import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapDataStore;
 import com.redhat.lightblue.metadata.DataStore;
 import com.redhat.lightblue.metadata.MetadataConstants;
@@ -32,7 +33,7 @@ public class LdapDataStoreParser<T> implements DataStoreParser<T> {
     private final static String UNIQUE_FIELD = "uniqueattr";
 
     public DataStore parse(String name, MetadataParser<T> p, T node) {
-        if (!LdapDataStore.BACKEND.equals(name)) {
+        if (!LdapConstant.BACKEND.equals(name)) {
             throw Error.get(MetadataConstants.ERR_ILL_FORMED_METADATA, name);
         }
 
@@ -56,7 +57,7 @@ public class LdapDataStoreParser<T> implements DataStoreParser<T> {
     }
 
     public String getDefaultName() {
-        return LdapDataStore.BACKEND;
+        return LdapConstant.BACKEND;
     }
 
 }

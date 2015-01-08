@@ -31,7 +31,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.redhat.lightblue.common.ldap.DBResolver;
+import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapDataStore;
+import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.crud.CRUDController;
 import com.redhat.lightblue.crud.CRUDDeleteResponse;
 import com.redhat.lightblue.crud.CRUDFindResponse;
@@ -82,8 +84,6 @@ import com.unboundid.ldap.sdk.controls.VirtualListViewRequestControl;
  */
 public class LdapCRUDController implements CRUDController{
 
-    public static final String DN = "dn";
-
     private final DBResolver dbResolver;
 
     public LdapCRUDController(DBResolver dbResolver){
@@ -129,7 +129,7 @@ public class LdapCRUDController implements CRUDController{
             Iterator<Map.Entry<String, JsonNode>> nodeIterator = rootNode.fields();
             while(nodeIterator.hasNext()){
                 Map.Entry<String, JsonNode> node = nodeIterator.next();
-                if(DN.equalsIgnoreCase(node.getKey())){
+                if(LdapConstant.FIELD_DN.equalsIgnoreCase(node.getKey())){
                     throw new IllegalArgumentException(
                             "DN should not be included as it's value will be derived from the metadata.basedn and" +
                             " the metadata.uniqueattr. Including the DN as an insert attribute is confusing.");
@@ -144,7 +144,7 @@ public class LdapCRUDController implements CRUDController{
                     entry.addAttribute(new Attribute(node.getKey(), values));
                 }
                 else{
-                    if(node.getKey().endsWith("#") || node.getKey().equalsIgnoreCase("objectType")){
+                    if(LightblueUtil.isFieldPredefined(node.getKey())){
                         /*
                          * Indicates the field is auto-generated for lightblue purposes. These fields
                          * should not be inserted into LDAP.
@@ -184,9 +184,9 @@ public class LdapCRUDController implements CRUDController{
                 String dn = insertedDn.getValue();
                 DocCtx projectionResponseJson = null;
 
-                if((requiredFields.size() == 1) && requiredFields.contains(DN)){
+                if((requiredFields.size() == 1) && requiredFields.contains(LdapConstant.FIELD_DN)){
                     ObjectNode node = factory.objectNode();
-                    node.set(DN, StringType.TYPE.toJson(factory, dn));
+                    node.set(LdapConstant.FIELD_DN, StringType.TYPE.toJson(factory, dn));
                     projectionResponseJson = new DocCtx(new JsonDoc(node));
                 }
                 //TODO: else fetch entity from LDAP and project results.
@@ -292,12 +292,12 @@ public class LdapCRUDController implements CRUDController{
              */
             public void beforeCreateNewSchema(Metadata m, EntityMetadata md) {
                 Fields fields = md.getEntitySchema().getFields();
-                if(!fields.has(DN)){
-                    fields.addNew(new SimpleField(DN, StringType.TYPE));
+                if(!fields.has(LdapConstant.FIELD_DN)){
+                    fields.addNew(new SimpleField(LdapConstant.FIELD_DN, StringType.TYPE));
                 }
-                if(!fields.has("objectClass")){
-                    fields.addNew(new ArrayField("objectClass", new SimpleArrayElement(StringType.TYPE)));
-                    fields.addNew(new SimpleField("objectClass#", IntegerType.TYPE));
+                if(!fields.has(LdapConstant.FIELD_OBJECT_CLASS)){
+                    fields.addNew(new ArrayField(LdapConstant.FIELD_OBJECT_CLASS, new SimpleArrayElement(StringType.TYPE)));
+                    fields.addNew(new SimpleField(LightblueUtil.createArrayCountFieldName(LdapConstant.FIELD_OBJECT_CLASS), IntegerType.TYPE));
                 }
             }
 
@@ -359,7 +359,7 @@ public class LdapCRUDController implements CRUDController{
             if(((projection != null) && projection.isFieldRequiredToEvaluateProjection(node))
                     || ((query != null) && query.isRequired(node))
                     || ((sort != null) && sort.isRequired(node))) {
-                if(fieldName.endsWith("#")){
+                if(LightblueUtil.isFieldAnArrayCount(fieldName)){
                     /*
                      * Handles the case of an array count field, which will not actually exist in
                      * the ldap entity.

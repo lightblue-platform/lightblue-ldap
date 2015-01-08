@@ -25,6 +25,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.redhat.lightblue.common.ldap.LdapConstant;
+import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.crud.DocCtx;
 import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityMetadata;
@@ -81,7 +83,7 @@ public class ResultTranslator {
         do {
             FieldTreeNode field = fieldCursor.getCurrentNode();
             String fieldName = field.getName();
-            if(fieldName.endsWith("#")){
+            if(LightblueUtil.isFieldAnArrayCount(fieldName)){
                 /*
                  * This case will be handled by the array itself, allowing this to
                  * process runs the risk of nulling out the correct value.
@@ -101,7 +103,7 @@ public class ResultTranslator {
                 }
                 else if (field instanceof ArrayField){
                     value = toJson((ArrayField)field, attr, fieldCursor);
-                    node.set(fieldName + "#", IntegerType.TYPE.toJson(factory, attr.getValues().length));
+                    node.set(LightblueUtil.createArrayCountFieldName(fieldName), IntegerType.TYPE.toJson(factory, attr.getValues().length));
                 }
                 else if (field instanceof ReferenceField) {
                     value = toJson((ReferenceField)field, attr);
@@ -110,14 +112,14 @@ public class ResultTranslator {
                     throw new UnsupportedOperationException("Unknown Field type: " + field.getClass().getName());
                 }
             }
-            else if(fieldName.equalsIgnoreCase("objectType")){
+            else if(LightblueUtil.isFieldObjectType(fieldName)){
                 value = StringType.TYPE.toJson(factory, entityName);
             }
 
             node.set(fieldName, value);
         } while(fieldCursor.nextSibling());
 
-        node.set("dn", StringType.TYPE.toJson(factory, entry.getDN()));
+        node.set(LdapConstant.FIELD_DN, StringType.TYPE.toJson(factory, entry.getDN()));
         return node;
     }
 

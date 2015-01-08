@@ -24,14 +24,12 @@ public class LdapDataStore implements DataStore {
 
     private static final long serialVersionUID = 7599798419158041647L;
 
-    public static final String BACKEND = "ldap";
-
     private String database;
     private String baseDN;
     private String uniqueField;
 
     public String getBackend() {
-        return BACKEND;
+        return LdapConstant.BACKEND;
     }
 
     public String getDatabase() {
