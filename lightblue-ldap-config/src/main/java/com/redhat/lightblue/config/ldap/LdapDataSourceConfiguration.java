@@ -37,6 +37,11 @@ import com.unboundid.ldap.sdk.ServerSet;
 import com.unboundid.ldap.sdk.SimpleBindRequest;
 import com.unboundid.ldap.sdk.SingleServerSet;
 
+/**
+ * {@link DataSourceConfiguration} for LDAP.
+ *
+ * @author dcrissman
+ */
 public class LdapDataSourceConfiguration implements DataSourceConfiguration{
 
     private static final long serialVersionUID = 3276072662352275664L;

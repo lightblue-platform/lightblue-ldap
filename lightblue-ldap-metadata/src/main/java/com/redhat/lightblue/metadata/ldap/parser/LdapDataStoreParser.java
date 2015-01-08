@@ -26,6 +26,11 @@ import com.redhat.lightblue.metadata.parser.DataStoreParser;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.util.Error;
 
+/**
+ * {@link DataStoreParser} implementation for LDAP.
+ *
+ * @author dcrissman
+ */
 public class LdapDataStoreParser<T> implements DataStoreParser<T> {
 
     private final static String DATABASE = "database";

@@ -20,6 +20,11 @@ package com.redhat.lightblue.common.ldap;
 
 import com.redhat.lightblue.metadata.DataStore;
 
+/**
+ * {@link DataStore} for LDAP.
+ *
+ * @author dcrissman
+ */
 public class LdapDataStore implements DataStore {
 
     private static final long serialVersionUID = 7599798419158041647L;

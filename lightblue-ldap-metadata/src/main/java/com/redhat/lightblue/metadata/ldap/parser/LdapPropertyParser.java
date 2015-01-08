@@ -21,6 +21,11 @@ package com.redhat.lightblue.metadata.ldap.parser;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.parser.PropertyParser;
 
+/**
+ * {@link PropertyParser} implementation for LDAP.
+ *
+ * @author dcrissman
+ */
 public class LdapPropertyParser <T> extends PropertyParser<T> {
 
     public Object parse(String name, MetadataParser<T> p, T node) {
