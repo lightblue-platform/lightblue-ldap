@@ -124,6 +124,12 @@ public class ITCaseLdapCRUDControllerTest{
         assertNotNull(response);
         assertNoErrors(response);
         assertEquals(4, response.getModifiedCount());
+
+        JsonNode entityData = response.getEntityData();
+        assertNotNull(entityData);
+        JSONAssert.assertEquals(
+                "[{\"dn\":\"uid=junior.doe,dc=example,dc=com\"},{\"dn\":\"uid=john.doe,dc=example,dc=com\"},{\"dn\":\"uid=jane.doe,dc=example,dc=com\"},{\"dn\":\"uid=jack.buck,dc=example,dc=com\"}]",
+                entityData.toString(), false);
     }
 
     @Test

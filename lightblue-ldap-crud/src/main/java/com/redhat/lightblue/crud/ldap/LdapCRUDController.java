@@ -19,13 +19,17 @@
 package com.redhat.lightblue.crud.ldap;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.redhat.lightblue.common.ldap.DBResolver;
 import com.redhat.lightblue.common.ldap.LdapDataStore;
 import com.redhat.lightblue.crud.CRUDController;
@@ -46,6 +50,7 @@ import com.redhat.lightblue.metadata.DataStore;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.FieldCursor;
 import com.redhat.lightblue.metadata.MetadataListener;
+import com.redhat.lightblue.metadata.types.StringType;
 import com.redhat.lightblue.query.Projection;
 import com.redhat.lightblue.query.QueryExpression;
 import com.redhat.lightblue.query.Sort;
@@ -53,7 +58,6 @@ import com.redhat.lightblue.query.UpdateExpression;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.Attribute;
-import com.unboundid.ldap.sdk.Entry;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.LDAPResult;
@@ -70,6 +74,8 @@ import com.unboundid.ldap.sdk.controls.VirtualListViewRequestControl;
  * @author dcrissman
  */
 public class LdapCRUDController implements CRUDController{
+
+    public static final String DN = "dn";
 
     private final DBResolver dbResolver;
 
@@ -90,80 +96,110 @@ public class LdapCRUDController implements CRUDController{
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
         LdapDataStore store = getLdapDataStore(md);
 
-        //TODO Revisit Projection
-        //FieldAccessRoleEvaluator roleEval = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
-        /*Projection combinedProjection = Projection.add(
-                projection,
-                roleEval.getExcludedFields(FieldAccessRoleEvaluator.Operation.insert));*/
+        Map<DocCtx, String> insertedDns = new HashMap<DocCtx, String>();
 
-        /*        Projector projector = null;
-        if(combinedProjection != null){
-            projector = Projector.getInstance(combinedProjection, md);
-        }*/
-
+        LDAPConnection connection = null;
         try {
-            LDAPConnection connection = dbResolver.get(store);
-
-            for(DocCtx document : documents){
-                //document.setOriginalDocument(document);
-                JsonNode rootNode = document.getRoot();
-
-                JsonNode uniqueNode = rootNode.get(store.getUniqueField());
-                if(uniqueNode == null){
-                    throw new IllegalArgumentException(store.getUniqueField() + " is a required field");
-                }
-
-                Entry entry = new Entry(createDN(store, uniqueNode.asText()));
-
-                Iterator<Map.Entry<String, JsonNode>> nodeIterator = rootNode.fields();
-                while(nodeIterator.hasNext()){
-                    Map.Entry<String, JsonNode> node = nodeIterator.next();
-                    if("dn".equalsIgnoreCase(node.getKey())){
-                        throw new IllegalArgumentException(
-                                "DN should not be included as it's value will be derived from the metadata.basedn and" +
-                                " the metadata.uniqueattr. Including the DN as an insert attribute is confusing.");
-                    }
-
-                    JsonNode valueNode = node.getValue();
-                    if(valueNode.isArray()){
-                        List<String> values = new ArrayList<String>();
-                        for(JsonNode string : valueNode){
-                            values.add(string.asText());
-                        }
-                        entry.addAttribute(new Attribute(node.getKey(), values));
-                    }
-                    else{
-                        if(node.getKey().endsWith("#") || node.getKey().equalsIgnoreCase("objectType")){
-                            //TODO: Indicates the field is an auto-generated array count. Skip for now. See PredefinedFields
-                            continue;
-                        }
-
-                        entry.addAttribute(new Attribute(node.getKey(), node.getValue().asText()));
-                    }
-                }
-
-                InsertCommand command = new InsertCommand(connection, entry);
-
-                LDAPResult result = command.execute();
-                if(result.getResultCode() != ResultCode.SUCCESS){
-                    //TODO: Do something to indicate unsuccessful status
-                    continue;
-                }
-
-                /*if(projector != null){
-                    JsonDoc jsonDoc = null; //TODO: actually populate field.
-                    document.setOutputDocument(projector.project(jsonDoc, ctx.getFactory().getNodeFactory()));
-                }
-                else{*/
-                //document.setOutputDocument(new JsonDoc(new ObjectNode(ctx.getFactory().getNodeFactory())));
-                //}
-
-                response.setNumInserted(response.getNumInserted() + 1);
-            }
+            connection = dbResolver.get(store);
         }
         catch (LDAPException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            //TODO: throw more relevant exception.
+            throw new RuntimeException("Unable to establish connection to LDAP", e);
+        }
+
+        for(DocCtx document : documents){
+            JsonNode rootNode = document.getRoot();
+
+            JsonNode uniqueNode = rootNode.get(store.getUniqueField());
+            if(uniqueNode == null){
+                throw new IllegalArgumentException(store.getUniqueField() + " is a required field");
+            }
+
+            String dn = createDN(store, uniqueNode.asText());
+            insertedDns.put(document, dn);
+            com.unboundid.ldap.sdk.Entry entry = new com.unboundid.ldap.sdk.Entry(dn);
+
+            Iterator<Map.Entry<String, JsonNode>> nodeIterator = rootNode.fields();
+            while(nodeIterator.hasNext()){
+                Map.Entry<String, JsonNode> node = nodeIterator.next();
+                if(DN.equalsIgnoreCase(node.getKey())){
+                    throw new IllegalArgumentException(
+                            "DN should not be included as it's value will be derived from the metadata.basedn and" +
+                            " the metadata.uniqueattr. Including the DN as an insert attribute is confusing.");
+                }
+
+                JsonNode valueNode = node.getValue();
+                if(valueNode.isArray()){
+                    List<String> values = new ArrayList<String>();
+                    for(JsonNode string : valueNode){
+                        values.add(string.asText());
+                    }
+                    entry.addAttribute(new Attribute(node.getKey(), values));
+                }
+                else{
+                    if(node.getKey().endsWith("#") || node.getKey().equalsIgnoreCase("objectType")){
+                        /*
+                         * Indicates the field is auto-generated for lightblue purposes. These fields
+                         * should not be inserted into LDAP.
+                         */
+                        continue;
+                    }
+
+                    entry.addAttribute(new Attribute(node.getKey(), node.getValue().asText()));
+                }
+            }
+
+            InsertCommand command = new InsertCommand(connection, entry);
+
+            LDAPResult result = command.execute();
+            if(result.getResultCode() != ResultCode.SUCCESS){
+                //TODO: Do something to indicate unsuccessful status
+                continue;
+            }
+
+            response.setNumInserted(response.getNumInserted() + 1);
+        }
+
+        if(projection != null){
+            JsonNodeFactory factory = ctx.getFactory().getNodeFactory();
+            Set<String> requiredFields = collectRequiredFields(md, projection, null, null);
+            Projector projector = Projector.getInstance(
+                    Projection.add(
+                            projection,
+                            new FieldAccessRoleEvaluator(
+                                    md,
+                                    ctx.getCallerRoles()).getExcludedFields(FieldAccessRoleEvaluator.Operation.insert)
+                            ),
+                            md);
+
+            for(Entry<DocCtx, String> insertedDn : insertedDns.entrySet()){
+                DocCtx document = insertedDn.getKey();
+                String dn = insertedDn.getValue();
+
+                DocCtx projectionResponseJson = null;
+
+                if((requiredFields.size() == 1) && requiredFields.contains(DN)){
+                    ObjectNode node = factory.objectNode();
+                    node.set(DN, StringType.TYPE.toJson(factory, dn));
+                    projectionResponseJson = new DocCtx(new JsonDoc(node));
+                }
+                /*                else{
+                    try {
+                        SearchRequest request = new SearchRequest(
+                                store.getBaseDN(),
+                                SearchScope.BASE,
+                                "",
+                                requiredFields.toArray(new String[0]));
+                        SearchResult result = connection.search(request);
+                    }
+                    catch (LDAPException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }*/
+
+                document.setOutputDocument(projector.project(projectionResponseJson, factory));
+            }
         }
 
         return response;
@@ -213,9 +249,9 @@ public class LdapCRUDController implements CRUDController{
                     store.getBaseDN(),
                     SearchScope.SUB,
                     new FilterTranslator().translate(query),
-                    collectRequiredFields(md, projection, query, sort));
+                    collectRequiredFields(md, projection, query, sort).toArray(new String[0]));
             if(sort != null){
-                request.addControl(new ServerSideSortRequestControl(true, new SortTranslator().translate(sort)));
+                request.addControl(new ServerSideSortRequestControl(false, new SortTranslator().translate(sort)));
             }
             if((from != null) && (from > 0)){
                 request.addControl(new VirtualListViewRequestControl(from.intValue(), 0, new Long(to - from).intValue(), 0, null, false));
@@ -290,7 +326,7 @@ public class LdapCRUDController implements CRUDController{
      * @param sort - (optional) {@link Sort}.
      * @return list of field names.
      */
-    private String[] collectRequiredFields(EntityMetadata md,
+    private Set<String> collectRequiredFields(EntityMetadata md,
             Projection projection, QueryExpression query, Sort sort){
         Set<String> fields = new HashSet<String>();
 
@@ -299,19 +335,23 @@ public class LdapCRUDController implements CRUDController{
             Path node = cursor.getCurrentPath();
             String fieldName = node.getLast();
 
-            if(fieldName.endsWith("#")){
-                fields.add(fieldName.substring(0, fieldName.length() - 1));
-            }
-            else{
-                if(((projection != null) && projection.isFieldRequiredToEvaluateProjection(node))
-                        || ((query != null) && query.isRequired(node))
-                        || ((sort != null) && sort.isRequired(node))) {
+            if(((projection != null) && projection.isFieldRequiredToEvaluateProjection(node))
+                    || ((query != null) && query.isRequired(node))
+                    || ((sort != null) && sort.isRequired(node))) {
+                if(fieldName.endsWith("#")){
+                    /*
+                     * Handles the case of an array count field, which will not actually exist in
+                     * the ldap entity.
+                     */
+                    fields.add(fieldName.substring(0, fieldName.length() - 1));
+                }
+                else{
                     fields.add(fieldName);
                 }
             }
         }
 
-        return fields.toArray(new String[0]);
+        return fields;
     }
 
 }
