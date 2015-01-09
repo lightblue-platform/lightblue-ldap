@@ -31,6 +31,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.redhat.lightblue.crud.DocCtx;
+import com.redhat.lightblue.crud.ldap.translator.ResultTranslator;
 import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.Field;

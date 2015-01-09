@@ -25,6 +25,7 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
+import com.redhat.lightblue.crud.ldap.translator.FilterTranslator;
 import com.redhat.lightblue.query.ArrayContainsExpression;
 import com.redhat.lightblue.query.BinaryComparisonOperator;
 import com.redhat.lightblue.query.ContainsOperator;

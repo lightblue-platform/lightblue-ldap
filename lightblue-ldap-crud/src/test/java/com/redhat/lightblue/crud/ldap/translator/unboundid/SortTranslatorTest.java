@@ -27,6 +27,7 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
+import com.redhat.lightblue.crud.ldap.translator.SortTranslator;
 import com.redhat.lightblue.query.CompositeSortKey;
 import com.redhat.lightblue.query.Sort;
 import com.redhat.lightblue.query.SortKey;
