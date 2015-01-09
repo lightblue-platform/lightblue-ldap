@@ -74,6 +74,7 @@ public class ResultTranslator {
             return new DocCtx(new JsonDoc(toJson(entry, cursor, entityName)));
         }
 
+        //TODO: What to do in case of a null value here?
         return null;
     }
 
@@ -131,13 +132,13 @@ public class ResultTranslator {
             value = attr.getValue();
         }
         else if(type instanceof IntegerType){
-            value =  attr.getValueAsInteger();
+            value = attr.getValueAsInteger();
         }
         else if(type instanceof BooleanType){
-            value =  attr.getValueAsBoolean();
+            value = attr.getValueAsBoolean();
         }
         else if(type instanceof DateType){
-            value =  attr.getValueAsDate();
+            value = attr.getValueAsDate();
         }
         //TODO BigDecimalType, BigIntegerType, BinaryType, DoubleType, UIDType
 
