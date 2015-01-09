@@ -90,6 +90,7 @@ public class LdapCRUDController implements CRUDController{
         this.dbResolver = dbResolver;
     }
 
+    @Override
     public CRUDInsertionResponse insert(CRUDOperationContext ctx,
             Projection projection) {
         CRUDInsertionResponse response = new CRUDInsertionResponse();
@@ -103,7 +104,7 @@ public class LdapCRUDController implements CRUDController{
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
         LdapDataStore store = getLdapDataStore(md);
 
-        Map<DocCtx, String> insertedDns = new HashMap<DocCtx, String>();
+        Map<DocCtx, String> documentToDnMap = new HashMap<DocCtx, String>();
 
         LDAPConnection connection = null;
         try {
@@ -123,7 +124,7 @@ public class LdapCRUDController implements CRUDController{
             }
 
             String dn = createDN(store, uniqueNode.asText());
-            insertedDns.put(document, dn);
+            documentToDnMap.put(document, dn);
             com.unboundid.ldap.sdk.Entry entry = new com.unboundid.ldap.sdk.Entry(dn);
 
             Iterator<Map.Entry<String, JsonNode>> nodeIterator = rootNode.fields();
@@ -131,8 +132,8 @@ public class LdapCRUDController implements CRUDController{
                 Map.Entry<String, JsonNode> node = nodeIterator.next();
                 if(LdapConstant.FIELD_DN.equalsIgnoreCase(node.getKey())){
                     throw new IllegalArgumentException(
-                            "DN should not be included as it's value will be derived from the metadata.basedn and" +
-                            " the metadata.uniqueattr. Including the DN as an insert attribute is confusing.");
+                            "'dn' should not be included as it's value will be derived from the metadata.basedn and" +
+                            " the metadata.uniqueattr. Including the 'dn' as an insert attribute is confusing.");
                 }
 
                 JsonNode valueNode = node.getValue();
@@ -167,44 +168,19 @@ public class LdapCRUDController implements CRUDController{
             response.setNumInserted(response.getNumInserted() + 1);
         }
 
-        if(projection != null){
-            JsonNodeFactory factory = ctx.getFactory().getNodeFactory();
-            Set<String> requiredFields = collectRequiredFields(md, projection, null, null);
-            Projector projector = Projector.getInstance(
-                    Projection.add(
-                            projection,
-                            new FieldAccessRoleEvaluator(
-                                    md,
-                                    ctx.getCallerRoles()).getExcludedFields(FieldAccessRoleEvaluator.Operation.insert)
-                            ),
-                            md);
-
-            for(Entry<DocCtx, String> insertedDn : insertedDns.entrySet()){
-                DocCtx document = insertedDn.getKey();
-                String dn = insertedDn.getValue();
-                DocCtx projectionResponseJson = null;
-
-                if((requiredFields.size() == 1) && requiredFields.contains(LdapConstant.FIELD_DN)){
-                    ObjectNode node = factory.objectNode();
-                    node.set(LdapConstant.FIELD_DN, StringType.TYPE.toJson(factory, dn));
-                    projectionResponseJson = new DocCtx(new JsonDoc(node));
-                }
-                //TODO: else fetch entity from LDAP and project results.
-                //TODO: Probably want to batch fetch as opposed to individual fetches.
-
-                document.setOutputDocument(projector.project(projectionResponseJson, factory));
-            }
-        }
+        projectChanges(projection, ctx, documentToDnMap);
 
         return response;
     }
 
+    @Override
     public CRUDSaveResponse save(CRUDOperationContext ctx, boolean upsert,
             Projection projection) {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public CRUDUpdateResponse update(CRUDOperationContext ctx,
             QueryExpression query, UpdateExpression update,
             Projection projection) {
@@ -212,12 +188,14 @@ public class LdapCRUDController implements CRUDController{
         return null;
     }
 
+    @Override
     public CRUDDeleteResponse delete(CRUDOperationContext ctx,
             QueryExpression query) {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public CRUDFindResponse find(CRUDOperationContext ctx,
             QueryExpression query, Projection projection, Sort sort, Long from,
             Long to) {
@@ -276,13 +254,16 @@ public class LdapCRUDController implements CRUDController{
         return response;
     }
 
+    @Override
     public void updatePredefinedFields(CRUDOperationContext ctx, JsonDoc doc) {
         //Do Nothing!!
     }
 
+    @Override
     public MetadataListener getMetadataListener() {
         return new MetadataListener() {
 
+            @Override
             public void beforeUpdateEntityInfo(Metadata m, EntityInfo ei, boolean newEntity) {
                 //Do Nothing!!
             }
@@ -290,6 +271,7 @@ public class LdapCRUDController implements CRUDController{
             /**
              * Ensure that dn and objectClass are on the entity.
              */
+            @Override
             public void beforeCreateNewSchema(Metadata m, EntityMetadata md) {
                 Fields fields = md.getEntitySchema().getFields();
                 if(!fields.has(LdapConstant.FIELD_DN)){
@@ -301,10 +283,12 @@ public class LdapCRUDController implements CRUDController{
                 }
             }
 
+            @Override
             public void afterUpdateEntityInfo(Metadata m, EntityInfo ei, boolean newEntity) {
                 //Do Nothing!!
             }
 
+            @Override
             public void afterCreateNewSchema(Metadata m, EntityMetadata md) {
                 //Do Nothing!!
             }
@@ -373,6 +357,48 @@ public class LdapCRUDController implements CRUDController{
         }
 
         return fields;
+    }
+
+    /**
+     * For Insert and Save (and possibly Update), this method will project the results back
+     * onto the documents.
+     * @param projection - {@link Projection} If null, then nothing will happen.
+     * @param ctx - {@link CRUDOperationContext}
+     * @param documentToDnMap - Map linking {@link DocCtx} to the DN that represents it.
+     */
+    private void projectChanges(Projection projection, CRUDOperationContext ctx, Map<DocCtx, String> documentToDnMap) {
+        if(projection == null){
+            return;
+        }
+
+        EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
+        JsonNodeFactory factory = ctx.getFactory().getNodeFactory();
+        Set<String> requiredFields = collectRequiredFields(md, projection, null, null);
+        Projector projector = Projector.getInstance(
+                Projection.add(
+                        projection,
+                        new FieldAccessRoleEvaluator(
+                                md,
+                                ctx.getCallerRoles()).getExcludedFields(FieldAccessRoleEvaluator.Operation.insert)
+                        ),
+                        md);
+
+        for(Entry<DocCtx, String> insertedDn : documentToDnMap.entrySet()){
+            DocCtx document = insertedDn.getKey();
+            String dn = insertedDn.getValue();
+            DocCtx projectionResponseJson = null;
+
+            // If only dn is in the projection, then no need to query LDAP.
+            if((requiredFields.size() == 1) && requiredFields.contains(LdapConstant.FIELD_DN)){
+                ObjectNode node = factory.objectNode();
+                node.set(LdapConstant.FIELD_DN, StringType.TYPE.toJson(factory, dn));
+                projectionResponseJson = new DocCtx(new JsonDoc(node));
+            }
+            //TODO: else fetch entity from LDAP and project results.
+            //TODO: Probably want to batch fetch as opposed to individual fetches.
+
+            document.setOutputDocument(projector.project(projectionResponseJson, factory));
+        }
     }
 
 }
