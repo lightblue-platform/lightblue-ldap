@@ -46,7 +46,7 @@ public class SortTranslator {
         if(sort instanceof CompositeSortKey){
             CompositeSortKey comoposite = (CompositeSortKey) sort;
             for(Sort subSort : comoposite.getKeys()){
-                translate(subSort);
+                doTranslate(subSort, results);
             }
         }
         else if(sort instanceof SortKey){
