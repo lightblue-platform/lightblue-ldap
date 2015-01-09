@@ -33,6 +33,33 @@
     <name>lightblue-ldap: ${project.groupId}|${project.artifactId}</name>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <description>Lightblue LDAP implementation</description>
+    
+    <prerequisites>
+        <maven>3.0</maven>
+    </prerequisites>
+    
+    <licenses>
+        <license>
+            <name>GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007</name>
+            <url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    
+    <scm>
+        <connection>scm:git:https://github.com/lightblue-platform/lightblue-ldap.git</connection>
+        <developerConnection>scm:git:git@github.com:lightblue-platform/lightblue-ldap.git</developerConnection>
+        <url>https://github.com/lightblue-platform/lightblue-ldap</url>
+      <tag>HEAD</tag>
+    </scm>
+    
+    <distributionManagement>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
     
     <properties>
         <!-- Lightblue Core -->
