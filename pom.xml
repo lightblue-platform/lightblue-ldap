@@ -114,6 +114,10 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.redhat.lightblue</groupId>
+            <artifactId>test</artifactId>
+        </dependency>
     </dependencies>
     
     <dependencyManagement>
@@ -197,6 +201,12 @@
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.redhat.lightblue</groupId>
+                <artifactId>test</artifactId>
+                <version>${lightblue-core.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

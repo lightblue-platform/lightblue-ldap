@@ -37,7 +37,8 @@ public class LdapDataStoreParser<T> implements DataStoreParser<T> {
     private final static String BASEDN = "basedn";
     private final static String UNIQUE_FIELD = "uniqueattr";
 
-    public DataStore parse(String name, MetadataParser<T> p, T node) {
+    @Override
+    public LdapDataStore parse(String name, MetadataParser<T> p, T node) {
         if (!LdapConstant.BACKEND.equals(name)) {
             throw Error.get(MetadataConstants.ERR_ILL_FORMED_METADATA, name);
         }
@@ -50,6 +51,7 @@ public class LdapDataStoreParser<T> implements DataStoreParser<T> {
         return dataStore;
     }
 
+    @Override
     public void convert(MetadataParser<T> p, T emptyNode, DataStore store) {
         if(!(store instanceof LdapDataStore)){
             throw new IllegalArgumentException("DataStore of type " + store.getClass() + " is not supported.");
@@ -61,6 +63,7 @@ public class LdapDataStoreParser<T> implements DataStoreParser<T> {
         p.putString(emptyNode, UNIQUE_FIELD, ds.getUniqueField());
     }
 
+    @Override
     public String getDefaultName() {
         return LdapConstant.BACKEND;
     }
