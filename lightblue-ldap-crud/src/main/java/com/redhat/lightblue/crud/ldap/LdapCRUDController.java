@@ -226,7 +226,8 @@ public class LdapCRUDController implements CRUDController{
                 request.addControl(new ServerSideSortRequestControl(false, new SortTranslator().translate(sort)));
             }
             if((from != null) && (from > 0)){
-                request.addControl(new VirtualListViewRequestControl(from.intValue(), 0, new Long(to - from).intValue(), 0, null, false));
+                int endPos = to.intValue() - from.intValue();
+                request.addControl(new VirtualListViewRequestControl(from.intValue(), 0, endPos, 0, null, false));
             }
 
             SearchResult result = connection.search(request);
