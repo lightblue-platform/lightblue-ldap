@@ -86,10 +86,10 @@
     <modules>
         <module>lightblue-ldap-test</module>
         <module>lightblue-ldap-common</module>
-        <module>lightblue-ldap-config</module>
+        <module>lightblue-ldap-hystrix</module>
         <module>lightblue-ldap-crud</module>
         <module>lightblue-ldap-metadata</module>
-        <module>lightblue-ldap-hystrix</module>
+        <module>lightblue-ldap-config</module>
         <module>lightblue-ldap-integration-test</module>
     </modules>
     
