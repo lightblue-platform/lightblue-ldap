@@ -27,7 +27,7 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import com.redhat.lightblue.crud.ldap.translator.SortTranslator;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.query.CompositeSortKey;
 import com.redhat.lightblue.query.Sort;
 import com.redhat.lightblue.query.SortKey;
@@ -94,6 +94,19 @@ public class SortTranslatorTest {
         assertNotNull(translatedSort2);
         assertEquals(fieldName2, translatedSort2.getAttributeName());
         assertFalse(translatedSort2.reverseOrder());
+    }
+
+    @SuppressWarnings("serial")
+    @Test(expected = IllegalArgumentException.class)
+    public void testUnsupportedSortType(){
+        new SortTranslator().translate(new Sort(){
+
+            @Override
+            public JsonNode toJson() {
+                throw new UnsupportedOperationException("Method should never be called.");
+            }
+
+        });
     }
 
 }

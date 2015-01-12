@@ -25,15 +25,18 @@ import java.util.Arrays;
 
 import org.junit.Test;
 
-import com.redhat.lightblue.crud.ldap.translator.FilterTranslator;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.query.ArrayContainsExpression;
+import com.redhat.lightblue.query.ArrayMatchExpression;
 import com.redhat.lightblue.query.BinaryComparisonOperator;
 import com.redhat.lightblue.query.ContainsOperator;
+import com.redhat.lightblue.query.FieldComparisonExpression;
 import com.redhat.lightblue.query.NaryLogicalExpression;
 import com.redhat.lightblue.query.NaryLogicalOperator;
 import com.redhat.lightblue.query.NaryRelationalExpression;
 import com.redhat.lightblue.query.NaryRelationalOperator;
 import com.redhat.lightblue.query.QueryExpression;
+import com.redhat.lightblue.query.RegexMatchExpression;
 import com.redhat.lightblue.query.UnaryLogicalExpression;
 import com.redhat.lightblue.query.UnaryLogicalOperator;
 import com.redhat.lightblue.query.Value;
@@ -42,6 +45,19 @@ import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.Filter;
 
 public class FilterTranslatorTest {
+
+    @SuppressWarnings("serial")
+    @Test(expected = UnsupportedOperationException.class)
+    public void testTranslate_UnsupportedFilterType(){
+        new FilterTranslator().translate(new QueryExpression(){
+
+            @Override
+            public JsonNode toJson() {
+                throw new UnsupportedOperationException("Method should never be called.");
+            }
+
+        });
+    }
 
     @Test
     public void testTranslate_ValueComparisonExpression_Equals(){
@@ -182,6 +198,27 @@ public class FilterTranslatorTest {
 
         Filter filter = new FilterTranslator().translate(query);
         assertEquals("(!(&(somekey=somevalue)(somekey=someothervalue)))", filter.toString());
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testTranslate_ArrayMatchExpression(){
+        QueryExpression query = new ArrayMatchExpression(null, null);
+
+        new FilterTranslator().translate(query);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testTranslate_FieldComparisonExpression(){
+        QueryExpression query = new FieldComparisonExpression(null, null, null);
+
+        new FilterTranslator().translate(query);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testTranslate_RegexMatchExpression(){
+        QueryExpression query = new RegexMatchExpression(null, null, false, false, false, false);
+
+        new FilterTranslator().translate(query);
     }
 
 }

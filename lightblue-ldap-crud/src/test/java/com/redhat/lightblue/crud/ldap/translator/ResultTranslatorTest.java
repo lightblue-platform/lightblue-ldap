@@ -23,24 +23,31 @@ import static org.junit.Assert.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.json.JSONException;
 import org.junit.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.redhat.lightblue.crud.DocCtx;
-import com.redhat.lightblue.crud.ldap.translator.ResultTranslator;
+import com.redhat.lightblue.metadata.ArrayElement;
 import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.Field;
+import com.redhat.lightblue.metadata.FieldTreeNode;
+import com.redhat.lightblue.metadata.ObjectField;
+import com.redhat.lightblue.metadata.ReferenceField;
 import com.redhat.lightblue.metadata.SimpleArrayElement;
 import com.redhat.lightblue.metadata.SimpleField;
+import com.redhat.lightblue.metadata.Type;
 import com.redhat.lightblue.metadata.types.BooleanType;
 import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.metadata.types.IntegerType;
 import com.redhat.lightblue.metadata.types.StringType;
+import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldap.sdk.SearchResult;
 import com.unboundid.ldap.sdk.SearchResultEntry;
@@ -139,6 +146,55 @@ public class ResultTranslatorTest {
                 true);
     }
 
+    @Test(expected = UnsupportedOperationException.class)
+    public void testTranslate_SimpleField_Unknown() throws JSONException{
+        SearchResult result = fakeSearchResult(
+                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                        new Attribute("uid", "john.doe")
+                }));
+
+        EntityMetadata md = fakeEntityMetadata("fakeMetadata",
+                new SimpleField("uid", new Type(){
+
+                    @Override
+                    public String getName() {
+                        throw new UnsupportedOperationException("Method should never be called.");
+                    }
+
+                    @Override
+                    public boolean supportsEq() {
+                        throw new UnsupportedOperationException("Method should never be called.");
+                    }
+
+                    @Override
+                    public boolean supportsOrdering() {
+                        throw new UnsupportedOperationException("Method should never be called.");
+                    }
+
+                    @Override
+                    public JsonNode toJson(JsonNodeFactory factory, Object value) {
+                        throw new UnsupportedOperationException("Method should never be called.");
+                    }
+
+                    @Override
+                    public Object fromJson(JsonNode value) {
+                        throw new UnsupportedOperationException("Method should never be called.");
+                    }
+
+                    @Override
+                    public int compare(Object v1, Object v2) {
+                        throw new UnsupportedOperationException("Method should never be called.");
+                    }
+
+                    @Override
+                    public Object cast(Object v) {
+                        throw new UnsupportedOperationException("Method should never be called.");
+                    }
+                }));
+
+        new ResultTranslator(factory).translate(result, md);
+    }
+
     @Test
     public void testTranslate_ObjectType() throws JSONException{
         SearchResult result = fakeSearchResult(
@@ -231,6 +287,88 @@ public class ResultTranslatorTest {
                 "{\"objectClass\":[\"top\",\"person\",\"organizationalPerson\",\"inetOrgPerson\"],\"objectClass#\":4,\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
                 documents.get(0).getOutputDocument().toString(),
                 true);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testTranslate_UnknownArrayElement() throws JSONException{
+        SearchResult result = fakeSearchResult(
+                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                        new Attribute("fakeArray", Arrays.asList("top", "person", "organizationalPerson", "inetOrgPerson"))
+                }));
+
+        @SuppressWarnings("serial")
+        EntityMetadata md = fakeEntityMetadata("fakeMetadata",
+                new ArrayField("fakeArray", new ArrayElement(){
+
+                    @Override
+                    public boolean hasChildren() {
+                        throw new UnsupportedOperationException("Method should never be called.");
+                    }
+
+                    @Override
+                    public Iterator<? extends FieldTreeNode> getChildren() {
+                        throw new UnsupportedOperationException("Method should never be called.");
+                    }
+
+                    @Override
+                    public FieldTreeNode resolve(Path p, int level) {
+                        throw new UnsupportedOperationException("Method should never be called.");
+                    }
+                }));
+
+        new ResultTranslator(factory).translate(result, md);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testTranslate_ObjectField() throws JSONException{
+        SearchResult result = fakeSearchResult(
+                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{new Attribute("fake")}));
+
+        EntityMetadata md = fakeEntityMetadata("fakeMetadata",
+                new ObjectField("fake")
+                );
+
+        new ResultTranslator(factory).translate(result, md);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testTranslate_ReferenceField() throws JSONException{
+        SearchResult result = fakeSearchResult(
+                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{new Attribute("fake")}));
+
+        EntityMetadata md = fakeEntityMetadata("fakeMetadata",
+                new ReferenceField("fake")
+                );
+
+        new ResultTranslator(factory).translate(result, md);
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testTranslate_UnsupportedField() throws JSONException{
+        SearchResult result = fakeSearchResult(
+                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{new Attribute("fake")}));
+
+        @SuppressWarnings("serial")
+        EntityMetadata md = fakeEntityMetadata("fakeMetadata", new Field("fake"){
+
+            @Override
+            public boolean hasChildren() {
+                throw new UnsupportedOperationException("Method should never be called.");
+            }
+
+            @Override
+            public Iterator<? extends FieldTreeNode> getChildren() {
+                throw new UnsupportedOperationException("Method should never be called.");
+            }
+
+            @Override
+            public FieldTreeNode resolve(Path p, int level) {
+                throw new UnsupportedOperationException("Method should never be called.");
+            }
+
+        });
+
+        new ResultTranslator(factory).translate(result, md);
     }
 
     protected SearchResult fakeSearchResult(SearchResultEntry... entries){

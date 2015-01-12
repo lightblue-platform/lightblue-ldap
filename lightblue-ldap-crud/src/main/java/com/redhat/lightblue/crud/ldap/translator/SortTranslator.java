@@ -53,6 +53,9 @@ public class SortTranslator {
             SortKey key = (SortKey) sort;
             results.add(new com.unboundid.ldap.sdk.controls.SortKey(key.getField().getLast(), key.isDesc()));
         }
+        else{
+            throw new IllegalArgumentException("Unsupported Sort type: " + sort.getClass().getName());
+        }
     }
 
 }

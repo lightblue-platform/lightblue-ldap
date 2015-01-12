@@ -42,6 +42,11 @@ public class LightblueUtilTest {
     }
 
     @Test
+    public void testIsFieldAnArrayCount_NullValue(){
+        assertFalse(LightblueUtil.isFieldAnArrayCount(null));
+    }
+
+    @Test
     public void testIsFieldAnArrayCount_False(){
         assertFalse(LightblueUtil.isFieldAnArrayCount("somearray"));
     }
