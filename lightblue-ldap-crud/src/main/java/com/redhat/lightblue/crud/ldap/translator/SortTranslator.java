@@ -18,8 +18,8 @@
  */
 package com.redhat.lightblue.crud.ldap.translator;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.redhat.lightblue.query.CompositeSortKey;
 import com.redhat.lightblue.query.Sort;
@@ -34,7 +34,7 @@ import com.redhat.lightblue.query.SortKey;
 public class SortTranslator {
 
     public com.unboundid.ldap.sdk.controls.SortKey[] translate(Sort sort){
-        Set<com.unboundid.ldap.sdk.controls.SortKey> results = new LinkedHashSet<com.unboundid.ldap.sdk.controls.SortKey>();
+        List<com.unboundid.ldap.sdk.controls.SortKey> results = new ArrayList<com.unboundid.ldap.sdk.controls.SortKey>();
         doTranslate(sort, results);
         return results.toArray(new com.unboundid.ldap.sdk.controls.SortKey[0]);
     }
@@ -42,7 +42,7 @@ public class SortTranslator {
     /*
      * Recursive method!
      */
-    private void doTranslate(Sort sort, Set<com.unboundid.ldap.sdk.controls.SortKey> results){
+    private void doTranslate(Sort sort, List<com.unboundid.ldap.sdk.controls.SortKey> results){
         if(sort instanceof CompositeSortKey){
             CompositeSortKey comoposite = (CompositeSortKey) sort;
             for(Sort subSort : comoposite.getKeys()){
