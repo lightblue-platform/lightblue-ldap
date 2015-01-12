@@ -18,24 +18,63 @@
  */
 package com.redhat.lightblue.ldap.test;
 
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
+import com.redhat.lightblue.ldap.test.LdapServerExternalResource.InMemoryLdapServer;
+import com.unboundid.ldap.sdk.LDAPConnection;
+import com.unboundid.ldap.sdk.LDAPException;
+
 public class LdapServerExternalResourceTest {
 
-    @Test(expected = IllegalStateException.class)
-    public void testApply_WithoutAnnotation_onTestLevel(){
-        new LdapServerExternalResource().apply(mock(Statement.class), mock(Description.class));
+    public static class SimpleTests{
+
+        @Test(expected = IllegalStateException.class)
+        public void testApply_WithoutAnnotation_onTestLevel(){
+            new LdapServerExternalResource().apply(mock(Statement.class), mock(Description.class));
+        }
+
+        @Test(expected = IllegalStateException.class)
+        public void testApply_WithoutAnnotation_onClassLevel(){
+            new LdapServerExternalResource().apply(
+                    mock(Statement.class),
+                    Description.createSuiteDescription(Object.class));
+        }
+
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void testApply_WithoutAnnotation_onClassLevel(){
-        new LdapServerExternalResource().apply(
-                mock(Statement.class),
-                Description.createSuiteDescription(Object.class));
+    @InMemoryLdapServer
+    public static class AnnotationOnClassRule{
+
+        @ClassRule
+        public static final LdapServerExternalResource ldapServer =  LdapServerExternalResource.createDefaultInstance();
+
+        @Test
+        public void testConnection() throws LDAPException{
+            LDAPConnection conn = new LDAPConnection("localhost", LdapServerExternalResource.DEFAULT_PORT);
+            assertNotNull(conn.getEntry("dc=example,dc=com"));
+        }
+
+    }
+
+    @InMemoryLdapServer
+    public static class AnnotationOnRule{
+
+        @Rule
+        public LdapServerExternalResource ldapServer =  LdapServerExternalResource.createDefaultInstance();
+
+        @Test
+        public void testConnection() throws LDAPException{
+            LDAPConnection conn = new LDAPConnection("localhost", LdapServerExternalResource.DEFAULT_PORT);
+            assertNotNull(conn.getEntry("dc=example,dc=com"));
+        }
+
     }
 
 }
