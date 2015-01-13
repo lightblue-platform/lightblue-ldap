@@ -41,6 +41,7 @@ import com.redhat.lightblue.crud.CRUDInsertionResponse;
 import com.redhat.lightblue.crud.CRUDOperationContext;
 import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
+import com.redhat.lightblue.crud.CrudConstants;
 import com.redhat.lightblue.crud.DocCtx;
 import com.redhat.lightblue.crud.ldap.translator.FilterTranslator;
 import com.redhat.lightblue.crud.ldap.translator.ResultTranslator;
@@ -64,6 +65,7 @@ import com.redhat.lightblue.query.Projection;
 import com.redhat.lightblue.query.QueryExpression;
 import com.redhat.lightblue.query.Sort;
 import com.redhat.lightblue.query.UpdateExpression;
+import com.redhat.lightblue.util.Error;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.Attribute;
@@ -115,7 +117,15 @@ public class LdapCRUDController implements CRUDController{
             throw new RuntimeException("Unable to establish connection to LDAP", e);
         }
 
+        FieldAccessRoleEvaluator roles = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
+
         for(DocCtx document : documents){
+            List<Path> paths = roles.getInaccessibleFields_Insert(document);
+            if((paths != null) && !paths.isEmpty()){
+                document.addError(Error.get("insert", CrudConstants.ERR_NO_FIELD_INSERT_ACCESS, paths.toString()));
+                continue;
+            }
+
             JsonNode rootNode = document.getRoot();
 
             JsonNode uniqueNode = rootNode.get(store.getUniqueField());

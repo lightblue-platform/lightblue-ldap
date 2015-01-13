@@ -1,15 +1,15 @@
 {
     "entityInfo": {
-        "name": "person",
+        "name": "department",
         "datastore": {
             "backend":"ldap",
             "database": "${ldap.database}",
-            "basedn": "${ldap.person.basedn}",
-            "uniqueattr": "uid"
+            "basedn": "${ldap.department.basedn}",
+            "uniqueattr": "cn"
         }
     },
     "schema": {
-        "name": "person",
+        "name": "department",
         "version": {
             "value": "1.0.0",
             "changelog": "blahblah"
@@ -24,10 +24,16 @@
              "find": ["anyone"]
         },
         "fields": {
-            "uid": {"type": "string"},
-            "givenName": {"type": "string"},
-            "sn": {"type": "string"},
-            "cn": {"type": "string"}
+            "cn": {"type": "string"},
+            "member": {
+                "type": "array",
+                "items": {"type": "string"},
+                "access": {
+                    "find": ["admin","manager"],
+                    "insert": ["admin"]
+                }
+            },
+            "description": {"type": "string"}
         }
     }
 }
