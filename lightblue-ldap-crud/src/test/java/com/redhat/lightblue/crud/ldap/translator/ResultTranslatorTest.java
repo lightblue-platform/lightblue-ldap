@@ -21,10 +21,12 @@ package com.redhat.lightblue.crud.ldap.translator;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import org.json.JSONException;
 import org.junit.Test;
@@ -42,11 +44,16 @@ import com.redhat.lightblue.metadata.ObjectField;
 import com.redhat.lightblue.metadata.ReferenceField;
 import com.redhat.lightblue.metadata.SimpleArrayElement;
 import com.redhat.lightblue.metadata.SimpleField;
-import com.redhat.lightblue.metadata.Type;
+import com.redhat.lightblue.metadata.types.BigDecimalType;
+import com.redhat.lightblue.metadata.types.BigIntegerType;
+import com.redhat.lightblue.metadata.types.BinaryType;
 import com.redhat.lightblue.metadata.types.BooleanType;
 import com.redhat.lightblue.metadata.types.DateType;
+import com.redhat.lightblue.metadata.types.DoubleType;
 import com.redhat.lightblue.metadata.types.IntegerType;
 import com.redhat.lightblue.metadata.types.StringType;
+import com.redhat.lightblue.metadata.types.UIDType;
+import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldap.sdk.SearchResult;
@@ -124,6 +131,124 @@ public class ResultTranslatorTest {
     }
 
     @Test
+    public void testTranslate_SimpleField_BigDecimalType() throws JSONException{
+        SearchResult result = fakeSearchResult(
+                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                        new Attribute("key", String.valueOf(Double.MAX_VALUE))
+                }));
+
+        EntityMetadata md = fakeEntityMetadata("fakeMetadata",
+                new SimpleField("key", BigDecimalType.TYPE)
+                );
+
+        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+
+        assertNotNull(documents);
+        assertEquals(1, documents.size());
+
+        JSONAssert.assertEquals(
+                "{\"key\":" + String.valueOf(Double.MAX_VALUE) + ",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
+                documents.get(0).getOutputDocument().toString(),
+                true);
+    }
+
+    @Test
+    public void testTranslate_SimpleField_BigIntegerType() throws JSONException{
+        SearchResult result = fakeSearchResult(
+                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                        new Attribute("key", BigInteger.ZERO.toString())
+                }));
+
+        EntityMetadata md = fakeEntityMetadata("fakeMetadata",
+                new SimpleField("key", BigIntegerType.TYPE)
+                );
+
+        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+
+        assertNotNull(documents);
+        assertEquals(1, documents.size());
+
+        JSONAssert.assertEquals(
+                "{\"key\":" + BigInteger.ZERO + ",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
+                documents.get(0).getOutputDocument().toString(),
+                true);
+    }
+
+    @Test
+    public void testTranslate_SimpleField_DoubleType() throws JSONException{
+        SearchResult result = fakeSearchResult(
+                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                        new Attribute("key", String.valueOf(Double.MAX_VALUE))
+                }));
+
+        EntityMetadata md = fakeEntityMetadata("fakeMetadata",
+                new SimpleField("key", DoubleType.TYPE)
+                );
+
+        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+
+        assertNotNull(documents);
+        assertEquals(1, documents.size());
+
+        JSONAssert.assertEquals(
+                "{\"key\":" + String.valueOf(Double.MAX_VALUE) + ",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
+                documents.get(0).getOutputDocument().toString(),
+                true);
+    }
+
+    @Test
+    public void testTranslate_SimpleField_UIDType() throws JSONException{
+        String uuid = UUID.randomUUID().toString();
+
+        SearchResult result = fakeSearchResult(
+                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                        new Attribute("key", uuid)
+                }));
+
+        EntityMetadata md = fakeEntityMetadata("fakeMetadata",
+                new SimpleField("key", UIDType.TYPE)
+                );
+
+        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+
+        assertNotNull(documents);
+        assertEquals(1, documents.size());
+
+        JSONAssert.assertEquals(
+                "{\"key\":" + uuid + ",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
+                documents.get(0).getOutputDocument().toString(),
+                true);
+    }
+
+    @Test
+    public void testTranslate_SimpleField_BinaryType() throws Exception{
+        byte[] bite = new byte[]{1, 2, 3, 'a', 'b', 'c'};
+
+        SearchResult result = fakeSearchResult(
+                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                        new Attribute("key", bite)
+                }));
+
+        EntityMetadata md = fakeEntityMetadata("fakeMetadata",
+                new SimpleField("key", BinaryType.TYPE)
+                );
+
+        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+
+        assertNotNull(documents);
+        assertEquals(1, documents.size());
+        JsonDoc document = documents.get(0).getOutputDocument();
+
+        JsonNode keyNode = document.get(new Path("key"));
+        assertEquals(bite, keyNode.binaryValue());
+
+        JSONAssert.assertEquals(
+                "{\"key\":\"" + keyNode.asText() + "\",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
+                document.toString(),
+                true);
+    }
+
+    @Test
     public void testTranslate_SimpleField_Date() throws JSONException{
         //Note in and out data are formatted differently
         SearchResult result = fakeSearchResult(
@@ -144,55 +269,6 @@ public class ResultTranslatorTest {
                 "{\"key\":\"20150109T20:17:31.570+0000\",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
                 documents.get(0).getOutputDocument().toString(),
                 true);
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testTranslate_SimpleField_Unknown() throws JSONException{
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
-                        new Attribute("uid", "john.doe")
-                }));
-
-        EntityMetadata md = fakeEntityMetadata("fakeMetadata",
-                new SimpleField("uid", new Type(){
-
-                    @Override
-                    public String getName() {
-                        throw new UnsupportedOperationException("Method should never be called.");
-                    }
-
-                    @Override
-                    public boolean supportsEq() {
-                        throw new UnsupportedOperationException("Method should never be called.");
-                    }
-
-                    @Override
-                    public boolean supportsOrdering() {
-                        throw new UnsupportedOperationException("Method should never be called.");
-                    }
-
-                    @Override
-                    public JsonNode toJson(JsonNodeFactory factory, Object value) {
-                        throw new UnsupportedOperationException("Method should never be called.");
-                    }
-
-                    @Override
-                    public Object fromJson(JsonNode value) {
-                        throw new UnsupportedOperationException("Method should never be called.");
-                    }
-
-                    @Override
-                    public int compare(Object v1, Object v2) {
-                        throw new UnsupportedOperationException("Method should never be called.");
-                    }
-
-                    @Override
-                    public Object cast(Object v) {
-                        throw new UnsupportedOperationException("Method should never be called.");
-                    }
-                }));
-
-        new ResultTranslator(factory).translate(result, md);
     }
 
     @Test
