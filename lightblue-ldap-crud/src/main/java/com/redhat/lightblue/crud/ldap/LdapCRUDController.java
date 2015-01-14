@@ -122,8 +122,10 @@ public class LdapCRUDController implements CRUDController{
         for(DocCtx document : documents){
             List<Path> paths = roles.getInaccessibleFields_Insert(document);
             if((paths != null) && !paths.isEmpty()){
-                document.addError(Error.get("insert", CrudConstants.ERR_NO_FIELD_INSERT_ACCESS, paths.toString()));
-                continue;
+                for(Path path : paths){
+                    document.addError(Error.get("insert", CrudConstants.ERR_NO_FIELD_INSERT_ACCESS, path.toString()));
+                    continue;
+                }
             }
 
             JsonNode rootNode = document.getRoot();

@@ -261,7 +261,7 @@ public class ITCaseLdapCRUDControllerTest{
 
         assertNoErrors(response);
         assertEquals(1, response.getDataErrors().size());
-        JSONAssert.assertEquals("{\"errors\":[{\"errorCode\":\"crud:insert:NoFieldAccess\",\"msg\":\"[member]\"}]}",
+        JSONAssert.assertEquals("{\"errors\":[{\"errorCode\":\"crud:insert:NoFieldAccess\",\"msg\":\"member\"}]}",
                 response.getDataErrors().get(0).toJson().toString(), false);
     }
 
