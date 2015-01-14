@@ -145,7 +145,9 @@ public class LdapCRUDController implements CRUDController{
                     entry.addAttribute(new Attribute(node.getKey(), values));
                 }
                 else{
-                    if(LightblueUtil.isFieldPredefined(node.getKey())){
+                    String fieldName = node.getKey();
+                    if(LightblueUtil.isFieldObjectType(fieldName)
+                            || LightblueUtil.isFieldAnArrayCount(fieldName, md.getFields())){
                         /*
                          * Indicates the field is auto-generated for lightblue purposes. These fields
                          * should not be inserted into LDAP.
@@ -344,12 +346,12 @@ public class LdapCRUDController implements CRUDController{
             if(((projection != null) && projection.isFieldRequiredToEvaluateProjection(node))
                     || ((query != null) && query.isRequired(node))
                     || ((sort != null) && sort.isRequired(node))) {
-                if(LightblueUtil.isFieldAnArrayCount(fieldName)){
+                if(LightblueUtil.isFieldAnArrayCount(fieldName, md.getFields())){
                     /*
                      * Handles the case of an array count field, which will not actually exist in
                      * the ldap entity.
                      */
-                    fields.add(fieldName.substring(0, fieldName.length() - 1));
+                    fields.add(LightblueUtil.createArrayFieldNameFromCountField(fieldName));
                 }
                 else{
                     fields.add(fieldName);

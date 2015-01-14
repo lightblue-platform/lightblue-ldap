@@ -32,6 +32,7 @@ import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.FieldCursor;
 import com.redhat.lightblue.metadata.FieldTreeNode;
+import com.redhat.lightblue.metadata.Fields;
 import com.redhat.lightblue.metadata.ObjectField;
 import com.redhat.lightblue.metadata.ReferenceField;
 import com.redhat.lightblue.metadata.SimpleArrayElement;
@@ -70,21 +71,22 @@ public class ResultTranslator {
     public DocCtx translate(SearchResultEntry entry, EntityMetadata md){
         FieldCursor cursor = md.getFieldCursor();
         String entityName = md.getEntityInfo().getName();
+        Fields fields = md.getFields();
         if (cursor.firstChild()) {
-            return new DocCtx(new JsonDoc(toJson(entry, cursor, entityName)));
+            return new DocCtx(new JsonDoc(toJson(entry, cursor, entityName, fields)));
         }
 
         //TODO: What to do in case of a null value here?
         return null;
     }
 
-    private JsonNode toJson(SearchResultEntry entry, FieldCursor fieldCursor, String entityName){
+    private JsonNode toJson(SearchResultEntry entry, FieldCursor fieldCursor, String entityName, Fields fields){
         ObjectNode node = factory.objectNode();
 
         do {
             FieldTreeNode field = fieldCursor.getCurrentNode();
             String fieldName = field.getName();
-            if(LightblueUtil.isFieldAnArrayCount(fieldName)){
+            if(LightblueUtil.isFieldAnArrayCount(fieldName, fields)){
                 /*
                  * This case will be handled by the array itself, allowing this to
                  * process runs the risk of nulling out the correct value.

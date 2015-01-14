@@ -20,9 +20,14 @@ package com.redhat.lightblue.common.ldap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+
+import com.redhat.lightblue.metadata.ArrayField;
+import com.redhat.lightblue.metadata.Fields;
+import com.redhat.lightblue.metadata.SimpleField;
 
 public class LightblueUtilTest {
 
@@ -37,43 +42,76 @@ public class LightblueUtilTest {
     }
 
     @Test
-    public void testIsFieldAnArrayCount_True(){
-        assertTrue(LightblueUtil.isFieldAnArrayCount("somearray" + LightblueUtil.FIELD_MOD_ARRAY_COUNT));
+    public void testIsFieldObjectType_NullValue(){
+        assertFalse(LightblueUtil.isFieldObjectType(null));
     }
 
     @Test
-    public void testIsFieldAnArrayCount_NullValue(){
-        assertFalse(LightblueUtil.isFieldAnArrayCount(null));
+    public void testDoesFieldNameMatchArrayCountPattern_True(){
+        assertTrue(LightblueUtil.doesFieldNameMatchArrayCountPattern("somearray" + LightblueUtil.FIELD_ARRAY_COUNT_POSTFIX));
     }
 
     @Test
-    public void testIsFieldAnArrayCount_False(){
-        assertFalse(LightblueUtil.isFieldAnArrayCount("somearray"));
+    public void testDoesFieldNameMatchArrayCountPattern_NullValue(){
+        assertFalse(LightblueUtil.doesFieldNameMatchArrayCountPattern(null));
     }
 
     @Test
-    public void testIsFieldPredefined_ObjectType_True(){
-        assertTrue(LightblueUtil.isFieldPredefined(LightblueUtil.FIELD_OBJECT_TYPE));
-    }
-
-    @Test
-    public void testIsFieldPredefined_ObjectType_False(){
-        assertFalse(LightblueUtil.isFieldPredefined("NOT " + LightblueUtil.FIELD_OBJECT_TYPE));
-    }
-
-    @Test
-    public void testIsFieldPredefined_Array_True(){
-        assertTrue(LightblueUtil.isFieldPredefined("somearray" + LightblueUtil.FIELD_MOD_ARRAY_COUNT));
-    }
-
-    @Test
-    public void testIsFieldPredefined_Array_False(){
-        assertFalse(LightblueUtil.isFieldPredefined("somearray"));
+    public void testDoesFieldNameMatchArrayCountPattern_False(){
+        assertFalse(LightblueUtil.doesFieldNameMatchArrayCountPattern("somearray"));
     }
 
     @Test
     public void testCreateArrayCountFieldName(){
         assertEquals("somearray#", LightblueUtil.createArrayCountFieldName("somearray"));
+    }
+
+    @Test
+    public void testCreateArrayFieldNameFromCountField_NullValue(){
+        assertNull(LightblueUtil.createArrayFieldNameFromCountField(null));
+    }
+
+    @Test
+    public void testCreateArrayFieldNameFromCountField_NotArrayCountField(){
+        String nonArrayCountFieldName = "notarraycount";
+        assertEquals(nonArrayCountFieldName, LightblueUtil.createArrayFieldNameFromCountField(nonArrayCountFieldName));
+    }
+
+    @Test
+    public void testCreateArrayFieldNameFromCountField_ArrayCountField(){
+        String arrayFieldName = "arrayFieldName";
+        String arrayCountFieldName = arrayFieldName + LightblueUtil.FIELD_ARRAY_COUNT_POSTFIX;
+        assertEquals(arrayFieldName, LightblueUtil.createArrayFieldNameFromCountField(arrayCountFieldName));
+    }
+
+    @Test
+    public void testIsFieldAnArrayCount_DoesNotMatchArrayCountPattern(){
+        assertFalse(LightblueUtil.isFieldAnArrayCount("someField", null));
+    }
+
+    @Test
+    public void testIsFieldAnArrayCount_DoesNotHaveMatchingArrayField(){
+        assertFalse(LightblueUtil.isFieldAnArrayCount("someField" + LightblueUtil.FIELD_ARRAY_COUNT_POSTFIX, new Fields(null)));
+    }
+
+    @Test
+    public void testIsFieldAnArrayCount_True(){
+        String arrayFieldName = "arrayField";
+
+        Fields fields = new Fields(null);
+        fields.addNew(new ArrayField(arrayFieldName));
+
+        assertTrue(LightblueUtil.isFieldAnArrayCount(arrayFieldName + LightblueUtil.FIELD_ARRAY_COUNT_POSTFIX, fields));
+    }
+
+    @Test
+    public void testIsFieldAnArrayCount_Exists_ButNotArrayField(){
+        String arrayFieldName = "arrayField";
+
+        Fields fields = new Fields(null);
+        fields.addNew(new SimpleField(arrayFieldName));
+
+        assertFalse(LightblueUtil.isFieldAnArrayCount(arrayFieldName + LightblueUtil.FIELD_ARRAY_COUNT_POSTFIX, fields));
     }
 
 }
