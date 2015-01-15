@@ -38,7 +38,7 @@ import com.redhat.lightblue.metadata.ReferenceField;
 import com.redhat.lightblue.metadata.SimpleArrayElement;
 import com.redhat.lightblue.metadata.SimpleField;
 import com.redhat.lightblue.metadata.Type;
-import com.redhat.lightblue.metadata.types.BooleanType;
+import com.redhat.lightblue.metadata.types.BinaryType;
 import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.metadata.types.IntegerType;
 import com.redhat.lightblue.metadata.types.StringType;
@@ -106,7 +106,9 @@ public class ResultTranslator {
                 }
                 else if (field instanceof ArrayField){
                     value = toJson((ArrayField)field, attr, fieldCursor);
-                    node.set(LightblueUtil.createArrayCountFieldName(fieldName), IntegerType.TYPE.toJson(factory, attr.getValues().length));
+                    node.set(
+                            LightblueUtil.createArrayCountFieldName(fieldName),
+                            IntegerType.TYPE.toJson(factory, attr.getValues().length));
                 }
                 else if (field instanceof ReferenceField) {
                     value = toJson((ReferenceField)field, attr);
@@ -130,22 +132,14 @@ public class ResultTranslator {
         Type type = field.getType();
 
         Object value = null;
-        if(type instanceof StringType){
-            value = attr.getValue();
-        }
-        else if(type instanceof IntegerType){
-            value = attr.getValueAsInteger();
-        }
-        else if(type instanceof BooleanType){
-            value = attr.getValueAsBoolean();
-        }
-        else if(type instanceof DateType){
+        if(type instanceof DateType){
             value = attr.getValueAsDate();
         }
-        //TODO BigDecimalType, BigIntegerType, BinaryType, DoubleType, UIDType
-
-        if(value == null){
-            throw new UnsupportedOperationException("Unable to convert Type: " + type.getClass().getName());
+        else if(type instanceof BinaryType){
+            value = attr.getValueByteArray();
+        }
+        else{
+            value = attr.getValue();
         }
 
         return field.getType().toJson(factory, value);
