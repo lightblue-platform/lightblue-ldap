@@ -142,6 +142,10 @@ public class ResultTranslator {
             value = attr.getValue();
         }
 
+        if(value == null){
+            throw new NullPointerException("Unable to convert LDAP attribute to json resulting in a null value: " + attr);
+        }
+
         return field.getType().toJson(factory, value);
     }
 

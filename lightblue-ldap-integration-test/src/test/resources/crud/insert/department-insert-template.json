@@ -5,7 +5,7 @@
         "field": "dn"
     },
     "data": {
-        "objectClass": ["groupofNames"],
+        "objectClass": ["top", "groupofNames"],
         "cn": "#cn",
         "description": "#description",
         "member": [#members]

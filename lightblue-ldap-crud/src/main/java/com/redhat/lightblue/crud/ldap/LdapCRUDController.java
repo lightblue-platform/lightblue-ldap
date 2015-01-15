@@ -21,7 +21,6 @@ package com.redhat.lightblue.crud.ldap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -68,7 +67,6 @@ import com.redhat.lightblue.query.UpdateExpression;
 import com.redhat.lightblue.util.Error;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.Path;
-import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.LDAPResult;
@@ -106,8 +104,6 @@ public class LdapCRUDController implements CRUDController{
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
         LdapDataStore store = getLdapDataStore(md);
 
-        Map<DocCtx, String> documentToDnMap = new HashMap<DocCtx, String>();
-
         LDAPConnection connection = null;
         try {
             connection = dbResolver.get(store);
@@ -118,7 +114,11 @@ public class LdapCRUDController implements CRUDController{
         }
 
         FieldAccessRoleEvaluator roles = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
+        EntryBuilder entryBuilder = new EntryBuilder(md);
 
+        //Create Entry instances for each document.
+        List<com.unboundid.ldap.sdk.Entry> entries = new ArrayList<com.unboundid.ldap.sdk.Entry>();
+        Map<DocCtx, String> documentToDnMap = new HashMap<DocCtx, String>();
         for(DocCtx document : documents){
             List<Path> paths = roles.getInaccessibleFields_Insert(document);
             if((paths != null) && !paths.isEmpty()){
@@ -137,40 +137,11 @@ public class LdapCRUDController implements CRUDController{
 
             String dn = createDN(store, uniqueNode.asText());
             documentToDnMap.put(document, dn);
-            com.unboundid.ldap.sdk.Entry entry = new com.unboundid.ldap.sdk.Entry(dn);
+            entries.add(entryBuilder.build(dn, document));
+        }
 
-            Iterator<Map.Entry<String, JsonNode>> nodeIterator = rootNode.fields();
-            while(nodeIterator.hasNext()){
-                Map.Entry<String, JsonNode> node = nodeIterator.next();
-                if(LdapConstant.FIELD_DN.equalsIgnoreCase(node.getKey())){
-                    throw new IllegalArgumentException(
-                            "'dn' should not be included as it's value will be derived from the metadata.basedn and" +
-                            " the metadata.uniqueattr. Including the 'dn' as an insert attribute is confusing.");
-                }
-
-                JsonNode valueNode = node.getValue();
-                if(valueNode.isArray()){
-                    List<String> values = new ArrayList<String>();
-                    for(JsonNode string : valueNode){
-                        values.add(string.asText());
-                    }
-                    entry.addAttribute(new Attribute(node.getKey(), values));
-                }
-                else{
-                    String fieldName = node.getKey();
-                    if(LightblueUtil.isFieldObjectType(fieldName)
-                            || LightblueUtil.isFieldAnArrayCount(fieldName, md.getFields())){
-                        /*
-                         * Indicates the field is auto-generated for lightblue purposes. These fields
-                         * should not be inserted into LDAP.
-                         */
-                        continue;
-                    }
-
-                    entry.addAttribute(new Attribute(node.getKey(), node.getValue().asText()));
-                }
-            }
-
+        //Persist each Entry.
+        for(com.unboundid.ldap.sdk.Entry entry : entries){
             InsertCommand command = new InsertCommand(connection, entry);
 
             LDAPResult result = command.execute();
