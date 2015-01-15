@@ -1,0 +1,13 @@
+{
+    "entity": "department",
+    "entityVersion": "1.0.0",
+    "projection": {
+        "field": "dn"
+    },
+    "data": {
+        "objectClass": ["groupofNames"],
+        "cn": "#cn",
+        "description": "#description",
+        "member": [#members]
+    }
+}
