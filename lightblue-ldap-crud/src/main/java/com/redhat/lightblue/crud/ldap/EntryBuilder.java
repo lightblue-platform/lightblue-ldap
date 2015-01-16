@@ -29,7 +29,6 @@ import com.redhat.lightblue.metadata.ArrayElement;
 import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.ObjectField;
-import com.redhat.lightblue.metadata.ReferenceField;
 import com.redhat.lightblue.metadata.SimpleField;
 import com.redhat.lightblue.metadata.Type;
 import com.redhat.lightblue.metadata.types.BinaryType;
@@ -101,11 +100,6 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     @Override
     protected void translate(ObjectField field, Path path, JsonNode node, Entry target) {
         throw new UnsupportedOperationException("ObjectField type is not currently supported.");
-    }
-
-    @Override
-    protected void translate(ReferenceField field, Path path, JsonNode node, Entry target) {
-        throw new UnsupportedOperationException("ReferenceField type is not currently supported.");
     }
 
     @Override

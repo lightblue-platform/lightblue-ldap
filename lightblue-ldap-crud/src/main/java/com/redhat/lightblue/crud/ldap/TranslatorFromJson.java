@@ -130,9 +130,12 @@ public abstract class TranslatorFromJson<T> {
         cursor.parent();
     }
 
+    protected void translate(ReferenceField field, Path path, JsonNode node, T target){
+        //Do nothing by default!
+    }
+
     protected abstract void translate(SimpleField field, Path path, JsonNode node, T target);
     protected abstract void translate(ObjectField field, Path path, JsonNode node, T target);
-    protected abstract void translate(ReferenceField field, Path path, JsonNode node, T target);
     protected abstract void translateSimpleArray(ArrayField field, Path path, List<Object> items, T target);
     protected abstract void translateObjectArray(ArrayField field, JsonNodeCursor cursor, T target);
 
