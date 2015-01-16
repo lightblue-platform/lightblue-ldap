@@ -25,6 +25,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -35,9 +36,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
 
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
+import com.redhat.lightblue.crud.ldap.EntryBuilderTest.ParameterizedTests;
+import com.redhat.lightblue.crud.ldap.EntryBuilderTest.SpecializedTests;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.test.MetadataUtil;
@@ -45,6 +50,8 @@ import com.redhat.lightblue.util.JsonDoc;
 import com.unboundid.ldap.sdk.Entry;
 import com.unboundid.util.StaticUtils;
 
+@RunWith(Suite.class)
+@SuiteClasses({ParameterizedTests.class, SpecializedTests.class})
 public class EntryBuilderTest {
 
     protected static Entry buildEntry(String fieldName, String metadataType, String crudValue) throws Exception{
@@ -120,6 +127,10 @@ public class EntryBuilderTest {
                     {"{\"type\": \"string\"}", quote("teststring"), "teststring"},
                     {"{\"type\": \"integer\"}", "4", null},
                     {"{\"type\": \"boolean\"}", "true", null},
+                    {"{\"type\": \"bigdecimal\"}", String.valueOf(Double.MAX_VALUE), "1.7976931348623157E+308"},
+                    {"{\"type\": \"biginteger\"}", BigInteger.ZERO.toString(), BigInteger.ZERO.toString()},
+                    {"{\"type\": \"double\"}", String.valueOf(Double.MAX_VALUE), String.valueOf(Double.MAX_VALUE)},
+                    {"{\"type\": \"uid\"}", quote("fake-uid"), "fake-uid"},
                     {"{\"type\": \"date\"}", quote(DateType.getDateFormat().format(now)), StaticUtils.encodeGeneralizedTime(now)},
                     {"{\"type\": \"binary\"}", quote(DatatypeConverter.printBase64Binary("test binary data".getBytes())), "test binary data"},
                     {"{\"type\": \"array\", \"items\": {\"type\": \"string\"}}", "[\"hello\",\"world\"]", new String[]{"hello", "world"}},

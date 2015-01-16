@@ -220,6 +220,20 @@ public class ResultTranslatorTest {
                 true);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void testTranslate_SimpleField_NullValue() throws JSONException{
+        SearchResult result = fakeSearchResult(
+                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                        new Attribute("uid")
+                }));
+
+        EntityMetadata md = fakeEntityMetadata("fakeMetadata",
+                new SimpleField("uid", StringType.TYPE)
+                );
+
+        new ResultTranslator(factory).translate(result, md);
+    }
+
     @Test
     public void testTranslate_SimpleField_BinaryType() throws Exception{
         byte[] bite = new byte[]{1, 2, 3, 'a', 'b', 'c'};
