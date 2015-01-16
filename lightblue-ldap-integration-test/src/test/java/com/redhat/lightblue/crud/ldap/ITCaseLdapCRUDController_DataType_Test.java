@@ -28,7 +28,6 @@ import java.util.Date;
 
 import javax.xml.bind.DatatypeConverter;
 
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,12 +65,7 @@ public class ITCaseLdapCRUDController_DataType_Test extends AbstractLdapCRUDCont
         System.setProperty("mongo.port", String.valueOf(MongoServerExternalResource.DEFAULT_PORT));
         System.setProperty("mongo.database", "lightblue");
 
-        initLdap("./datasources.json", "./metadata/datatype-metadata.json");
-    }
-
-    @AfterClass
-    public static void afterClass(){
-        cleanupLdap();
+        initLightblueFactory("./datasources.json", "./metadata/datatype-metadata.json");
     }
 
     private final String cn;

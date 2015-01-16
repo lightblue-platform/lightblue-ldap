@@ -26,7 +26,6 @@ import static org.junit.Assert.assertNull;
 import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -79,12 +78,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController{
         System.setProperty("mongo.port", String.valueOf(MongoServerExternalResource.DEFAULT_PORT));
         System.setProperty("mongo.database", "lightblue");
 
-        initLdap("./datasources.json", "./metadata/person-metadata.json", "./metadata/department-metadata.json");
-    }
-
-    @AfterClass
-    public static void afterClass(){
-        cleanupLdap();
+        initLightblueFactory("./datasources.json", "./metadata/person-metadata.json", "./metadata/department-metadata.json");
     }
 
     @Test

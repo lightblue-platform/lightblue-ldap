@@ -20,6 +20,7 @@ package com.redhat.lightblue.crud.ldap;
 
 import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
 
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 
 import com.redhat.lightblue.config.DataSourcesConfiguration;
@@ -38,7 +39,7 @@ public abstract class AbstractCRUDController {
 
     protected static LightblueFactory lightblueFactory;
 
-    protected static void init(String datasourcesResourcePath, String... metadataResourcePaths)
+    protected static void initLightblueFactory(String datasourcesResourcePath, String... metadataResourcePaths)
             throws Exception {
         lightblueFactory = new LightblueFactory(
                 new DataSourcesConfiguration(loadJsonNode(datasourcesResourcePath)));
@@ -51,7 +52,8 @@ public abstract class AbstractCRUDController {
         }
     }
 
-    protected static void cleanup(){
+    @AfterClass
+    public static void cleanup(){
         lightblueFactory = null;
     }
 

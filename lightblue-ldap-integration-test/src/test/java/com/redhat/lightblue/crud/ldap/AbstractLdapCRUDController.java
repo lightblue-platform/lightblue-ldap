@@ -44,14 +44,6 @@ public abstract class AbstractLdapCRUDController extends AbstractCRUDController{
     @Rule
     public ErrorCollector errorCollector = new ErrorCollector();
 
-    protected static void initLdap(String datasourcesResourcePath, String... metadataResourcePaths) throws Exception{
-        init(datasourcesResourcePath, metadataResourcePaths);
-    }
-
-    protected static void cleanupLdap(){
-        cleanup();
-    }
-
     protected void assertNoErrors(Response response){
         for(Error error : response.getErrors()){
             Exception e = new Exception(error.getMessage(), error);
