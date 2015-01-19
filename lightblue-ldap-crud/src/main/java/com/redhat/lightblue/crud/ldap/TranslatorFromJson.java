@@ -85,7 +85,7 @@ public abstract class TranslatorFromJson<T> {
         FieldTreeNode fieldNode = md.resolve(path);
 
         if (fieldNode == null) {
-            throw new IllegalArgumentException(path.toString());
+            throw new NullPointerException("No Metadata field found for: " + path.toString());
         }
 
         if (fieldNode instanceof SimpleField) {
