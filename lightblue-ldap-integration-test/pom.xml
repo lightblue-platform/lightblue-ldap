@@ -48,13 +48,13 @@
         
         <dependency>
             <groupId>com.redhat.lightblue.mongo</groupId>
-            <artifactId>mongo-config</artifactId>
+            <artifactId>lightblue-mongo-config</artifactId>
             <version>${lightblue.mongo.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.redhat.lightblue.mongo</groupId>
-            <artifactId>mongo-test</artifactId>
+            <artifactId>lightblue-mongo-test</artifactId>
             <version>${lightblue.mongo.version}</version>
             <scope>test</scope>
         </dependency>
