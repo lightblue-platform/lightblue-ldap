@@ -22,10 +22,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.UUID;
 
 import org.json.JSONException;
@@ -56,9 +54,7 @@ import com.redhat.lightblue.metadata.types.UIDType;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.Attribute;
-import com.unboundid.ldap.sdk.SearchResult;
 import com.unboundid.ldap.sdk.SearchResultEntry;
-import com.unboundid.ldap.sdk.SearchResultReference;
 
 public class ResultTranslatorTest {
 
@@ -66,133 +62,121 @@ public class ResultTranslatorTest {
 
     @Test
     public void testTranslate_SimpleField_String() throws JSONException{
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
-                        new Attribute("uid", "john.doe")
-                }));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                new Attribute("uid", "john.doe")
+        });
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
                 new SimpleField("uid", StringType.TYPE)
                 );
 
-        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory).translate(result, md);
 
-        assertNotNull(documents);
-        assertEquals(1, documents.size());
+        assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"uid\":\"john.doe\",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                documents.get(0).getOutputDocument().toString(),
+                document.getOutputDocument().toString(),
                 true);
     }
 
     @Test
     public void testTranslate_SimpleField_Integer() throws JSONException{
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
-                        new Attribute("key", "4")
-                }));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                new Attribute("key", "4")
+        });
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
                 new SimpleField("key", IntegerType.TYPE)
                 );
 
-        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory).translate(result, md);
 
-        assertNotNull(documents);
-        assertEquals(1, documents.size());
+        assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"key\":4,\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                documents.get(0).getOutputDocument().toString(),
+                document.getOutputDocument().toString(),
                 true);
     }
 
     @Test
     public void testTranslate_SimpleField_Boolean() throws JSONException{
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
-                        new Attribute("key", "true")
-                }));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                new Attribute("key", "true")
+        });
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
                 new SimpleField("key", BooleanType.TYPE)
                 );
 
-        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory).translate(result, md);
 
-        assertNotNull(documents);
-        assertEquals(1, documents.size());
+        assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"key\":true,\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                documents.get(0).getOutputDocument().toString(),
+                document.getOutputDocument().toString(),
                 true);
     }
 
     @Test
     public void testTranslate_SimpleField_BigDecimalType() throws JSONException{
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
-                        new Attribute("key", String.valueOf(Double.MAX_VALUE))
-                }));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                new Attribute("key", String.valueOf(Double.MAX_VALUE))
+        });
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
                 new SimpleField("key", BigDecimalType.TYPE)
                 );
 
-        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory).translate(result, md);
 
-        assertNotNull(documents);
-        assertEquals(1, documents.size());
+        assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"key\":" + String.valueOf(Double.MAX_VALUE) + ",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                documents.get(0).getOutputDocument().toString(),
+                document.getOutputDocument().toString(),
                 true);
     }
 
     @Test
     public void testTranslate_SimpleField_BigIntegerType() throws JSONException{
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
-                        new Attribute("key", BigInteger.ZERO.toString())
-                }));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                new Attribute("key", BigInteger.ZERO.toString())
+        });
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
                 new SimpleField("key", BigIntegerType.TYPE)
                 );
 
-        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory).translate(result, md);
 
-        assertNotNull(documents);
-        assertEquals(1, documents.size());
+        assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"key\":" + BigInteger.ZERO + ",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                documents.get(0).getOutputDocument().toString(),
+                document.getOutputDocument().toString(),
                 true);
     }
 
     @Test
     public void testTranslate_SimpleField_DoubleType() throws JSONException{
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
-                        new Attribute("key", String.valueOf(Double.MAX_VALUE))
-                }));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                new Attribute("key", String.valueOf(Double.MAX_VALUE))
+        });
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
                 new SimpleField("key", DoubleType.TYPE)
                 );
 
-        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory).translate(result, md);
 
-        assertNotNull(documents);
-        assertEquals(1, documents.size());
+        assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"key\":" + String.valueOf(Double.MAX_VALUE) + ",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                documents.get(0).getOutputDocument().toString(),
+                document.getOutputDocument().toString(),
                 true);
     }
 
@@ -200,114 +184,117 @@ public class ResultTranslatorTest {
     public void testTranslate_SimpleField_UIDType() throws JSONException{
         String uuid = UUID.randomUUID().toString();
 
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
-                        new Attribute("key", uuid)
-                }));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                new Attribute("key", uuid)
+        });
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
                 new SimpleField("key", UIDType.TYPE)
                 );
 
-        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory).translate(result, md);
 
-        assertNotNull(documents);
-        assertEquals(1, documents.size());
+        assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"key\":" + uuid + ",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                documents.get(0).getOutputDocument().toString(),
+                document.getOutputDocument().toString(),
                 true);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testTranslate_SimpleField_NullValue() throws JSONException{
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                new Attribute("uid")
+        });
+
+        EntityMetadata md = fakeEntityMetadata("fakeMetadata",
+                new SimpleField("uid", StringType.TYPE)
+                );
+
+        new ResultTranslator(factory).translate(result, md);
     }
 
     @Test
     public void testTranslate_SimpleField_BinaryType() throws Exception{
         byte[] bite = new byte[]{1, 2, 3, 'a', 'b', 'c'};
 
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
-                        new Attribute("key", bite)
-                }));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                new Attribute("key", bite)
+        });
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
                 new SimpleField("key", BinaryType.TYPE)
                 );
 
-        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory).translate(result, md);
 
-        assertNotNull(documents);
-        assertEquals(1, documents.size());
-        JsonDoc document = documents.get(0).getOutputDocument();
+        assertNotNull(document);
+        JsonDoc jsonDocument = document.getOutputDocument();
 
-        JsonNode keyNode = document.get(new Path("key"));
+        JsonNode keyNode = jsonDocument.get(new Path("key"));
         assertEquals(bite, keyNode.binaryValue());
 
         JSONAssert.assertEquals(
                 "{\"key\":\"" + keyNode.asText() + "\",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                document.toString(),
+                jsonDocument.toString(),
                 true);
     }
 
     @Test
     public void testTranslate_SimpleField_Date() throws JSONException{
         //Note in and out data are formatted differently
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
-                        new Attribute("key", "20150109201731.570Z")
-                }));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                new Attribute("key", "20150109201731.570Z")
+        });
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
                 new SimpleField("key", DateType.TYPE)
                 );
 
-        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory).translate(result, md);
 
-        assertNotNull(documents);
-        assertEquals(1, documents.size());
+        assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"key\":\"20150109T20:17:31.570+0000\",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                documents.get(0).getOutputDocument().toString(),
+                document.getOutputDocument().toString(),
                 true);
     }
 
     @Test
     public void testTranslate_ObjectType() throws JSONException{
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{}));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{});
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
                 new SimpleField("objectType", StringType.TYPE)
                 );
 
-        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory).translate(result, md);
 
-        assertNotNull(documents);
-        assertEquals(1, documents.size());
+        assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"objectType\":\"fakeMetadata\",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                documents.get(0).getOutputDocument().toString(),
+                document.getOutputDocument().toString(),
                 true);
     }
 
     @Test
     public void testTranslate_AttributeDoesNotExist() throws JSONException{
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{}));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{});
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
                 new SimpleField("absentAttribute", StringType.TYPE)
                 );
 
-        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory).translate(result, md);
 
-        assertNotNull(documents);
-        assertEquals(1, documents.size());
+        assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"absentAttribute\":null,\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                documents.get(0).getOutputDocument().toString(),
+                document.getOutputDocument().toString(),
                 true);
     }
 
@@ -317,23 +304,21 @@ public class ResultTranslatorTest {
      */
     @Test
     public void testTranslate_SimpleArrayElement_CountNotAskedFor() throws JSONException{
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
-                        new Attribute("objectClass", Arrays.asList("top", "person", "organizationalPerson", "inetOrgPerson"))
-                }));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                new Attribute("objectClass", Arrays.asList("top", "person", "organizationalPerson", "inetOrgPerson"))
+        });
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
                 new ArrayField("objectClass", new SimpleArrayElement(StringType.TYPE))
                 );
 
-        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory).translate(result, md);
 
-        assertNotNull(documents);
-        assertEquals(1, documents.size());
+        assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"objectClass\":[\"top\",\"person\",\"organizationalPerson\",\"inetOrgPerson\"],\"objectClass#\":4,\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                documents.get(0).getOutputDocument().toString(),
+                document.getOutputDocument().toString(),
                 true);
     }
 
@@ -344,33 +329,30 @@ public class ResultTranslatorTest {
      */
     @Test
     public void testTranslate_SimpleArrayElement_CountAskedFor() throws JSONException{
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
-                        new Attribute("objectClass", Arrays.asList("top", "person", "organizationalPerson", "inetOrgPerson"))
-                }));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                new Attribute("objectClass", Arrays.asList("top", "person", "organizationalPerson", "inetOrgPerson"))
+        });
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
                 new ArrayField("objectClass", new SimpleArrayElement(StringType.TYPE)),
                 new SimpleField("objectClass#", IntegerType.TYPE)
                 );
 
-        List<DocCtx> documents = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory).translate(result, md);
 
-        assertNotNull(documents);
-        assertEquals(1, documents.size());
+        assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"objectClass\":[\"top\",\"person\",\"organizationalPerson\",\"inetOrgPerson\"],\"objectClass#\":4,\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                documents.get(0).getOutputDocument().toString(),
+                document.getOutputDocument().toString(),
                 true);
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void testTranslate_UnknownArrayElement() throws JSONException{
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
-                        new Attribute("fakeArray", Arrays.asList("top", "person", "organizationalPerson", "inetOrgPerson"))
-                }));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
+                new Attribute("fakeArray", Arrays.asList("top", "person", "organizationalPerson", "inetOrgPerson"))
+        });
 
         @SuppressWarnings("serial")
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
@@ -397,8 +379,7 @@ public class ResultTranslatorTest {
 
     @Test(expected = UnsupportedOperationException.class)
     public void testTranslate_ObjectField() throws JSONException{
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{new Attribute("fake")}));
+        SearchResultEntry result =  new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{new Attribute("fake")});
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
                 new ObjectField("fake")
@@ -409,8 +390,7 @@ public class ResultTranslatorTest {
 
     @Test(expected = UnsupportedOperationException.class)
     public void testTranslate_ReferenceField() throws JSONException{
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{new Attribute("fake")}));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{new Attribute("fake")});
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata",
                 new ReferenceField("fake")
@@ -421,8 +401,7 @@ public class ResultTranslatorTest {
 
     @Test(expected = UnsupportedOperationException.class)
     public void testTranslate_UnsupportedField() throws JSONException{
-        SearchResult result = fakeSearchResult(
-                new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{new Attribute("fake")}));
+        SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{new Attribute("fake")});
 
         @SuppressWarnings("serial")
         EntityMetadata md = fakeEntityMetadata("fakeMetadata", new Field("fake"){
@@ -445,10 +424,6 @@ public class ResultTranslatorTest {
         });
 
         new ResultTranslator(factory).translate(result, md);
-    }
-
-    protected SearchResult fakeSearchResult(SearchResultEntry... entries){
-        return new SearchResult(-1, null, "", "", new String[0], Arrays.asList(entries), new ArrayList<SearchResultReference>(), entries.length, 0, null);
     }
 
     protected EntityMetadata fakeEntityMetadata(String name, Field... fields){

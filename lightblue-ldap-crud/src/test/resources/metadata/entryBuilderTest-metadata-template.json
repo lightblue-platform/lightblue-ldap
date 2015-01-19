@@ -1,0 +1,30 @@
+{
+    "entityInfo": {
+        "name": "entryBuilderTest",
+        "datastore": {
+            "backend":"ldap",
+            "database": "test",
+            "basedn": "dc=example,dc=com",
+            "uniqueattr": "uid"
+        }
+    },
+    "schema": {
+        "name": "entryBuilderTest",
+        "version": {
+            "value": "1.0.0",
+            "changelog": "blahblah"
+        },
+        "status": {
+            "value": "active"
+        },
+        "access" : {
+             "insert": ["anyone"],
+             "update": ["anyone"],
+             "delete": ["anyone"],
+             "find": ["anyone"]
+        },
+        "fields": {
+            "#fieldname": #type
+        }
+    }
+}

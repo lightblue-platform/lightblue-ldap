@@ -18,9 +18,6 @@
  */
 package com.redhat.lightblue.crud.ldap.translator;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -44,7 +41,6 @@ import com.redhat.lightblue.metadata.types.IntegerType;
 import com.redhat.lightblue.metadata.types.StringType;
 import com.redhat.lightblue.util.JsonDoc;
 import com.unboundid.ldap.sdk.Attribute;
-import com.unboundid.ldap.sdk.SearchResult;
 import com.unboundid.ldap.sdk.SearchResultEntry;
 
 /**
@@ -58,14 +54,6 @@ public class ResultTranslator {
 
     public ResultTranslator(JsonNodeFactory factory){
         this.factory = factory;
-    }
-
-    public List<DocCtx> translate(SearchResult result, EntityMetadata md){
-        List<DocCtx> docs = new ArrayList<DocCtx>();
-        for(SearchResultEntry entry : result.getSearchEntries()){
-            docs.add(translate(entry, md));
-        }
-        return docs;
     }
 
     public DocCtx translate(SearchResultEntry entry, EntityMetadata md){
@@ -140,6 +128,10 @@ public class ResultTranslator {
         }
         else{
             value = attr.getValue();
+        }
+
+        if(value == null){
+            throw new NullPointerException("Unable to convert LDAP attribute to json resulting in a null value: " + attr.getName());
         }
 
         return field.getType().toJson(factory, value);

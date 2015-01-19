@@ -1,0 +1,7 @@
+{
+    "entity": "entryBuilderTest",
+    "entityVersion": "1.0.0",
+    "data": {
+        "#fieldname": #value
+    }
+}

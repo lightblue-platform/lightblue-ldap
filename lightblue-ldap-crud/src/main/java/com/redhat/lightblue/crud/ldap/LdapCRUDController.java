@@ -21,7 +21,6 @@ package com.redhat.lightblue.crud.ldap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -68,13 +67,13 @@ import com.redhat.lightblue.query.UpdateExpression;
 import com.redhat.lightblue.util.Error;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.Path;
-import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.LDAPResult;
 import com.unboundid.ldap.sdk.ResultCode;
 import com.unboundid.ldap.sdk.SearchRequest;
 import com.unboundid.ldap.sdk.SearchResult;
+import com.unboundid.ldap.sdk.SearchResultEntry;
 import com.unboundid.ldap.sdk.SearchScope;
 import com.unboundid.ldap.sdk.controls.ServerSideSortRequestControl;
 import com.unboundid.ldap.sdk.controls.VirtualListViewRequestControl;
@@ -106,19 +105,13 @@ public class LdapCRUDController implements CRUDController{
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
         LdapDataStore store = getLdapDataStore(md);
 
-        Map<DocCtx, String> documentToDnMap = new HashMap<DocCtx, String>();
-
-        LDAPConnection connection = null;
-        try {
-            connection = dbResolver.get(store);
-        }
-        catch (LDAPException e) {
-            //TODO: throw more relevant exception.
-            throw new RuntimeException("Unable to establish connection to LDAP", e);
-        }
-
         FieldAccessRoleEvaluator roles = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
+        EntryBuilder entryBuilder = new EntryBuilder(md);
 
+        //Create Entry instances for each document.
+        List<com.unboundid.ldap.sdk.Entry> entries = new ArrayList<com.unboundid.ldap.sdk.Entry>();
+        Map<DocCtx, String> documentToDnMap = new HashMap<DocCtx, String>();
+        boolean hasError = false;
         for(DocCtx document : documents){
             List<Path> paths = roles.getInaccessibleFields_Insert(document);
             if((paths != null) && !paths.isEmpty()){
@@ -137,40 +130,21 @@ public class LdapCRUDController implements CRUDController{
 
             String dn = createDN(store, uniqueNode.asText());
             documentToDnMap.put(document, dn);
-            com.unboundid.ldap.sdk.Entry entry = new com.unboundid.ldap.sdk.Entry(dn);
-
-            Iterator<Map.Entry<String, JsonNode>> nodeIterator = rootNode.fields();
-            while(nodeIterator.hasNext()){
-                Map.Entry<String, JsonNode> node = nodeIterator.next();
-                if(LdapConstant.FIELD_DN.equalsIgnoreCase(node.getKey())){
-                    throw new IllegalArgumentException(
-                            "'dn' should not be included as it's value will be derived from the metadata.basedn and" +
-                            " the metadata.uniqueattr. Including the 'dn' as an insert attribute is confusing.");
-                }
-
-                JsonNode valueNode = node.getValue();
-                if(valueNode.isArray()){
-                    List<String> values = new ArrayList<String>();
-                    for(JsonNode string : valueNode){
-                        values.add(string.asText());
-                    }
-                    entry.addAttribute(new Attribute(node.getKey(), values));
-                }
-                else{
-                    String fieldName = node.getKey();
-                    if(LightblueUtil.isFieldObjectType(fieldName)
-                            || LightblueUtil.isFieldAnArrayCount(fieldName, md.getFields())){
-                        /*
-                         * Indicates the field is auto-generated for lightblue purposes. These fields
-                         * should not be inserted into LDAP.
-                         */
-                        continue;
-                    }
-
-                    entry.addAttribute(new Attribute(node.getKey(), node.getValue().asText()));
-                }
+            try{
+                entries.add(entryBuilder.build(dn, document));
             }
+            catch(Exception e){
+                document.addError(Error.get(e));
+                hasError = true;
+            }
+        }
+        if(hasError){
+            return response;
+        }
 
+        //Persist each Entry.
+        LDAPConnection connection = getNewLdapConnection(store);
+        for(com.unboundid.ldap.sdk.Entry entry : entries){
             InsertCommand command = new InsertCommand(connection, entry);
 
             LDAPResult result = command.execute();
@@ -227,9 +201,9 @@ public class LdapCRUDController implements CRUDController{
         CRUDFindResponse response = new CRUDFindResponse();
         response.setSize(0);
 
-        try {
-            LDAPConnection connection = dbResolver.get(store);
+        LDAPConnection connection = getNewLdapConnection(store);
 
+        try {
             //TODO: Support scopes other than SUB
             SearchRequest request = new SearchRequest(
                     store.getBaseDN(),
@@ -247,7 +221,19 @@ public class LdapCRUDController implements CRUDController{
             SearchResult result = connection.search(request);
 
             response.setSize(result.getEntryCount());
-            ctx.setDocuments(new ResultTranslator(ctx.getFactory().getNodeFactory()).translate(result, md));
+            ResultTranslator resultTranslator = new ResultTranslator(ctx.getFactory().getNodeFactory());
+            List<DocCtx> translatedDocs = new ArrayList<DocCtx>();
+            for(SearchResultEntry entry : result.getSearchEntries()){
+                try{
+                    translatedDocs.add(resultTranslator.translate(entry, md));
+                }
+                catch(Exception e){
+                    DocCtx erroredDoc = new DocCtx(null);
+                    erroredDoc.addError(Error.get(e));
+                    translatedDocs.add(erroredDoc);
+                }
+            }
+            ctx.setDocuments(translatedDocs);
 
             Projector projector = Projector.getInstance(
                     Projection.add(
@@ -414,6 +400,24 @@ public class LdapCRUDController implements CRUDController{
 
             document.setOutputDocument(projector.project(projectionResponseJson, factory));
         }
+    }
+
+    /**
+     * Returns a new connection to ldap.
+     * @param store - {@link LdapDataStore} to connect too.
+     * @return a new connection to ldap
+     * @throws RuntimeException when unable to connect to ldap.
+     */
+    private LDAPConnection getNewLdapConnection(LdapDataStore store) {
+        LDAPConnection connection = null;
+        try {
+            connection = dbResolver.get(store);
+        }
+        catch (LDAPException e) {
+            //TODO: throw more relevant exception.
+            throw new RuntimeException("Unable to establish connection to LDAP", e);
+        }
+        return connection;
     }
 
 }
