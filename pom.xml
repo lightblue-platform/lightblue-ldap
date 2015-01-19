@@ -116,7 +116,7 @@
         </dependency>
         <dependency>
             <groupId>com.redhat.lightblue</groupId>
-            <artifactId>test</artifactId>
+            <artifactId>lightblue-core-test</artifactId>
         </dependency>
     </dependencies>
     
@@ -124,18 +124,18 @@
         <dependencies>
             <!-- Lightblue Core -->
             <dependency>
-                <groupId>com.redhat.lightblue.config</groupId>
-                <artifactId>core-config</artifactId>
+                <groupId>com.redhat.lightblue</groupId>
+                <artifactId>lightblue-core-config</artifactId>
                 <version>${lightblue-core.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.redhat.lightblue</groupId>
-                <artifactId>crud</artifactId>
+                <artifactId>lightblue-core-crud</artifactId>
                 <version>${lightblue-core.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.redhat.lightblue</groupId>
-                <artifactId>metadata</artifactId>
+                <artifactId>lightblue-core-metadata</artifactId>
                 <version>${lightblue-core.version}</version>
             </dependency>
             
@@ -205,7 +205,7 @@
             </dependency>
             <dependency>
                 <groupId>com.redhat.lightblue</groupId>
-                <artifactId>test</artifactId>
+                <artifactId>lightblue-core-test</artifactId>
                 <version>${lightblue-core.version}</version>
                 <scope>test</scope>
             </dependency>
