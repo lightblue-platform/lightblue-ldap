@@ -1,0 +1,33 @@
+{
+    "entityInfo": {
+        "name": "person",
+        "datastore": {
+            "backend":"ldap",
+            "database": "${ldap.database}",
+            "basedn": "${ldap.person.basedn}",
+            "uniqueattr": "uid"
+        }
+    },
+    "schema": {
+        "name": "person",
+        "version": {
+            "value": "1.0.0",
+            "changelog": "blahblah"
+        },
+        "status": {
+            "value": "active"
+        },
+        "access" : {
+             "insert": ["anyone"],
+             "update": ["anyone"],
+             "delete": ["anyone"],
+             "find": ["anyone"]
+        },
+        "fields": {
+            "uid": {"type": "string"},
+            "givenName": {"type": "string"},
+            "sn": {"type": "string"},
+            "cn": {"type": "string"}
+        }
+    }
+}

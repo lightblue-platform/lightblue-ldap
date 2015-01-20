@@ -26,7 +26,7 @@ public class LdapDataStoreTest {
 
     @Test
     public void testGetBackend(){
-        assertEquals(LdapDataStore.BACKEND, new LdapDataStore().getBackend());
+        assertEquals(LdapConstant.BACKEND, new LdapDataStore().getBackend());
     }
 
 }

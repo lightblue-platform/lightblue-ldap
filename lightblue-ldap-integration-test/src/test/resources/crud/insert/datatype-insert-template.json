@@ -1,0 +1,12 @@
+{
+    "entity": "datatype",
+    "entityVersion": "1.0.0",
+    "projection": {
+        "field": "dn"
+    },
+    "data": {
+        "objectClass": ["top"],
+        "cn": "#cn",
+        "#field": "#fielddata"
+    }
+}

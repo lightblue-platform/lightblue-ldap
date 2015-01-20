@@ -33,7 +33,7 @@
     <dependencies>
         <dependency>
             <groupId>com.redhat.lightblue</groupId>
-            <artifactId>crud</artifactId>
+            <artifactId>lightblue-core-crud</artifactId>
         </dependency>
         
         <dependency>

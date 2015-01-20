@@ -22,6 +22,7 @@ import java.util.HashSet;
 
 import org.junit.Test;
 
+import com.redhat.lightblue.metadata.DataStore;
 import com.unboundid.ldap.sdk.LDAPException;
 
 public class LdapDBResolverTest {
@@ -30,6 +31,17 @@ public class LdapDBResolverTest {
     public void testGet_UnknownDatabase() throws LDAPException{
         LdapDBResolver resolver = new LdapDBResolver(new HashSet<LdapDataSourceConfiguration>());
         resolver.get("Does Not Exist");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGet_InvalidStoreType() throws LDAPException{
+        new LdapDBResolver(new HashSet<LdapDataSourceConfiguration>()).get(new DataStore(){
+
+            @Override
+            public String getBackend() {
+                throw new UnsupportedOperationException("Method should never be called.");
+            }
+        });
     }
 
 }

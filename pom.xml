@@ -33,6 +33,33 @@
     <name>lightblue-ldap: ${project.groupId}|${project.artifactId}</name>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <description>Lightblue LDAP implementation</description>
+    
+    <prerequisites>
+        <maven>3.0</maven>
+    </prerequisites>
+    
+    <licenses>
+        <license>
+            <name>GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007</name>
+            <url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    
+    <scm>
+        <connection>scm:git:https://github.com/lightblue-platform/lightblue-ldap.git</connection>
+        <developerConnection>scm:git:git@github.com:lightblue-platform/lightblue-ldap.git</developerConnection>
+        <url>https://github.com/lightblue-platform/lightblue-ldap</url>
+      <tag>HEAD</tag>
+    </scm>
+    
+    <distributionManagement>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
     
     <properties>
         <!-- Lightblue Core -->
@@ -46,15 +73,23 @@
         <!-- Test -->
         <junit.version>4.11</junit.version>
         <mockito.version>1.10.8</mockito.version>
+        
+        <!-- Sonar -->
+        <sonar.exclusions>**/*Test.java,**/*Exception.java</sonar.exclusions>
+        <sonar.jdbc.url>jdbc:mysql://127.0.0.1:3306/sonar?useUnicode=true&amp;characterEncoding=utf8&amp;rewriteBatchedStatements=true</sonar.jdbc.url>
+        <sonar.jdbc.username>sonar</sonar.jdbc.username>
+        <sonar.jdbc.password>sonar</sonar.jdbc.password>
+        <sonar.host.url>http://127.0.0.1:8080</sonar.host.url>
+        <sonar.projectName>lightblue-ldap</sonar.projectName>
     </properties>
     
     <modules>
         <module>lightblue-ldap-test</module>
         <module>lightblue-ldap-common</module>
-        <module>lightblue-ldap-config</module>
+        <module>lightblue-ldap-hystrix</module>
         <module>lightblue-ldap-crud</module>
         <module>lightblue-ldap-metadata</module>
-        <module>lightblue-ldap-hystrix</module>
+        <module>lightblue-ldap-config</module>
         <module>lightblue-ldap-integration-test</module>
     </modules>
     
@@ -79,24 +114,28 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.redhat.lightblue</groupId>
+            <artifactId>lightblue-core-test</artifactId>
+        </dependency>
     </dependencies>
     
     <dependencyManagement>
         <dependencies>
             <!-- Lightblue Core -->
             <dependency>
-                <groupId>com.redhat.lightblue.config</groupId>
-                <artifactId>core-config</artifactId>
+                <groupId>com.redhat.lightblue</groupId>
+                <artifactId>lightblue-core-config</artifactId>
                 <version>${lightblue-core.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.redhat.lightblue</groupId>
-                <artifactId>crud</artifactId>
+                <artifactId>lightblue-core-crud</artifactId>
                 <version>${lightblue-core.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.redhat.lightblue</groupId>
-                <artifactId>metadata</artifactId>
+                <artifactId>lightblue-core-metadata</artifactId>
                 <version>${lightblue-core.version}</version>
             </dependency>
             
@@ -164,7 +203,110 @@
                 <version>${mockito.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>com.redhat.lightblue</groupId>
+                <artifactId>lightblue-core-test</artifactId>
+                <version>${lightblue-core.version}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.2</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.eluder.coveralls</groupId>
+                <artifactId>coveralls-maven-plugin</artifactId>
+                <version>3.0.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <format>xml</format>
+                    <maxmem>256m</maxmem>
+                    <!-- aggregated reports for multi-module projects -->
+                    <aggregate>true</aggregate>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-release-plugin</artifactId>
+                        <version>2.5.1</version>
+                        <configuration>
+                            <tagNameFormat>V@{project.version}</tagNameFormat>
+                            <autoVersionSubmodules>true</autoVersionSubmodules>
+                            <useReleaseProfile>false</useReleaseProfile>
+                            <releaseProfiles>release</releaseProfiles>
+                            <goals>deploy</goals>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <configuration>
+                            <useAgent>false</useAgent>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.5</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.4</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.10.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
     
 </project>

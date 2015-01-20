@@ -1,0 +1,39 @@
+{
+    "entityInfo": {
+        "name": "department",
+        "datastore": {
+            "backend":"ldap",
+            "database": "${ldap.database}",
+            "basedn": "${ldap.department.basedn}",
+            "uniqueattr": "cn"
+        }
+    },
+    "schema": {
+        "name": "department",
+        "version": {
+            "value": "1.0.0",
+            "changelog": "blahblah"
+        },
+        "status": {
+            "value": "active"
+        },
+        "access" : {
+             "insert": ["anyone"],
+             "update": ["anyone"],
+             "delete": ["anyone"],
+             "find": ["anyone"]
+        },
+        "fields": {
+            "cn": {"type": "string"},
+            "member": {
+                "type": "array",
+                "items": {"type": "string"},
+                "access": {
+                    "find": ["admin","manager"],
+                    "insert": ["admin"]
+                }
+            },
+            "description": {"type": "string"}
+        }
+    }
+}

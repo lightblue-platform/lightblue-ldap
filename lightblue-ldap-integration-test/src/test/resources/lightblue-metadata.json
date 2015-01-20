@@ -7,11 +7,5 @@
             "name": "ldap",
             "clazz": "com.redhat.lightblue.metadata.ldap.parser.LdapDataStoreParser"
         }
-    ],
-    "propertyParsers": [
-        {
-            "name": "ldap",
-            "clazz": "com.redhat.lightblue.metadata.ldap.parser.LdapPropertyParser"
-        }
     ]
 }
