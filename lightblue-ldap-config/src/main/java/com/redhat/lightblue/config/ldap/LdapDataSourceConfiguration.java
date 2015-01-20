@@ -37,6 +37,11 @@ import com.unboundid.ldap.sdk.ServerSet;
 import com.unboundid.ldap.sdk.SimpleBindRequest;
 import com.unboundid.ldap.sdk.SingleServerSet;
 
+/**
+ * {@link DataSourceConfiguration} for LDAP.
+ *
+ * @author dcrissman
+ */
 public class LdapDataSourceConfiguration implements DataSourceConfiguration{
 
     private static final long serialVersionUID = 3276072662352275664L;
@@ -54,17 +59,19 @@ public class LdapDataSourceConfiguration implements DataSourceConfiguration{
     private static final int DEFAULT_MAX_NUMBER_OF_CONNECTIONS = 10;
 
     private String databaseName;
-    private LDAPConnectionPool connectionPool;
+    private transient LDAPConnectionPool connectionPool;
 
     public String getDatabaseName(){
         return databaseName;
     }
 
+    @Override
     @SuppressWarnings("rawtypes")
     public Class<LdapDataStoreParser> getMetadataDataStoreParser() {
         return LdapDataStoreParser.class;
     }
 
+    @Override
     public void initializeFromJson(JsonNode node) {
         if(node == null){
             LOGGER.warn("Attempted to initizlize an LDAP datasource from a null JsonNode.");

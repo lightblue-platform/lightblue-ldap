@@ -1,0 +1,32 @@
+{
+    "entityInfo": {
+        "name": "datatype",
+        "datastore": {
+            "backend":"ldap",
+            "database": "${ldap.database}",
+            "basedn": "${ldap.datatype.basedn}",
+            "uniqueattr": "cn"
+        }
+    },
+    "schema": {
+        "name": "datatype",
+        "version": {
+            "value": "1.0.0",
+            "changelog": "blahblah"
+        },
+        "status": {
+            "value": "active"
+        },
+        "access": {
+             "insert": ["anyone"],
+             "update": ["anyone"],
+             "delete": ["anyone"],
+             "find": ["anyone"]
+        },
+        "fields": {
+            "cn": {"type": "string"},
+            "testdate": {"type": "date"},
+            "testbinary": {"type": "binary"}
+        }
+    }
+}

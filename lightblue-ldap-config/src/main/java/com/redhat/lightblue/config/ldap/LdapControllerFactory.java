@@ -26,6 +26,11 @@ import com.redhat.lightblue.config.DataSourcesConfiguration;
 import com.redhat.lightblue.crud.CRUDController;
 import com.redhat.lightblue.crud.ldap.LdapCRUDController;
 
+/**
+ * {@link ControllerFactory} for LDAP.
+ *
+ * @author dcrissman
+ */
 public class LdapControllerFactory implements ControllerFactory{
 
     public CRUDController createController(ControllerConfiguration cfg, DataSourcesConfiguration ds) {

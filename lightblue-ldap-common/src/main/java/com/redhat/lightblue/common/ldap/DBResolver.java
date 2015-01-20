@@ -22,7 +22,11 @@ import com.redhat.lightblue.metadata.DataStore;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 
-
+/**
+ * House and maintain connections to LDAP for the various {@link DataStore} instances.
+ *
+ * @author dcrissman
+ */
 public interface DBResolver {
 
     /**

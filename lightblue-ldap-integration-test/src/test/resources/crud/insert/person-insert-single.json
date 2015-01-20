@@ -1,0 +1,14 @@
+{
+    "entity": "person",
+    "entityVersion": "1.0.0",
+    "projection": {
+        "field": "dn"
+    },
+    "data": {
+        "objectClass": ["top", "person", "organizationalPerson", "inetOrgPerson"],
+        "uid": "john.doe",
+        "givenName": "John",
+        "sn": "Doe",
+        "cn": "John Doe"
+    }
+}
