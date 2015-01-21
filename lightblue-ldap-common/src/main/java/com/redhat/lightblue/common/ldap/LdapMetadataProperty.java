@@ -16,28 +16,22 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.redhat.lightblue.metadata.ldap.parser.property;
+package com.redhat.lightblue.common.ldap;
 
-import java.util.HashSet;
-import java.util.Set;
+public interface LdapMetadataProperty {
 
-/**
- * Container for special ldap properties parsed from the metadata.json file.
- *
- * @author dcrissman
- *
- * @see com.redhat.lightblue.metadata.ldap.parser.LdapPropertyParser
- */
-public class LdapProperty {
+    /**
+     * Returns the attributeName with the given fieldName.
+     * @param fieldName - metadata field name
+     * @return ldap attribute name or <code>null</code> if a match is not present.
+     */
+    public String getAttributeNameForFieldName(String fieldName);
 
-    private final Set<FieldToAttribute> fieldsToAttributes = new HashSet<FieldToAttribute>();
-
-    public Set<FieldToAttribute> getFieldsToAttributes(){
-        return fieldsToAttributes;
-    }
-
-    public void addFieldToAttribute(FieldToAttribute fieldToAttribute){
-        fieldsToAttributes.add(fieldToAttribute);
-    }
+    /**
+     * Returns the fieldName with the given attributeName.
+     * @param attributeName - ldap attribute name
+     * @return metadata field name or <code>null</code> if a match is not present.
+     */
+    public String getFieldNameForAttributeName(String attributeName);
 
 }

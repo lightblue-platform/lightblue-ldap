@@ -24,6 +24,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.common.ldap.LdapConstant;
+import com.redhat.lightblue.common.ldap.LdapMetadataProperty;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.metadata.ArrayElement;
 import com.redhat.lightblue.metadata.ArrayField;
@@ -46,8 +47,11 @@ import com.unboundid.util.StaticUtils;
  */
 public class EntryBuilder extends TranslatorFromJson<Entry>{
 
-    public EntryBuilder(EntityMetadata md){
+    private final LdapMetadataProperty property;
+
+    public EntryBuilder(EntityMetadata md, LdapMetadataProperty property){
         super(md);
+        this.property = property;
     }
 
     public Entry build(String dn, JsonDoc document){
@@ -71,7 +75,7 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
 
     @Override
     protected void translate(SimpleField field, Path path, JsonNode node, Entry target) {
-        String fieldName = field.getName();
+        String fieldName = findAttributeName(field.getName());
 
         if(LdapConstant.FIELD_DN.equalsIgnoreCase(fieldName)){
             throw new IllegalArgumentException(
@@ -106,7 +110,7 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     protected void translateSimpleArray(ArrayField field, Path path, List<Object> items, Entry target) {
         ArrayElement arrayElement = field.getElement();
         Type arrayElementType = arrayElement.getType();
-        String fieldName = field.getName();
+        String fieldName = findAttributeName(field.getName());
 
         if(arrayElementType instanceof BinaryType){
             List<byte[]> bytes = new ArrayList<byte[]>();
@@ -127,6 +131,19 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     @Override
     protected void translateObjectArray(ArrayField field, JsonNodeCursor cursor, Entry target) {
         throw new UnsupportedOperationException("Object ArrayField type is not currently supported.");
+    }
+
+    private String findAttributeName(String fieldName){
+        if(property == null){
+            return fieldName;
+        }
+
+        String attributeName = property.getAttributeNameForFieldName(fieldName);
+        if(attributeName == null){
+            return fieldName;
+        }
+
+        return attributeName;
     }
 
 }

@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.redhat.lightblue.common.ldap.DBResolver;
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapDataStore;
+import com.redhat.lightblue.common.ldap.LdapMetadataProperty;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.crud.CRUDController;
 import com.redhat.lightblue.crud.CRUDDeleteResponse;
@@ -104,9 +105,10 @@ public class LdapCRUDController implements CRUDController{
 
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
         LdapDataStore store = getLdapDataStore(md);
+        LdapMetadataProperty property = getLdapMetadataProperty(md);
 
         FieldAccessRoleEvaluator roles = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
-        EntryBuilder entryBuilder = new EntryBuilder(md);
+        EntryBuilder entryBuilder = new EntryBuilder(md, property);
 
         //Create Entry instances for each document.
         List<com.unboundid.ldap.sdk.Entry> entries = new ArrayList<com.unboundid.ldap.sdk.Entry>();
@@ -310,6 +312,26 @@ public class LdapCRUDController implements CRUDController{
             throw new IllegalArgumentException("DataStore of type " + store.getClass() + " is not supported.");
         }
         return (LdapDataStore) store;
+    }
+
+    /**
+     * Shortcut method to get and return the {@link LdapMetadataProperty} on the passed
+     * in {@link EntityMetadata}.
+     * @param md - {@link EntityMetadata}.
+     * @return {@link LdapMetadataProperty}
+     * @throws IllegalArgumentException if an invalid object is found.
+     */
+    private LdapMetadataProperty getLdapMetadataProperty(EntityMetadata md){
+        Object o = md.getEntityInfo().getProperties().get(LdapConstant.BACKEND);
+
+        if(o == null){
+            return null;
+        }
+
+        if(!(o instanceof LdapMetadataProperty)){
+            throw new IllegalArgumentException("Object of type " + o.getClass() + " is not supported.");
+        }
+        return (LdapMetadataProperty) o;
     }
 
     /**

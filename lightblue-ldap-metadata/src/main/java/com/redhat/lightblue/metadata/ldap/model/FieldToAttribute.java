@@ -16,7 +16,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.redhat.lightblue.metadata.ldap.parser.property;
+package com.redhat.lightblue.metadata.ldap.model;
 
 /**
  * Maps the metadata field name to the Ldap attribute name.

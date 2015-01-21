@@ -63,7 +63,7 @@ public class EntryBuilderTest {
                 .replaceFirst("#value", crudValue);
 
         EntityMetadata md = MetadataUtil.createEntityMetadata(LdapConstant.BACKEND, json(metadata), null, null);
-        EntryBuilder builder = new EntryBuilder(md);
+        EntryBuilder builder = new EntryBuilder(md, null);
 
         return builder.build("uid=someuid,dc=example,dc=com",
                 new JsonDoc(json(crud).get("data")));
