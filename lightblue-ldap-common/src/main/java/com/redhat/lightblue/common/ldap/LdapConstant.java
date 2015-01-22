@@ -29,6 +29,6 @@ public final class LdapConstant {
     public static final String ATTRIBUTE_DN = "dn";
     public static final String ATTRIBUTE_OBJECT_CLASS = "objectClass";
 
-    private LdapConstant(){} //NOSONAR
+    private LdapConstant(){}
 
 }
