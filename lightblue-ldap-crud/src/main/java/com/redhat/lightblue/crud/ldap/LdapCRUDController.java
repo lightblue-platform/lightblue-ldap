@@ -127,9 +127,10 @@ public class LdapCRUDController implements CRUDController{
 
             JsonNode rootNode = document.getRoot();
 
-            JsonNode uniqueNode = rootNode.get(store.getUniqueField());
+            String uniqueAttributeName = property.translateAttributeName(store.getUniqueAttribute());
+            JsonNode uniqueNode = rootNode.get(uniqueAttributeName);
             if(uniqueNode == null){
-                throw new IllegalArgumentException(store.getUniqueField() + " is a required field");
+                throw new IllegalArgumentException(uniqueAttributeName + " is a required field");
             }
 
             String dn = createDN(store, uniqueNode.asText());
@@ -351,7 +352,7 @@ public class LdapCRUDController implements CRUDController{
      * @return a string representation of the DN.
      */
     private String createDN(LdapDataStore store, String uniqueValue){
-        return store.getUniqueField() + "=" + uniqueValue + "," + store.getBaseDN();
+        return store.getUniqueAttribute() + "=" + uniqueValue + "," + store.getBaseDN();
     }
 
     /**

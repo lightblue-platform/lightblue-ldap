@@ -6,7 +6,7 @@
     },
     "data": {
         "interfaces": ["top", "person", "organizationalPerson", "inetOrgPerson"],
-        "uid": "frodo.baggins",
+        "customerId": "frodo.baggins",
         "firstName": "Frodo",
         "lastName": "Baggins",
         "cn": "Frodo Baggins"

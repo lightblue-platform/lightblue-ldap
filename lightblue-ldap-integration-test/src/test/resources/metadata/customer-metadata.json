@@ -14,6 +14,10 @@
                     "attribute": "dn"
                 },
                 {
+                    "field": "customerId",
+                    "attribute": "uid"
+                },
+                {
                     "field": "firstName",
                     "attribute": "givenName"
                 },
@@ -44,7 +48,7 @@
              "find": ["anyone"]
         },
         "fields": {
-            "uid": {"type": "string"},
+            "customerId": {"type": "string"},
             "firstName": {"type": "string"},
             "lastName": {"type": "string"},
             "cn": {"type": "string"}

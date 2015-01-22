@@ -3,6 +3,7 @@
     "entityVersion": "1.0.0",
     "projection": [
         {"field": "id"},
+        {"field": "customerId"},
         {"field": "firstName"},
         {"field": "lastName"},
         {"field": "cn"},

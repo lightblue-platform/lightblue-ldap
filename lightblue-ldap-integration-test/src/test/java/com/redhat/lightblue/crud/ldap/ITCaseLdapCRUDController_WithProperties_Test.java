@@ -94,9 +94,14 @@ public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCR
         JsonNode entityData = response.getEntityData();
         assertNotNull(entityData);
         JSONAssert.assertEquals(
-                "[{\"id\":\"uid=frodo.baggins," + BASEDB_CUSTOMERS
-                + "\",\"firstName\":\"Frodo\",\"lastName\":\"Baggins\",\"cn\":\"Frodo Baggins\",\"interfaces#\":4,\"interfaces\":[\"top\",\"person\",\"organizationalPerson\",\"inetOrgPerson\"]}]",
-                entityData.toString(), true);
+                "[{\"id\":\"uid=frodo.baggins," + BASEDB_CUSTOMERS + "\","
+                        + "\"customerId\":\"frodo.baggins\","
+                        + "\"firstName\":\"Frodo\","
+                        + "\"lastName\":\"Baggins\","
+                        + "\"cn\":\"Frodo Baggins\","
+                        + "\"interfaces#\":4,"
+                        + "\"interfaces\":[\"top\",\"person\",\"organizationalPerson\",\"inetOrgPerson\"]}]",
+                        entityData.toString(), true);
     }
 
 }

@@ -53,11 +53,11 @@ public class LdapDataStore implements DataStore {
         this.baseDN = baseDN;
     }
 
-    public String getUniqueField() {
+    public String getUniqueAttribute() {
         return uniqueField;
     }
 
-    public void setUniqueField(String uniqueField) {
+    public void setUniqueAttribute(String uniqueField) {
         this.uniqueField = uniqueField;
     }
 
