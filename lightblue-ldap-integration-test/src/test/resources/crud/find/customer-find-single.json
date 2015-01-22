@@ -14,5 +14,8 @@
         "field": "firstName",
         "op": "$eq",
         "rvalue": "Frodo"
+    },
+    "sort": {
+        "firstName": "$desc"
     }
 }
