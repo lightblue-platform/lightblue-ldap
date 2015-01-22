@@ -23,7 +23,6 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -37,55 +36,55 @@ import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
 import com.unboundid.ldap.sdk.Attribute;
 
 /**
+ * This test suite is designed to ensure that the LDAP properties work correctly.
  *
  * @author dcrissman
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCRUDController{
 
-    private static final String BASEDB_USERS = "ou=Users,dc=example,dc=com";
+    private static final String BASEDB_CUSTOMERS = "ou=Customers,dc=example,dc=com";
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        ldapServer.add("ou=Users,dc=example,dc=com",  new Attribute[]{
+        ldapServer.add("ou=Customers,dc=example,dc=com",  new Attribute[]{
                 new Attribute("objectClass", "top"),
                 new Attribute("objectClass", "organizationalUnit"),
-                new Attribute("ou", "Users")});
+                new Attribute("ou", "Customers")});
 
         System.setProperty("ldap.host", "localhost");
         System.setProperty("ldap.port", String.valueOf(LdapServerExternalResource.DEFAULT_PORT));
         System.setProperty("ldap.database", "test");
-        System.setProperty("ldap.person.basedn", BASEDB_USERS);
+        System.setProperty("ldap.customer.basedn", BASEDB_CUSTOMERS);
 
         System.setProperty("mongo.host", "localhost");
         System.setProperty("mongo.port", String.valueOf(MongoServerExternalResource.DEFAULT_PORT));
         System.setProperty("mongo.database", "lightblue");
 
-        initLightblueFactory("./datasources.json", "./metadata/person-metadata-with-properties.json");
+        initLightblueFactory("./datasources.json", "./metadata/customer-metadata.json");
     }
 
     @Test
-    public void testPersonInsertWithProperties() throws Exception{
+    public void test1CustomerInsertWithProperties() throws Exception{
         Response response = lightblueFactory.getMediator().insert(
-                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json"));
+                createRequest_FromResource(InsertionRequest.class, "./crud/insert/customer-insert-single.json"));
 
         assertNotNull(response);
         assertNoErrors(response);
         assertNoDataErrors(response);
-        assertEquals(4, response.getModifiedCount());
+        assertEquals(1, response.getModifiedCount());
 
         JsonNode entityData = response.getEntityData();
         assertNotNull(entityData);
         JSONAssert.assertEquals(
-                "[{\"dn\":\"uid=junior.doe," + BASEDB_USERS + "\"},{\"dn\":\"uid=john.doe," + BASEDB_USERS + "\"},{\"dn\":\"uid=jane.doe," + BASEDB_USERS + "\"},{\"dn\":\"uid=jack.buck," + BASEDB_USERS + "\"}]",
+                "[{\"id\":\"uid=frodo.baggins," + BASEDB_CUSTOMERS + "\"}]",
                 entityData.toString(), false);
     }
 
     @Test
-    @Ignore
-    public void testFindSingleWithProperties() throws Exception{
+    public void test2FindCustomerWithProperties() throws Exception{
         Response response = lightblueFactory.getMediator().find(
-                createRequest_FromResource(FindRequest.class, "./crud/find/person-find-single.json"));
+                createRequest_FromResource(FindRequest.class, "./crud/find/customer-find-single.json"));
 
         assertNotNull(response);
         assertNoErrors(response);
@@ -95,7 +94,8 @@ public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCR
         JsonNode entityData = response.getEntityData();
         assertNotNull(entityData);
         JSONAssert.assertEquals(
-                "[{\"dn\":\"uid=john.doe," + BASEDB_USERS + "\",\"uid\":\"john.doe\",\"objectType\":\"person\",\"objectClass#\":4}]",
+                "[{\"id\":\"uid=frodo.baggins," + BASEDB_CUSTOMERS
+                + "\",\"firstName\":\"Frodo\",\"lastName\":\"Baggins\",\"cn\":\"Frodo Baggins\",\"interfaces#\":4,\"interfaces\":[\"top\",\"person\",\"organizationalPerson\",\"inetOrgPerson\"]}]",
                 entityData.toString(), true);
     }
 

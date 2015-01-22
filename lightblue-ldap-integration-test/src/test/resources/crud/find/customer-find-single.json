@@ -1,0 +1,17 @@
+{
+    "entity": "customer",
+    "entityVersion": "1.0.0",
+    "projection": [
+        {"field": "id"},
+        {"field": "firstName"},
+        {"field": "lastName"},
+        {"field": "cn"},
+        {"field": "interfaces.*"},
+        {"field": "interfaces#"}
+    ],
+    "query": {
+        "field": "firstName",
+        "op": "$eq",
+        "rvalue": "Frodo"
+    }
+}

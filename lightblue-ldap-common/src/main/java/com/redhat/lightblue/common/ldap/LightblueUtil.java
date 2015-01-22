@@ -104,6 +104,6 @@ public final class LightblueUtil {
         return countField.substring(0, countField.length() - 1);
     }
 
-    private LightblueUtil(){}
+    private LightblueUtil(){} //NOSONAR
 
 }

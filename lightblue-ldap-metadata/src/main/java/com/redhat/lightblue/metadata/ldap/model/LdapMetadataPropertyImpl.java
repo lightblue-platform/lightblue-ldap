@@ -43,23 +43,23 @@ public class LdapMetadataPropertyImpl implements LdapMetadataProperty{
     }
 
     @Override
-    public String getAttributeNameForFieldName(String fieldName){
+    public String translateFieldName(String fieldName){
         for(FieldToAttribute f2a : fieldsToAttributes){
             if(f2a.getFieldName().equalsIgnoreCase(fieldName)){
                 return f2a.getAttributeName();
             }
         }
-        return null;
+        return fieldName;
     }
 
     @Override
-    public String getFieldNameForAttributeName(String attributeName){
+    public String translateAttributeName(String attributeName){
         for(FieldToAttribute f2a : fieldsToAttributes){
             if(f2a.getAttributeName().equalsIgnoreCase(attributeName)){
                 return f2a.getFieldName();
             }
         }
-        return null;
+        return attributeName;
     }
 
     /**

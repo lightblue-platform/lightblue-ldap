@@ -21,7 +21,6 @@ package com.redhat.lightblue.metadata.ldap.model;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
 
 import java.util.Set;
 
@@ -30,7 +29,7 @@ import org.junit.Test;
 public class LdapMetadataPropertyImplTest {
 
     @Test
-    public void testGetAttributeNameForFieldName(){
+    public void testTranslateFieldName(){
         String fieldName = "fakeFieldName";
         String attributeName = "fakeAttributeName";
 
@@ -38,16 +37,18 @@ public class LdapMetadataPropertyImplTest {
         property.addFieldToAttribute(new FieldToAttribute(fieldName, attributeName));
         property.addFieldToAttribute(new FieldToAttribute("anotherField", "anotherAttribute"));
 
-        assertEquals(attributeName, property.getAttributeNameForFieldName(fieldName));
+        assertEquals(attributeName, property.translateFieldName(fieldName));
     }
 
     @Test
-    public void testGetAttributeNameForFieldName_ValueNotPresent(){
-        assertNull(new LdapMetadataPropertyImpl().getAttributeNameForFieldName("fake"));
+    public void testTranslateFieldName_ValueNotPresent(){
+        String fieldName = "fakeFieldName";
+
+        assertEquals(fieldName, new LdapMetadataPropertyImpl().translateFieldName(fieldName));
     }
 
     @Test
-    public void testGetFieldNameForAttributeName(){
+    public void testTranslateAttributeName(){
         String fieldName = "fakeFieldName";
         String attributeName = "fakeAttributeName";
 
@@ -55,12 +56,14 @@ public class LdapMetadataPropertyImplTest {
         property.addFieldToAttribute(new FieldToAttribute(fieldName, attributeName));
         property.addFieldToAttribute(new FieldToAttribute("anotherField", "anotherAttribute"));
 
-        assertEquals(fieldName, property.getFieldNameForAttributeName(attributeName));
+        assertEquals(fieldName, property.translateAttributeName(attributeName));
     }
 
     @Test
-    public void testGetFieldNameForAttributeName_ValueNotPresent(){
-        assertNull(new LdapMetadataPropertyImpl().getFieldNameForAttributeName("fake"));
+    public void testTranslateAttributeName_ValueNotPresent(){
+        String attributeName = "fakeAttributeName";
+
+        assertEquals(attributeName, new LdapMetadataPropertyImpl().translateAttributeName(attributeName));
     }
 
     @Test

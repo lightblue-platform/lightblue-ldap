@@ -18,20 +18,25 @@
  */
 package com.redhat.lightblue.common.ldap;
 
+/**
+ * Represents a class that can provide information about the LDAP metadata property.
+ *
+ * @author dcrissman
+ */
 public interface LdapMetadataProperty {
 
     /**
      * Returns the attributeName with the given fieldName.
      * @param fieldName - metadata field name
-     * @return ldap attribute name or <code>null</code> if a match is not present.
+     * @return ldap attributeName or the fieldName back at you if no mapping is present.
      */
-    public String getAttributeNameForFieldName(String fieldName);
+    public String translateFieldName(String fieldName);
 
     /**
      * Returns the fieldName with the given attributeName.
      * @param attributeName - ldap attribute name
-     * @return metadata field name or <code>null</code> if a match is not present.
+     * @return metadata fieldName or the attributeName back at you if no mapping is present.
      */
-    public String getFieldNameForAttributeName(String attributeName);
+    public String translateAttributeName(String attributeName);
 
 }

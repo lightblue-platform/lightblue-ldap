@@ -75,9 +75,9 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
 
     @Override
     protected void translate(SimpleField field, Path path, JsonNode node, Entry target) {
-        String fieldName = findAttributeName(field.getName());
+        String fieldName = property.translateFieldName(field.getName());
 
-        if(LdapConstant.FIELD_DN.equalsIgnoreCase(fieldName)){
+        if(LdapConstant.ATTRIBUTE_DN.equalsIgnoreCase(fieldName)){
             throw new IllegalArgumentException(
                     "'dn' should not be included as it's value will be derived from the metadata.basedn and" +
                     " the metadata.uniqueattr. Including the 'dn' as an insert attribute is confusing.");
@@ -110,7 +110,7 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     protected void translateSimpleArray(ArrayField field, Path path, List<Object> items, Entry target) {
         ArrayElement arrayElement = field.getElement();
         Type arrayElementType = arrayElement.getType();
-        String fieldName = findAttributeName(field.getName());
+        String fieldName = property.translateFieldName(field.getName());
 
         if(arrayElementType instanceof BinaryType){
             List<byte[]> bytes = new ArrayList<byte[]>();
@@ -131,19 +131,6 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     @Override
     protected void translateObjectArray(ArrayField field, JsonNodeCursor cursor, Entry target) {
         throw new UnsupportedOperationException("Object ArrayField type is not currently supported.");
-    }
-
-    private String findAttributeName(String fieldName){
-        if(property == null){
-            return fieldName;
-        }
-
-        String attributeName = property.getAttributeNameForFieldName(fieldName);
-        if(attributeName == null){
-            return fieldName;
-        }
-
-        return attributeName;
     }
 
 }

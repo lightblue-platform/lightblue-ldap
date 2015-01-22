@@ -19,6 +19,7 @@
 package com.redhat.lightblue.crud.ldap;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,6 +44,7 @@ import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.CrudConstants;
 import com.redhat.lightblue.crud.DocCtx;
+import com.redhat.lightblue.crud.ldap.model.NullLdapMetadataPropertyImpl;
 import com.redhat.lightblue.crud.ldap.translator.FilterTranslator;
 import com.redhat.lightblue.crud.ldap.translator.ResultTranslator;
 import com.redhat.lightblue.crud.ldap.translator.SortTranslator;
@@ -205,15 +207,17 @@ public class LdapCRUDController implements CRUDController{
 
         LDAPConnection connection = getNewLdapConnection(store);
 
+        LdapMetadataProperty property = getLdapMetadataProperty(md);
+
         try {
             //TODO: Support scopes other than SUB
             SearchRequest request = new SearchRequest(
                     store.getBaseDN(),
                     SearchScope.SUB,
-                    new FilterTranslator().translate(query),
-                    collectRequiredFields(md, projection, query, sort).toArray(new String[0]));
+                    new FilterTranslator(property).translate(query),
+                    translateFieldNames(property, gatherRequiredFields(md, projection, query, sort)).toArray(new String[0]));
             if(sort != null){
-                request.addControl(new ServerSideSortRequestControl(false, new SortTranslator().translate(sort)));
+                request.addControl(new ServerSideSortRequestControl(false, new SortTranslator(property).translate(sort)));
             }
             if((from != null) && (from > 0)){
                 int endPos = to.intValue() - from.intValue();
@@ -223,11 +227,11 @@ public class LdapCRUDController implements CRUDController{
             SearchResult result = connection.search(request);
 
             response.setSize(result.getEntryCount());
-            ResultTranslator resultTranslator = new ResultTranslator(ctx.getFactory().getNodeFactory());
+            ResultTranslator resultTranslator = new ResultTranslator(ctx.getFactory().getNodeFactory(), md, property);
             List<DocCtx> translatedDocs = new ArrayList<DocCtx>();
             for(SearchResultEntry entry : result.getSearchEntries()){
                 try{
-                    translatedDocs.add(resultTranslator.translate(entry, md));
+                    translatedDocs.add(resultTranslator.translate(entry));
                 }
                 catch(Exception e){
                     DocCtx erroredDoc = new DocCtx(null);
@@ -276,13 +280,18 @@ public class LdapCRUDController implements CRUDController{
              */
             @Override
             public void beforeCreateNewSchema(Metadata m, EntityMetadata md) {
+                LdapMetadataProperty property = getLdapMetadataProperty(md);
+
                 Fields fields = md.getEntitySchema().getFields();
-                if(!fields.has(LdapConstant.FIELD_DN)){
-                    fields.addNew(new SimpleField(LdapConstant.FIELD_DN, StringType.TYPE));
+                String dnFieldName = property.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
+                if(!fields.has(dnFieldName)){
+                    fields.addNew(new SimpleField(dnFieldName, StringType.TYPE));
                 }
-                if(!fields.has(LdapConstant.FIELD_OBJECT_CLASS)){
-                    fields.addNew(new ArrayField(LdapConstant.FIELD_OBJECT_CLASS, new SimpleArrayElement(StringType.TYPE)));
-                    fields.addNew(new SimpleField(LightblueUtil.createArrayCountFieldName(LdapConstant.FIELD_OBJECT_CLASS), IntegerType.TYPE));
+
+                String objectClassFieldName = property.translateAttributeName(LdapConstant.ATTRIBUTE_OBJECT_CLASS);
+                if(!fields.has(objectClassFieldName)){
+                    fields.addNew(new ArrayField(objectClassFieldName, new SimpleArrayElement(StringType.TYPE)));
+                    fields.addNew(new SimpleField(LightblueUtil.createArrayCountFieldName(objectClassFieldName), IntegerType.TYPE));
                 }
             }
 
@@ -325,7 +334,7 @@ public class LdapCRUDController implements CRUDController{
         Object o = md.getEntityInfo().getProperties().get(LdapConstant.BACKEND);
 
         if(o == null){
-            return null;
+            return new NullLdapMetadataPropertyImpl();
         }
 
         if(!(o instanceof LdapMetadataProperty)){
@@ -354,7 +363,7 @@ public class LdapCRUDController implements CRUDController{
      * @param sort - (optional) {@link Sort}.
      * @return list of field names.
      */
-    private Set<String> collectRequiredFields(EntityMetadata md,
+    private Set<String> gatherRequiredFields(EntityMetadata md,
             Projection projection, QueryExpression query, Sort sort){
         Set<String> fields = new HashSet<String>();
 
@@ -383,6 +392,22 @@ public class LdapCRUDController implements CRUDController{
     }
 
     /**
+     * Translates a <code>Collection</code> of fieldNames into a <code>Set</code> of
+     * attributeNames
+     * @param property - {@link LdapMetadataProperty}.
+     * @param fieldNames - <code>Collection</code> of fieldNames to translated
+     * @return <code>Set</code> of translated attributeNames.
+     */
+    private Set<String> translateFieldNames(LdapMetadataProperty property, Collection<String> fieldNames){
+        Set<String> attributes = new HashSet<String>();
+        for(String fieldName : fieldNames){
+            attributes.add(property.translateFieldName(fieldName));
+        }
+
+        return attributes;
+    }
+
+    /**
      * For Insert and Save (and possibly Update), this method will project the results back
      * onto the documents.
      * @param projection - {@link Projection} If null, then nothing will happen.
@@ -396,7 +421,9 @@ public class LdapCRUDController implements CRUDController{
 
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
         JsonNodeFactory factory = ctx.getFactory().getNodeFactory();
-        Set<String> requiredFields = collectRequiredFields(md, projection, null, null);
+        LdapMetadataProperty property = getLdapMetadataProperty(md);
+
+        Set<String> requiredAttributes = translateFieldNames(property, gatherRequiredFields(md, projection, null, null));
         Projector projector = Projector.getInstance(
                 Projection.add(
                         projection,
@@ -406,15 +433,17 @@ public class LdapCRUDController implements CRUDController{
                         ),
                         md);
 
+        String dnFieldName = property.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
+
         for(Entry<DocCtx, String> insertedDn : documentToDnMap.entrySet()){
             DocCtx document = insertedDn.getKey();
             String dn = insertedDn.getValue();
             DocCtx projectionResponseJson = null;
 
             // If only dn is in the projection, then no need to query LDAP.
-            if((requiredFields.size() == 1) && requiredFields.contains(LdapConstant.FIELD_DN)){
+            if((requiredAttributes.size() == 1) && requiredAttributes.contains(LdapConstant.ATTRIBUTE_DN)){
                 ObjectNode node = factory.objectNode();
-                node.set(LdapConstant.FIELD_DN, StringType.TYPE.toJson(factory, dn));
+                node.set(dnFieldName, StringType.TYPE.toJson(factory, dn));
                 projectionResponseJson = new DocCtx(new JsonDoc(node));
             }
             //TODO: else fetch entity from LDAP and project results.
