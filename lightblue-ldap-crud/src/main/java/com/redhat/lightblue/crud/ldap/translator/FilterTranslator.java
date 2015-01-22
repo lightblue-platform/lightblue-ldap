@@ -86,11 +86,11 @@ public class FilterTranslator {
     }
 
     private Filter translate(ArrayContainsExpression query){
-        String fieldName = property.translateFieldName(query.getArray().toString());
+        String attributeName = property.translateFieldName(query.getArray().toString());
 
         List<Filter> filters = new ArrayList<Filter>();
         for(Value value : query.getValues()){
-            filters.add(Filter.createEqualityFilter(fieldName, value.getValue().toString()));
+            filters.add(Filter.createEqualityFilter(attributeName, value.getValue().toString()));
         }
 
         switch(query.getOp()){
@@ -131,10 +131,10 @@ public class FilterTranslator {
     }
 
     private Filter translate(NaryRelationalExpression query){
-        String fieldName = property.translateFieldName(query.getField().toString());
+        String attributeName = property.translateFieldName(query.getField().toString());
         List<Filter> filters = new ArrayList<Filter>();
         for(Value value : query.getValues()){
-            filters.add(Filter.createEqualityFilter(fieldName, value.getValue().toString()));
+            filters.add(Filter.createEqualityFilter(attributeName, value.getValue().toString()));
         }
 
         switch (query.getOp()){
@@ -162,22 +162,22 @@ public class FilterTranslator {
     }
 
     private Filter translate(ValueComparisonExpression query){
-        String fieldName = property.translateFieldName(query.getField().toString());
+        String attributeName = property.translateFieldName(query.getField().toString());
         String rValue = query.getRvalue().getValue().toString();
 
         switch(query.getOp()){
             case _eq:
-                return Filter.createEqualityFilter(fieldName, rValue);
+                return Filter.createEqualityFilter(attributeName, rValue);
             case _neq:
-                return Filter.createNOTFilter(Filter.createEqualityFilter(fieldName, rValue));
+                return Filter.createNOTFilter(Filter.createEqualityFilter(attributeName, rValue));
             case _gte:
-                return Filter.createGreaterOrEqualFilter(fieldName, rValue);
+                return Filter.createGreaterOrEqualFilter(attributeName, rValue);
             case _lte:
-                return Filter.createLessOrEqualFilter(fieldName, rValue);
+                return Filter.createLessOrEqualFilter(attributeName, rValue);
             case _gt: //aka. !lte
-                return Filter.createNOTFilter(Filter.createLessOrEqualFilter(fieldName, rValue));
+                return Filter.createNOTFilter(Filter.createLessOrEqualFilter(attributeName, rValue));
             case _lt: //aka. !gte
-                return Filter.createNOTFilter(Filter.createGreaterOrEqualFilter(fieldName, rValue));
+                return Filter.createNOTFilter(Filter.createGreaterOrEqualFilter(attributeName, rValue));
             default:
                 throw new UnsupportedOperationException("Unsupported operation: " + query.getOp());
         }

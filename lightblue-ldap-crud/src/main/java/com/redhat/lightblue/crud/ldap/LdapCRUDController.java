@@ -127,10 +127,10 @@ public class LdapCRUDController implements CRUDController{
 
             JsonNode rootNode = document.getRoot();
 
-            String uniqueAttributeName = property.translateAttributeName(store.getUniqueAttribute());
-            JsonNode uniqueNode = rootNode.get(uniqueAttributeName);
+            String uniqueFieldName = property.translateAttributeName(store.getUniqueAttribute());
+            JsonNode uniqueNode = rootNode.get(uniqueFieldName);
             if(uniqueNode == null){
-                throw new IllegalArgumentException(uniqueAttributeName + " is a required field");
+                throw new IllegalArgumentException(uniqueFieldName + " is a required field");
             }
 
             String dn = createDN(store, uniqueNode.asText());
@@ -424,7 +424,7 @@ public class LdapCRUDController implements CRUDController{
         JsonNodeFactory factory = ctx.getFactory().getNodeFactory();
         LdapMetadataProperty property = getLdapMetadataProperty(md);
 
-        Set<String> requiredAttributes = translateFieldNames(property, gatherRequiredFields(md, projection, null, null));
+        Set<String> requiredAttributeNames = translateFieldNames(property, gatherRequiredFields(md, projection, null, null));
         Projector projector = Projector.getInstance(
                 Projection.add(
                         projection,
@@ -442,7 +442,7 @@ public class LdapCRUDController implements CRUDController{
             DocCtx projectionResponseJson = null;
 
             // If only dn is in the projection, then no need to query LDAP.
-            if((requiredAttributes.size() == 1) && requiredAttributes.contains(LdapConstant.ATTRIBUTE_DN)){
+            if((requiredAttributeNames.size() == 1) && requiredAttributeNames.contains(LdapConstant.ATTRIBUTE_DN)){
                 ObjectNode node = factory.objectNode();
                 node.set(dnFieldName, StringType.TYPE.toJson(factory, dn));
                 projectionResponseJson = new DocCtx(new JsonDoc(node));

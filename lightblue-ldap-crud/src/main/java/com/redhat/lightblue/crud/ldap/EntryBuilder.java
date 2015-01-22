@@ -75,15 +75,15 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
 
     @Override
     protected void translate(SimpleField field, Path path, JsonNode node, Entry target) {
-        String fieldName = property.translateFieldName(field.getName());
+        String attributeName = property.translateFieldName(field.getName());
 
-        if(LdapConstant.ATTRIBUTE_DN.equalsIgnoreCase(fieldName)){
+        if(LdapConstant.ATTRIBUTE_DN.equalsIgnoreCase(attributeName)){
             throw new IllegalArgumentException(
                     "'dn' should not be included as it's value will be derived from the metadata.basedn and" +
                     " the metadata.uniqueattr. Including the 'dn' as an insert attribute is confusing.");
         }
-        else if(LightblueUtil.isFieldObjectType(fieldName)
-                || LightblueUtil.isFieldAnArrayCount(fieldName, getEntityMetadata().getFields())){
+        else if(LightblueUtil.isFieldObjectType(attributeName)
+                || LightblueUtil.isFieldAnArrayCount(attributeName, getEntityMetadata().getFields())){
             /*
              * Indicates the field is auto-generated for lightblue purposes. These fields
              * should not be inserted into LDAP.
@@ -94,10 +94,10 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
         Type type = field.getType();
         Object o = fromJson(type, node);
         if(type instanceof BinaryType) {
-            target.addAttribute(fieldName, (byte[])o);
+            target.addAttribute(attributeName, (byte[])o);
         }
         else{
-            target.addAttribute(fieldName, o.toString());
+            target.addAttribute(attributeName, o.toString());
         }
     }
 
@@ -110,21 +110,21 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     protected void translateSimpleArray(ArrayField field, Path path, List<Object> items, Entry target) {
         ArrayElement arrayElement = field.getElement();
         Type arrayElementType = arrayElement.getType();
-        String fieldName = property.translateFieldName(field.getName());
+        String attributeName = property.translateFieldName(field.getName());
 
         if(arrayElementType instanceof BinaryType){
             List<byte[]> bytes = new ArrayList<byte[]>();
             for(Object item : items){
                 bytes.add((byte[])item);
             }
-            target.addAttribute(fieldName, bytes.toArray(new byte[0][]));
+            target.addAttribute(attributeName, bytes.toArray(new byte[0][]));
         }
         else{
             List<String> values = new ArrayList<String>();
             for(Object item : items){
                 values.add(item.toString());
             }
-            target.addAttribute(fieldName, values);
+            target.addAttribute(attributeName, values);
         }
     }
 
