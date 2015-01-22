@@ -98,7 +98,7 @@ public class LdapPropertyParserTest {
                 ldapMetadataPropertyImpl);
 
         JSONAssert.assertEquals("{\"fieldsToAttributes\":[{\"field\":\"lastName\",\"attribute\":\"sn\"},{\"field\":\"firstName\",\"attribute\":\"givenName\"}]}",
-                node.toString(), true);
+                node.toString(), false);
     }
 
     @Test
