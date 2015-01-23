@@ -34,8 +34,8 @@ public class LdapPropertyTest {
         String attributeName = "fakeAttributeName";
 
         LdapProperty property = new LdapProperty();
-        property.addFieldToAttribute(new FieldToAttribute(fieldName, attributeName));
-        property.addFieldToAttribute(new FieldToAttribute("anotherField", "anotherAttribute"));
+        property.addFieldToAttribute(new FieldAttributeMapping(fieldName, attributeName));
+        property.addFieldToAttribute(new FieldAttributeMapping("anotherField", "anotherAttribute"));
 
         assertEquals(attributeName, property.translateFieldName(fieldName));
     }
@@ -53,8 +53,8 @@ public class LdapPropertyTest {
         String attributeName = "fakeAttributeName";
 
         LdapProperty property = new LdapProperty();
-        property.addFieldToAttribute(new FieldToAttribute(fieldName, attributeName));
-        property.addFieldToAttribute(new FieldToAttribute("anotherField", "anotherAttribute"));
+        property.addFieldToAttribute(new FieldAttributeMapping(fieldName, attributeName));
+        property.addFieldToAttribute(new FieldAttributeMapping("anotherField", "anotherAttribute"));
 
         assertEquals(fieldName, property.translateAttributeName(attributeName));
     }
@@ -69,9 +69,9 @@ public class LdapPropertyTest {
     @Test
     public void testGetFieldsToAttributes_AssertImmutable(){
         LdapProperty property = new LdapProperty();
-        property.addFieldToAttribute(new FieldToAttribute("anotherField", "anotherAttribute"));
+        property.addFieldToAttribute(new FieldAttributeMapping("anotherField", "anotherAttribute"));
 
-        Set<FieldToAttribute> fieldsToAttributes = property.getFieldsToAttributes();
+        Set<FieldAttributeMapping> fieldsToAttributes = property.getFieldsToAttributes();
         assertNotNull(fieldsToAttributes);
         assertNotSame(fieldsToAttributes, property.getFieldsToAttributes());
     }

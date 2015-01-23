@@ -37,7 +37,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.common.ldap.LdapConstant;
-import com.redhat.lightblue.metadata.ldap.model.FieldToAttribute;
+import com.redhat.lightblue.metadata.ldap.model.FieldAttributeMapping;
 import com.redhat.lightblue.metadata.ldap.model.LdapProperty;
 import com.redhat.lightblue.test.MetadataUtil;
 
@@ -55,12 +55,12 @@ public class LdapPropertyParserTest {
 
         assertNotNull(ldapProperty);
 
-        Set<FieldToAttribute> fieldsToAttributes = ldapProperty.getFieldsToAttributes();
+        Set<FieldAttributeMapping> fieldsToAttributes = ldapProperty.getFieldsToAttributes();
         assertNotNull(fieldsToAttributes);
         assertEquals(2, fieldsToAttributes.size());
 
         assertCollectionEquivalent(
-                Arrays.asList(new FieldToAttribute("firstName", "givenName"), new FieldToAttribute("lastName", "sn")),
+                Arrays.asList(new FieldAttributeMapping("firstName", "givenName"), new FieldAttributeMapping("lastName", "sn")),
                 fieldsToAttributes);
     }
 
@@ -87,8 +87,8 @@ public class LdapPropertyParserTest {
     @Test
     public void testConvert() throws IOException, JSONException{
         LdapProperty ldapProperty = new LdapProperty();
-        ldapProperty.addFieldToAttribute(new FieldToAttribute("firstName", "givenName"));
-        ldapProperty.addFieldToAttribute(new FieldToAttribute("lastName", "sn"));
+        ldapProperty.addFieldToAttribute(new FieldAttributeMapping("firstName", "givenName"));
+        ldapProperty.addFieldToAttribute(new FieldAttributeMapping("lastName", "sn"));
 
         JsonNode node = json("{}");
 

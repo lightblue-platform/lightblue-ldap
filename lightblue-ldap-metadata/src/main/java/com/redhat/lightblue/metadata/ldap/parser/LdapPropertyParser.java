@@ -22,7 +22,7 @@ import java.util.List;
 
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.metadata.MetadataConstants;
-import com.redhat.lightblue.metadata.ldap.model.FieldToAttribute;
+import com.redhat.lightblue.metadata.ldap.model.FieldAttributeMapping;
 import com.redhat.lightblue.metadata.ldap.model.LdapProperty;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.parser.PropertyParser;
@@ -50,7 +50,7 @@ public class LdapPropertyParser <T> extends PropertyParser<T> {
         List<T> fieldsToAttributesNode = p.getObjectList(node, FIELDS_TO_ATTRIBUTES);
         if(fieldsToAttributesNode != null){
             for(T fieldToAttributeNode : fieldsToAttributesNode){
-                ldapProperty.addFieldToAttribute(new FieldToAttribute(
+                ldapProperty.addFieldToAttribute(new FieldAttributeMapping(
                         p.getRequiredStringProperty(fieldToAttributeNode, FIELD),
                         p.getRequiredStringProperty(fieldToAttributeNode, ATTRIBUTE)));
             }
@@ -70,10 +70,10 @@ public class LdapPropertyParser <T> extends PropertyParser<T> {
         if(!ldapProperty.getFieldsToAttributes().isEmpty()){
             Object fieldsToAttributesNode = p.newArrayField(emptyNode, FIELDS_TO_ATTRIBUTES);
 
-            for(FieldToAttribute fieldToAttribute : ldapProperty.getFieldsToAttributes()){
+            for(FieldAttributeMapping fieldAttributeMapping : ldapProperty.getFieldsToAttributes()){
                 T fieldToAttributeNode = p.newNode();
-                p.putString(fieldToAttributeNode, FIELD, fieldToAttribute.getFieldName());
-                p.putString(fieldToAttributeNode, ATTRIBUTE, fieldToAttribute.getAttributeName());
+                p.putString(fieldToAttributeNode, FIELD, fieldAttributeMapping.getFieldName());
+                p.putString(fieldToAttributeNode, ATTRIBUTE, fieldAttributeMapping.getAttributeName());
 
                 p.addObjectToArray(fieldsToAttributesNode, fieldToAttributeNode);
             }

@@ -18,24 +18,22 @@
  */
 package com.redhat.lightblue.crud.ldap.model;
 
-import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
+import static org.junit.Assert.assertEquals;
 
-/**
- * An implementation of {@link LdapFieldNameTranslator} used by crud when
- * no other implementation can be found.
- *
- * @author dcrissman
- */
-public class NullLdapFieldNameTranslator implements LdapFieldNameTranslator{
+import org.junit.Test;
 
-    @Override
-    public String translateFieldName(String fieldName) {
-        return fieldName;
+public class LazyLdapFieldNameTranslatorTest {
+
+    @Test
+    public void testTranslateFieldName(){
+        String fieldName = "fakeFieldName";
+        assertEquals(fieldName, new LazyLdapFieldNameTranslator().translateFieldName(fieldName));
     }
 
-    @Override
-    public String translateAttributeName(String attributeName) {
-        return attributeName;
+    @Test
+    public void testTranslateAttributeName(){
+        String attributeName = "fakeAttributeName";
+        assertEquals(attributeName, new LazyLdapFieldNameTranslator().translateAttributeName(attributeName));
     }
 
 }

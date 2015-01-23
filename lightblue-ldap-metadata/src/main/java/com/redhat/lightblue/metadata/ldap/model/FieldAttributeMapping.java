@@ -23,7 +23,7 @@ package com.redhat.lightblue.metadata.ldap.model;
  *
  * @author dcrissman
  */
-public class FieldToAttribute {
+public class FieldAttributeMapping {
 
     private final String fieldName;
     private final String attributeName;
@@ -36,7 +36,7 @@ public class FieldToAttribute {
         return attributeName;
     }
 
-    public FieldToAttribute(String fieldName, String attributeName){
+    public FieldAttributeMapping(String fieldName, String attributeName){
         this.fieldName = fieldName;
         this.attributeName = attributeName;
     }
@@ -63,7 +63,7 @@ public class FieldToAttribute {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        FieldToAttribute other = (FieldToAttribute) obj;
+        FieldAttributeMapping other = (FieldAttributeMapping) obj;
         if (attributeName == null) {
             if (other.attributeName != null) {
                 return false;

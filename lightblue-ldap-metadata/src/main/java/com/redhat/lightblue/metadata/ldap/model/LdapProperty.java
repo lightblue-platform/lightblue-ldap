@@ -32,19 +32,19 @@ import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
  */
 public class LdapProperty implements LdapFieldNameTranslator{
 
-    private final Set<FieldToAttribute> fieldsToAttributes = new HashSet<FieldToAttribute>();
+    private final Set<FieldAttributeMapping> fieldsToAttributes = new HashSet<FieldAttributeMapping>();
 
     /**
-     * Returns an immutable copy of the internal collection of {@link FieldToAttribute}s.
-     * @return a collection of {@link FieldToAttribute}s.
+     * Returns an immutable copy of the internal collection of {@link FieldAttributeMapping}s.
+     * @return a collection of {@link FieldAttributeMapping}s.
      */
-    public Set<FieldToAttribute> getFieldsToAttributes(){
-        return new HashSet<FieldToAttribute>(fieldsToAttributes);
+    public Set<FieldAttributeMapping> getFieldsToAttributes(){
+        return new HashSet<FieldAttributeMapping>(fieldsToAttributes);
     }
 
     @Override
     public String translateFieldName(String fieldName){
-        for(FieldToAttribute f2a : fieldsToAttributes){
+        for(FieldAttributeMapping f2a : fieldsToAttributes){
             if(f2a.getFieldName().equalsIgnoreCase(fieldName)){
                 return f2a.getAttributeName();
             }
@@ -54,7 +54,7 @@ public class LdapProperty implements LdapFieldNameTranslator{
 
     @Override
     public String translateAttributeName(String attributeName){
-        for(FieldToAttribute f2a : fieldsToAttributes){
+        for(FieldAttributeMapping f2a : fieldsToAttributes){
             if(f2a.getAttributeName().equalsIgnoreCase(attributeName)){
                 return f2a.getFieldName();
             }
@@ -63,11 +63,11 @@ public class LdapProperty implements LdapFieldNameTranslator{
     }
 
     /**
-     * Adds a {@link FieldToAttribute} to this {@link LdapProperty}.
-     * @param fieldToAttribute - {@link FieldToAttribute}
+     * Adds a {@link FieldAttributeMapping} to this {@link LdapProperty}.
+     * @param fieldAttributeMapping - {@link FieldAttributeMapping}
      */
-    public void addFieldToAttribute(FieldToAttribute fieldToAttribute){
-        fieldsToAttributes.add(fieldToAttribute);
+    public void addFieldToAttribute(FieldAttributeMapping fieldAttributeMapping){
+        fieldsToAttributes.add(fieldAttributeMapping);
     }
 
 }
