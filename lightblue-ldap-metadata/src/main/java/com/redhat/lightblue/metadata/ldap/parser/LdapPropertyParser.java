@@ -19,10 +19,10 @@
 package com.redhat.lightblue.metadata.ldap.parser;
 
 import java.util.List;
+import java.util.Map.Entry;
 
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.metadata.MetadataConstants;
-import com.redhat.lightblue.metadata.ldap.model.FieldAttributeMapping;
 import com.redhat.lightblue.metadata.ldap.model.LdapProperty;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.parser.PropertyParser;
@@ -50,9 +50,9 @@ public class LdapPropertyParser <T> extends PropertyParser<T> {
         List<T> fieldsToAttributesNode = p.getObjectList(node, FIELDS_TO_ATTRIBUTES);
         if(fieldsToAttributesNode != null){
             for(T fieldToAttributeNode : fieldsToAttributesNode){
-                ldapProperty.addFieldToAttribute(new FieldAttributeMapping(
+                ldapProperty.addFieldToAttribute(
                         p.getRequiredStringProperty(fieldToAttributeNode, FIELD),
-                        p.getRequiredStringProperty(fieldToAttributeNode, ATTRIBUTE)));
+                        p.getRequiredStringProperty(fieldToAttributeNode, ATTRIBUTE));
             }
         }
 
@@ -70,10 +70,10 @@ public class LdapPropertyParser <T> extends PropertyParser<T> {
         if(!ldapProperty.getFieldsToAttributes().isEmpty()){
             Object fieldsToAttributesNode = p.newArrayField(emptyNode, FIELDS_TO_ATTRIBUTES);
 
-            for(FieldAttributeMapping fieldAttributeMapping : ldapProperty.getFieldsToAttributes()){
+            for(Entry<String, String> entry : ldapProperty.getFieldsToAttributes().entrySet()){
                 T fieldToAttributeNode = p.newNode();
-                p.putString(fieldToAttributeNode, FIELD, fieldAttributeMapping.getFieldName());
-                p.putString(fieldToAttributeNode, ATTRIBUTE, fieldAttributeMapping.getAttributeName());
+                p.putString(fieldToAttributeNode, FIELD, entry.getKey());
+                p.putString(fieldToAttributeNode, ATTRIBUTE, entry.getValue());
 
                 p.addObjectToArray(fieldsToAttributesNode, fieldToAttributeNode);
             }

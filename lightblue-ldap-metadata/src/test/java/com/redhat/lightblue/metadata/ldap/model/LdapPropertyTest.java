@@ -18,11 +18,12 @@
  */
 package com.redhat.lightblue.metadata.ldap.model;
 
+import static com.redhat.lightblue.ldap.test.Assert.assertMapEquivalent;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 
-import java.util.Set;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -34,8 +35,8 @@ public class LdapPropertyTest {
         String attributeName = "fakeAttributeName";
 
         LdapProperty property = new LdapProperty();
-        property.addFieldToAttribute(new FieldAttributeMapping(fieldName, attributeName));
-        property.addFieldToAttribute(new FieldAttributeMapping("anotherField", "anotherAttribute"));
+        property.addFieldToAttribute(fieldName, attributeName);
+        property.addFieldToAttribute("anotherField", "anotherAttribute");
 
         assertEquals(attributeName, property.translateFieldName(fieldName));
     }
@@ -53,8 +54,8 @@ public class LdapPropertyTest {
         String attributeName = "fakeAttributeName";
 
         LdapProperty property = new LdapProperty();
-        property.addFieldToAttribute(new FieldAttributeMapping(fieldName, attributeName));
-        property.addFieldToAttribute(new FieldAttributeMapping("anotherField", "anotherAttribute"));
+        property.addFieldToAttribute(fieldName, attributeName);
+        property.addFieldToAttribute("anotherField", "anotherAttribute");
 
         assertEquals(fieldName, property.translateAttributeName(attributeName));
     }
@@ -69,10 +70,11 @@ public class LdapPropertyTest {
     @Test
     public void testGetFieldsToAttributes_AssertImmutable(){
         LdapProperty property = new LdapProperty();
-        property.addFieldToAttribute(new FieldAttributeMapping("anotherField", "anotherAttribute"));
+        property.addFieldToAttribute("anotherField", "anotherAttribute");
 
-        Set<FieldAttributeMapping> fieldsToAttributes = property.getFieldsToAttributes();
+        Map<String, String> fieldsToAttributes = property.getFieldsToAttributes();
         assertNotNull(fieldsToAttributes);
+        assertMapEquivalent(fieldsToAttributes, property.getFieldsToAttributes());
         assertNotSame(fieldsToAttributes, property.getFieldsToAttributes());
     }
 

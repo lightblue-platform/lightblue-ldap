@@ -18,7 +18,7 @@
  */
 package com.redhat.lightblue.metadata.ldap.parser;
 
-import static com.redhat.lightblue.ldap.test.Assert.assertCollectionEquivalent;
+import static com.redhat.lightblue.ldap.test.Assert.assertMapEquivalent;
 import static com.redhat.lightblue.util.JsonUtils.json;
 import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
 import static org.junit.Assert.assertEquals;
@@ -26,8 +26,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.json.JSONException;
 import org.junit.Rule;
@@ -37,7 +37,6 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.common.ldap.LdapConstant;
-import com.redhat.lightblue.metadata.ldap.model.FieldAttributeMapping;
 import com.redhat.lightblue.metadata.ldap.model.LdapProperty;
 import com.redhat.lightblue.test.MetadataUtil;
 
@@ -55,13 +54,14 @@ public class LdapPropertyParserTest {
 
         assertNotNull(ldapProperty);
 
-        Set<FieldAttributeMapping> fieldsToAttributes = ldapProperty.getFieldsToAttributes();
+        Map<String, String> fieldsToAttributes = ldapProperty.getFieldsToAttributes();
         assertNotNull(fieldsToAttributes);
         assertEquals(2, fieldsToAttributes.size());
 
-        assertCollectionEquivalent(
-                Arrays.asList(new FieldAttributeMapping("firstName", "givenName"), new FieldAttributeMapping("lastName", "sn")),
-                fieldsToAttributes);
+        Map<String, String> expected = new HashMap<String, String>();
+        expected.put("firstName", "givenName");
+        expected.put("lastName", "sn");
+        assertMapEquivalent(expected, fieldsToAttributes);
     }
 
     @Test
@@ -87,8 +87,8 @@ public class LdapPropertyParserTest {
     @Test
     public void testConvert() throws IOException, JSONException{
         LdapProperty ldapProperty = new LdapProperty();
-        ldapProperty.addFieldToAttribute(new FieldAttributeMapping("firstName", "givenName"));
-        ldapProperty.addFieldToAttribute(new FieldAttributeMapping("lastName", "sn"));
+        ldapProperty.addFieldToAttribute("firstName", "givenName");
+        ldapProperty.addFieldToAttribute("lastName", "sn");
 
         JsonNode node = json("{}");
 

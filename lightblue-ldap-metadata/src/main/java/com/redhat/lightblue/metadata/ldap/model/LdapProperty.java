@@ -18,8 +18,9 @@
  */
 package com.redhat.lightblue.metadata.ldap.model;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 
@@ -32,31 +33,31 @@ import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
  */
 public class LdapProperty implements LdapFieldNameTranslator{
 
-    private final Set<FieldAttributeMapping> fieldsToAttributes = new HashSet<FieldAttributeMapping>();
+    private final Map<String, String> fieldsToAttributes = new HashMap<String, String>();
 
     /**
      * Returns an immutable copy of the internal collection of {@link FieldAttributeMapping}s.
      * @return a collection of {@link FieldAttributeMapping}s.
      */
-    public Set<FieldAttributeMapping> getFieldsToAttributes(){
-        return new HashSet<FieldAttributeMapping>(fieldsToAttributes);
+    public Map<String, String> getFieldsToAttributes(){
+        return new HashMap<String, String>(fieldsToAttributes);
     }
 
     @Override
     public String translateFieldName(String fieldName){
-        for(FieldAttributeMapping f2a : fieldsToAttributes){
-            if(f2a.getFieldName().equalsIgnoreCase(fieldName)){
-                return f2a.getAttributeName();
-            }
+        String attributeName = fieldsToAttributes.get(fieldName);
+        if(attributeName == null){
+            return fieldName;
         }
-        return fieldName;
+
+        return attributeName;
     }
 
     @Override
     public String translateAttributeName(String attributeName){
-        for(FieldAttributeMapping f2a : fieldsToAttributes){
-            if(f2a.getAttributeName().equalsIgnoreCase(attributeName)){
-                return f2a.getFieldName();
+        for(Entry<String, String> f2a : fieldsToAttributes.entrySet()){
+            if(f2a.getValue().equalsIgnoreCase(attributeName)){
+                return f2a.getKey();
             }
         }
         return attributeName;
@@ -66,8 +67,8 @@ public class LdapProperty implements LdapFieldNameTranslator{
      * Adds a {@link FieldAttributeMapping} to this {@link LdapProperty}.
      * @param fieldAttributeMapping - {@link FieldAttributeMapping}
      */
-    public void addFieldToAttribute(FieldAttributeMapping fieldAttributeMapping){
-        fieldsToAttributes.add(fieldAttributeMapping);
+    public void addFieldToAttribute(String fieldName, String attributeName){
+        fieldsToAttributes.put(fieldName, attributeName);
     }
 
 }

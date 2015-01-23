@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -37,6 +38,52 @@ import org.apache.commons.lang.StringUtils;
 public final class Assert {
 
     private Assert(){}
+
+    /**
+     * <p>Asserts that the keys and values of the two maps are equal.</p>
+     * @param expectedMap
+     * @param actualMap
+     */
+    public static <K,V> void assertMapEquivalent(Map<K,V> expectedMap, Map<K,V> actualMap){
+        assertMapEquivalent(expectedMap, actualMap, new DefaultEquivalencyEvaluator());
+    }
+
+    /**
+     * <p>Asserts that the keys and values of the two maps are equal.</p>
+     * @param expectedMap
+     * @param actualMap
+     * @param evaluator
+     */
+    public static <K,V> void assertMapEquivalent(Map<K,V> expectedMap, Map<K,V> actualMap, EquivalencyEvaluator evaluator){
+        assertBothNullsOrNotNulls(expectedMap, actualMap);
+
+        List<String> collector = new ArrayList<String>();
+
+        try{
+            assertEquals("Map size does not match", expectedMap.size(), actualMap.size());
+        }
+        catch(AssertionError e){
+            collector.add(e.getMessage());
+        }
+
+        try{
+            assertCollectionEquivalent(expectedMap.keySet(), actualMap.keySet(), evaluator);
+        }
+        catch(AssertionError e){
+            collector.add(e.getMessage());
+        }
+
+        try{
+            assertCollectionEquivalent(expectedMap.values(), actualMap.values(), evaluator);
+        }
+        catch(AssertionError e){
+            collector.add(e.getMessage());
+        }
+
+        if(!collector.isEmpty()){
+            throw new AssertionError(StringUtils.join(collector, "\n"));
+        }
+    }
 
     /**
      * <p>Asserts that the two arrays are equal without regard for Object position.</p>
@@ -58,7 +105,13 @@ public final class Assert {
         assertCollectionEquivalent(expecteds, actuals, new DefaultEquivalencyEvaluator());
     }
 
-
+    /**
+     * <p>Asserts that the two Lists are equal without regard for Object position.</p>
+     * <p>For Example: [5,3,2] is equivalent to [2,3,5].</p>
+     * @param expecteds
+     * @param actuals
+     * @param evaluator
+     */
     public static void assertCollectionEquivalent(Collection<?> expecteds, Collection<?> actuals, EquivalencyEvaluator evaluator){
         assertBothNullsOrNotNulls(expecteds, actuals);
 
