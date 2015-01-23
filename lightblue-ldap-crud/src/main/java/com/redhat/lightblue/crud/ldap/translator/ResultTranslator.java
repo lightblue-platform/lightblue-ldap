@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.redhat.lightblue.common.ldap.LdapConstant;
-import com.redhat.lightblue.common.ldap.LdapMetadataProperty;
+import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.crud.DocCtx;
 import com.redhat.lightblue.metadata.ArrayField;
@@ -53,12 +53,12 @@ public class ResultTranslator {
 
     private final JsonNodeFactory factory;
     private final EntityMetadata md;
-    private final LdapMetadataProperty property;
+    private final LdapFieldNameTranslator fieldNameTranslator;
 
-    public ResultTranslator(JsonNodeFactory factory, EntityMetadata md, LdapMetadataProperty property){
+    public ResultTranslator(JsonNodeFactory factory, EntityMetadata md, LdapFieldNameTranslator fieldNameTranslator){
         this.factory = factory;
         this.md = md;
-        this.property = property;
+        this.fieldNameTranslator = fieldNameTranslator;
     }
 
     public DocCtx translate(SearchResultEntry entry){
@@ -75,7 +75,7 @@ public class ResultTranslator {
 
     private JsonNode toJson(SearchResultEntry entry, FieldCursor fieldCursor, String entityName, Fields fields){
         ObjectNode node = factory.objectNode();
-        String dnFieldName = property.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
+        String dnFieldName = fieldNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
 
         do {
             FieldTreeNode field = fieldCursor.getCurrentNode();
@@ -92,7 +92,7 @@ public class ResultTranslator {
                 continue;
             }
 
-            String attributeName = property.translateFieldName(fieldName);
+            String attributeName = fieldNameTranslator.translateFieldName(fieldName);
             Attribute attr = entry.getAttribute(attributeName);
 
             JsonNode value = null;

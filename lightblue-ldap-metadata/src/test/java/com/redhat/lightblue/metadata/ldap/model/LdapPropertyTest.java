@@ -26,14 +26,14 @@ import java.util.Set;
 
 import org.junit.Test;
 
-public class LdapMetadataPropertyImplTest {
+public class LdapPropertyTest {
 
     @Test
     public void testTranslateFieldName(){
         String fieldName = "fakeFieldName";
         String attributeName = "fakeAttributeName";
 
-        LdapMetadataPropertyImpl property = new LdapMetadataPropertyImpl();
+        LdapProperty property = new LdapProperty();
         property.addFieldToAttribute(new FieldToAttribute(fieldName, attributeName));
         property.addFieldToAttribute(new FieldToAttribute("anotherField", "anotherAttribute"));
 
@@ -44,7 +44,7 @@ public class LdapMetadataPropertyImplTest {
     public void testTranslateFieldName_ValueNotPresent(){
         String fieldName = "fakeFieldName";
 
-        assertEquals(fieldName, new LdapMetadataPropertyImpl().translateFieldName(fieldName));
+        assertEquals(fieldName, new LdapProperty().translateFieldName(fieldName));
     }
 
     @Test
@@ -52,7 +52,7 @@ public class LdapMetadataPropertyImplTest {
         String fieldName = "fakeFieldName";
         String attributeName = "fakeAttributeName";
 
-        LdapMetadataPropertyImpl property = new LdapMetadataPropertyImpl();
+        LdapProperty property = new LdapProperty();
         property.addFieldToAttribute(new FieldToAttribute(fieldName, attributeName));
         property.addFieldToAttribute(new FieldToAttribute("anotherField", "anotherAttribute"));
 
@@ -63,12 +63,12 @@ public class LdapMetadataPropertyImplTest {
     public void testTranslateAttributeName_ValueNotPresent(){
         String attributeName = "fakeAttributeName";
 
-        assertEquals(attributeName, new LdapMetadataPropertyImpl().translateAttributeName(attributeName));
+        assertEquals(attributeName, new LdapProperty().translateAttributeName(attributeName));
     }
 
     @Test
     public void testGetFieldsToAttributes_AssertImmutable(){
-        LdapMetadataPropertyImpl property = new LdapMetadataPropertyImpl();
+        LdapProperty property = new LdapProperty();
         property.addFieldToAttribute(new FieldToAttribute("anotherField", "anotherAttribute"));
 
         Set<FieldToAttribute> fieldsToAttributes = property.getFieldsToAttributes();

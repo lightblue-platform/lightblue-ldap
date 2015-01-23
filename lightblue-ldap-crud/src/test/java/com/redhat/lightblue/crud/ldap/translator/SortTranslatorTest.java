@@ -28,7 +28,7 @@ import java.util.Arrays;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.redhat.lightblue.crud.ldap.model.NullLdapMetadataPropertyImpl;
+import com.redhat.lightblue.crud.ldap.model.NullLdapFieldNameTranslator;
 import com.redhat.lightblue.query.CompositeSortKey;
 import com.redhat.lightblue.query.Sort;
 import com.redhat.lightblue.query.SortKey;
@@ -42,7 +42,7 @@ public class SortTranslatorTest {
 
         Sort sort = new SortKey(new Path(fieldName), true);
 
-        com.unboundid.ldap.sdk.controls.SortKey[] translatedSorts = new SortTranslator(new NullLdapMetadataPropertyImpl()).translate(sort);
+        com.unboundid.ldap.sdk.controls.SortKey[] translatedSorts = new SortTranslator(new NullLdapFieldNameTranslator()).translate(sort);
 
         assertNotNull(translatedSorts);
         assertEquals(1, translatedSorts.length);
@@ -59,7 +59,7 @@ public class SortTranslatorTest {
 
         Sort sort = new SortKey(new Path(fieldName), false);
 
-        com.unboundid.ldap.sdk.controls.SortKey[] translatedSorts = new SortTranslator(new NullLdapMetadataPropertyImpl()).translate(sort);
+        com.unboundid.ldap.sdk.controls.SortKey[] translatedSorts = new SortTranslator(new NullLdapFieldNameTranslator()).translate(sort);
 
         assertNotNull(translatedSorts);
         assertEquals(1, translatedSorts.length);
@@ -81,7 +81,7 @@ public class SortTranslatorTest {
                         new SortKey(new Path(fieldName2), false))
                 );
 
-        com.unboundid.ldap.sdk.controls.SortKey[] translatedSorts = new SortTranslator(new NullLdapMetadataPropertyImpl()).translate(sort);
+        com.unboundid.ldap.sdk.controls.SortKey[] translatedSorts = new SortTranslator(new NullLdapFieldNameTranslator()).translate(sort);
 
         assertNotNull(translatedSorts);
         assertEquals(2, translatedSorts.length);
@@ -100,7 +100,7 @@ public class SortTranslatorTest {
     @SuppressWarnings("serial")
     @Test(expected = IllegalArgumentException.class)
     public void testUnsupportedSortType(){
-        new SortTranslator(new NullLdapMetadataPropertyImpl()).translate(new Sort(){
+        new SortTranslator(new NullLdapFieldNameTranslator()).translate(new Sort(){
 
             @Override
             public JsonNode toJson() {

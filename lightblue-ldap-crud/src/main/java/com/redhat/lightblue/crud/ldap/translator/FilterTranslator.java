@@ -21,7 +21,7 @@ package com.redhat.lightblue.crud.ldap.translator;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.redhat.lightblue.common.ldap.LdapMetadataProperty;
+import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.query.ArrayContainsExpression;
 import com.redhat.lightblue.query.ArrayMatchExpression;
 import com.redhat.lightblue.query.FieldComparisonExpression;
@@ -41,10 +41,10 @@ import com.unboundid.ldap.sdk.Filter;
  */
 public class FilterTranslator {
 
-    private final LdapMetadataProperty property;
+    private final LdapFieldNameTranslator fieldNameTranslator;
 
-    public FilterTranslator(LdapMetadataProperty property){
-        this.property = property;
+    public FilterTranslator(LdapFieldNameTranslator fieldNameTranslator){
+        this.fieldNameTranslator = fieldNameTranslator;
     }
 
     /**
@@ -86,7 +86,7 @@ public class FilterTranslator {
     }
 
     private Filter translate(ArrayContainsExpression query){
-        String attributeName = property.translateFieldName(query.getArray().toString());
+        String attributeName = fieldNameTranslator.translateFieldName(query.getArray().toString());
 
         List<Filter> filters = new ArrayList<Filter>();
         for(Value value : query.getValues()){
@@ -131,7 +131,7 @@ public class FilterTranslator {
     }
 
     private Filter translate(NaryRelationalExpression query){
-        String attributeName = property.translateFieldName(query.getField().toString());
+        String attributeName = fieldNameTranslator.translateFieldName(query.getField().toString());
         List<Filter> filters = new ArrayList<Filter>();
         for(Value value : query.getValues()){
             filters.add(Filter.createEqualityFilter(attributeName, value.getValue().toString()));
@@ -162,7 +162,7 @@ public class FilterTranslator {
     }
 
     private Filter translate(ValueComparisonExpression query){
-        String attributeName = property.translateFieldName(query.getField().toString());
+        String attributeName = fieldNameTranslator.translateFieldName(query.getField().toString());
         String rValue = query.getRvalue().getValue().toString();
 
         switch(query.getOp()){

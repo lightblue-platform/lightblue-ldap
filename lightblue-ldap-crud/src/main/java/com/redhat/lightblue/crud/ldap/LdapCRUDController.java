@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.redhat.lightblue.common.ldap.DBResolver;
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapDataStore;
-import com.redhat.lightblue.common.ldap.LdapMetadataProperty;
+import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.crud.CRUDController;
 import com.redhat.lightblue.crud.CRUDDeleteResponse;
@@ -44,7 +44,7 @@ import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.CrudConstants;
 import com.redhat.lightblue.crud.DocCtx;
-import com.redhat.lightblue.crud.ldap.model.NullLdapMetadataPropertyImpl;
+import com.redhat.lightblue.crud.ldap.model.NullLdapFieldNameTranslator;
 import com.redhat.lightblue.crud.ldap.translator.FilterTranslator;
 import com.redhat.lightblue.crud.ldap.translator.ResultTranslator;
 import com.redhat.lightblue.crud.ldap.translator.SortTranslator;
@@ -107,7 +107,7 @@ public class LdapCRUDController implements CRUDController{
 
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
         LdapDataStore store = getLdapDataStore(md);
-        LdapMetadataProperty property = getLdapMetadataProperty(md);
+        LdapFieldNameTranslator property = getLdapFieldNameTranslator(md);
 
         FieldAccessRoleEvaluator roles = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
         EntryBuilder entryBuilder = new EntryBuilder(md, property);
@@ -208,7 +208,7 @@ public class LdapCRUDController implements CRUDController{
 
         LDAPConnection connection = getNewLdapConnection(store);
 
-        LdapMetadataProperty property = getLdapMetadataProperty(md);
+        LdapFieldNameTranslator property = getLdapFieldNameTranslator(md);
 
         try {
             //TODO: Support scopes other than SUB
@@ -281,7 +281,7 @@ public class LdapCRUDController implements CRUDController{
              */
             @Override
             public void beforeCreateNewSchema(Metadata m, EntityMetadata md) {
-                LdapMetadataProperty property = getLdapMetadataProperty(md);
+                LdapFieldNameTranslator property = getLdapFieldNameTranslator(md);
 
                 Fields fields = md.getEntitySchema().getFields();
                 String dnFieldName = property.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
@@ -325,23 +325,23 @@ public class LdapCRUDController implements CRUDController{
     }
 
     /**
-     * Shortcut method to get and return the {@link LdapMetadataProperty} on the passed
+     * Shortcut method to get and return the {@link LdapFieldNameTranslator} on the passed
      * in {@link EntityMetadata}.
      * @param md - {@link EntityMetadata}.
-     * @return {@link LdapMetadataProperty}
+     * @return {@link LdapFieldNameTranslator}
      * @throws IllegalArgumentException if an invalid object is found.
      */
-    private LdapMetadataProperty getLdapMetadataProperty(EntityMetadata md){
+    private LdapFieldNameTranslator getLdapFieldNameTranslator(EntityMetadata md){
         Object o = md.getEntityInfo().getProperties().get(LdapConstant.BACKEND);
 
         if(o == null){
-            return new NullLdapMetadataPropertyImpl();
+            return new NullLdapFieldNameTranslator();
         }
 
-        if(!(o instanceof LdapMetadataProperty)){
+        if(!(o instanceof LdapFieldNameTranslator)){
             throw new IllegalArgumentException("Object of type " + o.getClass() + " is not supported.");
         }
-        return (LdapMetadataProperty) o;
+        return (LdapFieldNameTranslator) o;
     }
 
     /**
@@ -395,11 +395,11 @@ public class LdapCRUDController implements CRUDController{
     /**
      * Translates a <code>Collection</code> of fieldNames into a <code>Set</code> of
      * attributeNames
-     * @param property - {@link LdapMetadataProperty}.
+     * @param property - {@link LdapFieldNameTranslator}.
      * @param fieldNames - <code>Collection</code> of fieldNames to translated
      * @return <code>Set</code> of translated attributeNames.
      */
-    private Set<String> translateFieldNames(LdapMetadataProperty property, Collection<String> fieldNames){
+    private Set<String> translateFieldNames(LdapFieldNameTranslator property, Collection<String> fieldNames){
         Set<String> attributes = new HashSet<String>();
         for(String fieldName : fieldNames){
             attributes.add(property.translateFieldName(fieldName));
@@ -422,7 +422,7 @@ public class LdapCRUDController implements CRUDController{
 
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
         JsonNodeFactory factory = ctx.getFactory().getNodeFactory();
-        LdapMetadataProperty property = getLdapMetadataProperty(md);
+        LdapFieldNameTranslator property = getLdapFieldNameTranslator(md);
 
         Set<String> requiredAttributeNames = translateFieldNames(property, gatherRequiredFields(md, projection, null, null));
         Projector projector = Projector.getInstance(

@@ -22,18 +22,18 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-public class NullLdapMetadataPropertyImplTest {
+public class NullLdapFieldNameTranslatorTest {
 
     @Test
     public void testTranslateFieldName(){
         String fieldName = "fakeFieldName";
-        assertEquals(fieldName, new NullLdapMetadataPropertyImpl().translateFieldName(fieldName));
+        assertEquals(fieldName, new NullLdapFieldNameTranslator().translateFieldName(fieldName));
     }
 
     @Test
     public void testTranslateAttributeName(){
         String attributeName = "fakeAttributeName";
-        assertEquals(attributeName, new NullLdapMetadataPropertyImpl().translateAttributeName(attributeName));
+        assertEquals(attributeName, new NullLdapFieldNameTranslator().translateAttributeName(attributeName));
     }
 
 }

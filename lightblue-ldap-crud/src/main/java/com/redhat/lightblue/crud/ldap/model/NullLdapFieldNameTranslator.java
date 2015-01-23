@@ -18,15 +18,15 @@
  */
 package com.redhat.lightblue.crud.ldap.model;
 
-import com.redhat.lightblue.common.ldap.LdapMetadataProperty;
+import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 
 /**
- * An implementation of {@link LdapMetadataProperty} used by crud when
+ * An implementation of {@link LdapFieldNameTranslator} used by crud when
  * no other implementation can be found.
  *
  * @author dcrissman
  */
-public class NullLdapMetadataPropertyImpl implements LdapMetadataProperty{
+public class NullLdapFieldNameTranslator implements LdapFieldNameTranslator{
 
     @Override
     public String translateFieldName(String fieldName) {

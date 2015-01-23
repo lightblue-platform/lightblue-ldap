@@ -21,7 +21,7 @@ package com.redhat.lightblue.metadata.ldap.model;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.redhat.lightblue.common.ldap.LdapMetadataProperty;
+import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 
 /**
  * Container for special ldap properties parsed from the metadata.json file.
@@ -30,7 +30,7 @@ import com.redhat.lightblue.common.ldap.LdapMetadataProperty;
  *
  * @see com.redhat.lightblue.metadata.ldap.parser.LdapPropertyParser
  */
-public class LdapMetadataPropertyImpl implements LdapMetadataProperty{
+public class LdapProperty implements LdapFieldNameTranslator{
 
     private final Set<FieldToAttribute> fieldsToAttributes = new HashSet<FieldToAttribute>();
 
@@ -63,7 +63,7 @@ public class LdapMetadataPropertyImpl implements LdapMetadataProperty{
     }
 
     /**
-     * Adds a {@link FieldToAttribute} to this {@link LdapMetadataPropertyImpl}.
+     * Adds a {@link FieldToAttribute} to this {@link LdapProperty}.
      * @param fieldToAttribute - {@link FieldToAttribute}
      */
     public void addFieldToAttribute(FieldToAttribute fieldToAttribute){

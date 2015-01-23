@@ -19,11 +19,11 @@
 package com.redhat.lightblue.common.ldap;
 
 /**
- * Represents a class that can provide information about the LDAP metadata property.
+ * Represents a class that can translate back and forth between a fieldName and an LDAP attributeName.
  *
  * @author dcrissman
  */
-public interface LdapMetadataProperty {
+public interface LdapFieldNameTranslator {
 
     /**
      * Returns the attributeName with the given fieldName.

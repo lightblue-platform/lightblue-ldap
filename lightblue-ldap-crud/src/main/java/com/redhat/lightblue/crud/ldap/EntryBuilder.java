@@ -24,7 +24,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.common.ldap.LdapConstant;
-import com.redhat.lightblue.common.ldap.LdapMetadataProperty;
+import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.metadata.ArrayElement;
 import com.redhat.lightblue.metadata.ArrayField;
@@ -47,11 +47,12 @@ import com.unboundid.util.StaticUtils;
  */
 public class EntryBuilder extends TranslatorFromJson<Entry>{
 
-    private final LdapMetadataProperty property;
+    private final LdapFieldNameTranslator fieldNameTranslator
+    ;
 
-    public EntryBuilder(EntityMetadata md, LdapMetadataProperty property){
+    public EntryBuilder(EntityMetadata md, LdapFieldNameTranslator fieldNameTranslator){
         super(md);
-        this.property = property;
+        this.fieldNameTranslator = fieldNameTranslator;
     }
 
     public Entry build(String dn, JsonDoc document){
@@ -75,7 +76,7 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
 
     @Override
     protected void translate(SimpleField field, Path path, JsonNode node, Entry target) {
-        String attributeName = property.translateFieldName(field.getName());
+        String attributeName = fieldNameTranslator.translateFieldName(field.getName());
 
         if(LdapConstant.ATTRIBUTE_DN.equalsIgnoreCase(attributeName)){
             throw new IllegalArgumentException(
@@ -110,7 +111,7 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     protected void translateSimpleArray(ArrayField field, Path path, List<Object> items, Entry target) {
         ArrayElement arrayElement = field.getElement();
         Type arrayElementType = arrayElement.getType();
-        String attributeName = property.translateFieldName(field.getName());
+        String attributeName = fieldNameTranslator.translateFieldName(field.getName());
 
         if(arrayElementType instanceof BinaryType){
             List<byte[]> bytes = new ArrayList<byte[]>();
