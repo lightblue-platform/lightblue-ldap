@@ -29,7 +29,6 @@ import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.metadata.ArrayElement;
 import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityMetadata;
-import com.redhat.lightblue.metadata.ObjectField;
 import com.redhat.lightblue.metadata.SimpleField;
 import com.redhat.lightblue.metadata.Type;
 import com.redhat.lightblue.metadata.types.BinaryType;
@@ -75,7 +74,7 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
 
     @Override
     protected void translate(SimpleField field, Path path, JsonNode node, Entry target) {
-        String attributeName = fieldNameTranslator.translateFieldName(field.getName());
+        String attributeName = fieldNameTranslator.translateFieldName(path);
 
         if(LdapConstant.ATTRIBUTE_DN.equalsIgnoreCase(attributeName)){
             throw new IllegalArgumentException(
@@ -102,15 +101,10 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     }
 
     @Override
-    protected void translate(ObjectField field, Path path, JsonNode node, Entry target) {
-        throw new UnsupportedOperationException("ObjectField type is not currently supported.");
-    }
-
-    @Override
     protected void translateSimpleArray(ArrayField field, Path path, List<Object> items, Entry target) {
         ArrayElement arrayElement = field.getElement();
         Type arrayElementType = arrayElement.getType();
-        String attributeName = fieldNameTranslator.translateFieldName(field.getName());
+        String attributeName = fieldNameTranslator.translateFieldName(path);
 
         if(arrayElementType instanceof BinaryType){
             List<byte[]> bytes = new ArrayList<byte[]>();
@@ -129,7 +123,7 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     }
 
     @Override
-    protected void translateObjectArray(ArrayField field, JsonNodeCursor cursor, Entry target) {
+    protected void translateObjectArray(ArrayField field, JsonNodeCursor cursor, Path path, Entry target) {
         throw new UnsupportedOperationException("Object ArrayField type is not currently supported.");
     }
 

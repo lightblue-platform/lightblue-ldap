@@ -27,6 +27,8 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import com.redhat.lightblue.util.Path;
+
 public class LdapMetadataTest {
 
     @Test
@@ -38,14 +40,37 @@ public class LdapMetadataTest {
         property.addFieldToAttribute(fieldName, attributeName);
         property.addFieldToAttribute("anotherField", "anotherAttribute");
 
-        assertEquals(attributeName, property.translateFieldName(fieldName));
+        assertEquals(attributeName, property.translateFieldName(new Path(fieldName)));
+    }
+
+    @Test
+    public void testTranslateFieldName_WithPath(){
+        String fieldName = "fakePath.fakeFieldName";
+        String attributeName = "fakeAttributeName";
+
+        LdapMetadata property = new LdapMetadata();
+        property.addFieldToAttribute(fieldName, attributeName);
+
+        assertEquals(attributeName, property.translateFieldName(new Path(fieldName)));
+    }
+
+    @Test
+    public void testTranslateFieldName_WithPath_MatchesOnTail(){
+        String fieldName = "fakeFieldName";
+        String pathedFieldName = "fakePath." + fieldName;
+        String attributeName = "fakeAttributeName";
+
+        LdapMetadata property = new LdapMetadata();
+        property.addFieldToAttribute(fieldName, attributeName);
+
+        assertEquals(attributeName, property.translateFieldName(new Path(pathedFieldName)));
     }
 
     @Test
     public void testTranslateFieldName_ValueNotPresent(){
         String fieldName = "fakeFieldName";
 
-        assertEquals(fieldName, new LdapMetadata().translateFieldName(fieldName));
+        assertEquals(fieldName, new LdapMetadata().translateFieldName(new Path(fieldName)));
     }
 
     @Test

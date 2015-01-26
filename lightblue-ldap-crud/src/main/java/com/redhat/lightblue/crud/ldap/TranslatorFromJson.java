@@ -45,6 +45,8 @@ import com.redhat.lightblue.util.Path;
  *
  * @param <T> - A entity that the specific datastore knows how
  * to interact with.
+ *
+ * @see #translate(JsonDoc, Object)
  */
 public abstract class TranslatorFromJson<T> {
 
@@ -54,7 +56,7 @@ public abstract class TranslatorFromJson<T> {
         this.md = md;
     }
 
-    protected EntityMetadata getEntityMetadata(){
+    public EntityMetadata getEntityMetadata(){
         return md;
     }
 
@@ -67,7 +69,12 @@ public abstract class TranslatorFromJson<T> {
         }
     }
 
-    protected void translate(JsonDoc document, T target){
+    /**
+     * Translates an entire {@link JsonDoc} to T.
+     * @param document - {@link JsonDoc}
+     * @param target - T
+     */
+    public void translate(JsonDoc document, T target){
         JsonNodeCursor cursor = document.cursor();
         if (!cursor.firstChild()) {
             //TODO throw exception?
@@ -79,7 +86,14 @@ public abstract class TranslatorFromJson<T> {
         } while (cursor.nextSibling());
     }
 
-    private void translate(JsonNodeCursor cursor, T target){
+    /**
+     * Uses the current position of the cursor to translate the current node and any children it may have.
+     * This is ultimately the driver behind this class and may be called recursively by implementing classes to process child nodes.<br>
+     * <b>NOTE:</b> Calling method is responsible for moving the cursor to where it needs to be.
+     * @param cursor - {@link JsonNodeCursor}
+     * @param target - T
+     */
+    protected void translate(JsonNodeCursor cursor, T target){
         Path path = cursor.getCurrentPath();
         JsonNode node = cursor.getCurrentNode();
         FieldTreeNode fieldNode = md.resolve(path);
@@ -92,7 +106,7 @@ public abstract class TranslatorFromJson<T> {
             translate((SimpleField) fieldNode, path, node, target);
         }
         else if (fieldNode instanceof ObjectField) {
-            translate((ObjectField) fieldNode, path, node, target);
+            translate((ObjectField) fieldNode, cursor, path, target);
         }
         else if (fieldNode instanceof ArrayField) {
             translate((ArrayField) fieldNode, cursor, path, target);
@@ -121,11 +135,23 @@ public abstract class TranslatorFromJson<T> {
             translateSimpleArray(field, path, items, target);
         }
         else if(arrayElement instanceof ObjectArrayElement){
-            translateObjectArray(field, cursor, target);
+            translateObjectArray(field, cursor, path, target);
         }
         else{
             throw new UnsupportedOperationException("ArrayElement type is not supported: " + arrayElement.getClass().getName());
         }
+
+        cursor.parent();
+    }
+
+    protected void translate(ObjectField field, JsonNodeCursor cursor, Path path, T target){
+        if(!cursor.firstChild()){
+            //TODO: throw exception?
+            return;
+        }
+        do {
+            translate(cursor, target);
+        } while (cursor.nextSibling());
 
         cursor.parent();
     }
@@ -135,8 +161,7 @@ public abstract class TranslatorFromJson<T> {
     }
 
     protected abstract void translate(SimpleField field, Path path, JsonNode node, T target);
-    protected abstract void translate(ObjectField field, Path path, JsonNode node, T target);
     protected abstract void translateSimpleArray(ArrayField field, Path path, List<Object> items, T target);
-    protected abstract void translateObjectArray(ArrayField field, JsonNodeCursor cursor, T target);
+    protected abstract void translateObjectArray(ArrayField field, JsonNodeCursor cursor, Path path, T target);
 
 }

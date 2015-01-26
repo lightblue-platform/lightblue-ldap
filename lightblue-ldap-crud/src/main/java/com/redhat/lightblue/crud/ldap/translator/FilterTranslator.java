@@ -86,7 +86,7 @@ public class FilterTranslator {
     }
 
     private Filter translate(ArrayContainsExpression query){
-        String attributeName = fieldNameTranslator.translateFieldName(query.getArray().toString());
+        String attributeName = fieldNameTranslator.translateFieldName(query.getArray());
 
         List<Filter> filters = new ArrayList<Filter>();
         for(Value value : query.getValues()){
@@ -131,7 +131,7 @@ public class FilterTranslator {
     }
 
     private Filter translate(NaryRelationalExpression query){
-        String attributeName = fieldNameTranslator.translateFieldName(query.getField().toString());
+        String attributeName = fieldNameTranslator.translateFieldName(query.getField());
         List<Filter> filters = new ArrayList<Filter>();
         for(Value value : query.getValues()){
             filters.add(Filter.createEqualityFilter(attributeName, value.getValue().toString()));
@@ -162,7 +162,7 @@ public class FilterTranslator {
     }
 
     private Filter translate(ValueComparisonExpression query){
-        String attributeName = fieldNameTranslator.translateFieldName(query.getField().toString());
+        String attributeName = fieldNameTranslator.translateFieldName(query.getField());
         String rValue = query.getRvalue().getValue().toString();
 
         switch(query.getOp()){

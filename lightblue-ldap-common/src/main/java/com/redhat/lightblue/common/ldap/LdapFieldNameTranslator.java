@@ -18,6 +18,8 @@
  */
 package com.redhat.lightblue.common.ldap;
 
+import com.redhat.lightblue.util.Path;
+
 /**
  * Represents a class that can translate back and forth between a fieldName and an LDAP attributeName.
  *
@@ -30,7 +32,7 @@ public interface LdapFieldNameTranslator {
      * @param fieldName - metadata field name
      * @return ldap attributeName or the fieldName back at you if no mapping is present.
      */
-    public String translateFieldName(String fieldName);
+    public String translateFieldName(Path path);
 
     /**
      * Returns the fieldName with the given attributeName.

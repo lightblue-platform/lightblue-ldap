@@ -1,0 +1,13 @@
+{
+    "entity": "personWithAddress",
+    "entityVersion": "1.0.0",
+    "projection": [
+        {"field": "dn"},
+        {"field": "address.*"}
+    ],
+    "query": {
+        "field": "uid",
+        "op": "$eq",
+        "rvalue": "john.doe"
+    }
+}

@@ -58,7 +58,7 @@ public class SortTranslator {
         }
         else if(sort instanceof SortKey){
             SortKey key = (SortKey) sort;
-            results.add(new com.unboundid.ldap.sdk.controls.SortKey(fieldNameTranslator.translateFieldName(key.getField().getLast()), key.isDesc()));
+            results.add(new com.unboundid.ldap.sdk.controls.SortKey(fieldNameTranslator.translateFieldName(key.getField()), key.isDesc()));
         }
         else{
             throw new IllegalArgumentException("Unsupported Sort type: " + sort.getClass().getName());

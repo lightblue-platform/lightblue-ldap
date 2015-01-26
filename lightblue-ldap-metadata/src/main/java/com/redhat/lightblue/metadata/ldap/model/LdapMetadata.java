@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
+import com.redhat.lightblue.util.Path;
 
 /**
  * Container for special ldap properties parsed from the metadata.json file.
@@ -44,13 +45,19 @@ public class LdapMetadata implements LdapFieldNameTranslator{
     }
 
     @Override
-    public String translateFieldName(String fieldName){
-        String attributeName = fieldsToAttributes.get(fieldName);
-        if(attributeName == null){
-            return fieldName;
+    public String translateFieldName(Path path){
+        String attributeName = fieldsToAttributes.get(path.toString());
+        if(attributeName != null){
+            return attributeName;
         }
 
-        return attributeName;
+        String last = path.getLast();
+        attributeName = fieldsToAttributes.get(last);
+        if(attributeName != null){
+            return attributeName;
+        }
+
+        return last;
     }
 
     @Override

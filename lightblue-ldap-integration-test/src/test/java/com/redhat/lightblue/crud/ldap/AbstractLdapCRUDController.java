@@ -22,10 +22,11 @@ import static com.redhat.lightblue.util.JsonUtils.json;
 import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.rules.ErrorCollector;
+import org.junit.runners.model.MultipleFailureException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.DataError;
@@ -41,22 +42,29 @@ public abstract class AbstractLdapCRUDController extends AbstractCRUDController{
     @ClassRule
     public static LdapServerExternalResource ldapServer = LdapServerExternalResource.createDefaultInstance();
 
-    @Rule
-    public ErrorCollector errorCollector = new ErrorCollector();
-
-    protected void assertNoErrors(Response response){
+    protected void assertNoErrors(Response response) throws MultipleFailureException{
+        List<Throwable> errors = new ArrayList<Throwable>();
         for(Error error : response.getErrors()){
             Exception e = new Exception(error.getMessage(), error);
             e.printStackTrace();
-            errorCollector.addError(e);
+            errors.add(e);
+        }
+
+        if(!errors.isEmpty()){
+            throw new MultipleFailureException(errors);
         }
     }
 
-    protected void assertNoDataErrors(Response response){
+    protected void assertNoDataErrors(Response response) throws MultipleFailureException{
+        List<Throwable> errors = new ArrayList<Throwable>();
         for(DataError error : response.getDataErrors()){
             Exception e = new Exception("DataError: " + error.toJson().toString());
             e.printStackTrace();
-            errorCollector.addError(e);
+            errors.add(e);
+        }
+
+        if(!errors.isEmpty()){
+            throw new MultipleFailureException(errors);
         }
     }
 
