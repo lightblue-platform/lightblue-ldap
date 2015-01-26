@@ -43,6 +43,7 @@ import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.crud.ldap.EntryBuilderTest.ParameterizedTests;
 import com.redhat.lightblue.crud.ldap.EntryBuilderTest.SpecializedTests;
+import com.redhat.lightblue.crud.ldap.model.TrivialLdapFieldNameTranslator;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.test.MetadataUtil;
@@ -63,7 +64,7 @@ public class EntryBuilderTest {
                 .replaceFirst("#value", crudValue);
 
         EntityMetadata md = MetadataUtil.createEntityMetadata(LdapConstant.BACKEND, json(metadata), null, null);
-        EntryBuilder builder = new EntryBuilder(md);
+        EntryBuilder builder = new EntryBuilder(md, new TrivialLdapFieldNameTranslator());
 
         return builder.build("uid=someuid,dc=example,dc=com",
                 new JsonDoc(json(crud).get("data")));
@@ -111,7 +112,7 @@ public class EntryBuilderTest {
 
         @Test(expected = IllegalArgumentException.class)
         public void testFieldIsDN() throws Exception{
-            buildEntry(LdapConstant.FIELD_DN, "{\"type\": \"string\"}", quote("uid=someuid,dc=example,dc=com"));
+            buildEntry(LdapConstant.ATTRIBUTE_DN, "{\"type\": \"string\"}", quote("uid=someuid,dc=example,dc=com"));
         }
 
     }

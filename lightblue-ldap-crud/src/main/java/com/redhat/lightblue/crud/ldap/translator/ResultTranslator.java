@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.redhat.lightblue.common.ldap.LdapConstant;
+import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.crud.DocCtx;
 import com.redhat.lightblue.metadata.ArrayField;
@@ -51,12 +52,16 @@ import com.unboundid.ldap.sdk.SearchResultEntry;
 public class ResultTranslator {
 
     private final JsonNodeFactory factory;
+    private final EntityMetadata md;
+    private final LdapFieldNameTranslator fieldNameTranslator;
 
-    public ResultTranslator(JsonNodeFactory factory){
+    public ResultTranslator(JsonNodeFactory factory, EntityMetadata md, LdapFieldNameTranslator fieldNameTranslator){
         this.factory = factory;
+        this.md = md;
+        this.fieldNameTranslator = fieldNameTranslator;
     }
 
-    public DocCtx translate(SearchResultEntry entry, EntityMetadata md){
+    public DocCtx translate(SearchResultEntry entry){
         FieldCursor cursor = md.getFieldCursor();
         String entityName = md.getEntityInfo().getName();
         Fields fields = md.getFields();
@@ -70,6 +75,7 @@ public class ResultTranslator {
 
     private JsonNode toJson(SearchResultEntry entry, FieldCursor fieldCursor, String entityName, Fields fields){
         ObjectNode node = factory.objectNode();
+        String dnFieldName = fieldNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
 
         do {
             FieldTreeNode field = fieldCursor.getCurrentNode();
@@ -81,8 +87,13 @@ public class ResultTranslator {
                  */
                 continue;
             }
+            else if(dnFieldName.equalsIgnoreCase(fieldName)){
+                //DN is not handled as a normal attribute, can be skipped.
+                continue;
+            }
 
-            Attribute attr = entry.getAttribute(fieldName);
+            String attributeName = fieldNameTranslator.translateFieldName(fieldName);
+            Attribute attr = entry.getAttribute(attributeName);
 
             JsonNode value = null;
             if(attr != null){
@@ -112,7 +123,7 @@ public class ResultTranslator {
             node.set(fieldName, value);
         } while(fieldCursor.nextSibling());
 
-        node.set(LdapConstant.FIELD_DN, StringType.TYPE.toJson(factory, entry.getDN()));
+        node.set(dnFieldName, StringType.TYPE.toJson(factory, entry.getDN()));
         return node;
     }
 

@@ -33,6 +33,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.redhat.lightblue.crud.DocCtx;
+import com.redhat.lightblue.crud.ldap.model.TrivialLdapFieldNameTranslator;
 import com.redhat.lightblue.metadata.ArrayElement;
 import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityMetadata;
@@ -70,7 +71,7 @@ public class ResultTranslatorTest {
                 new SimpleField("uid", StringType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
@@ -90,7 +91,7 @@ public class ResultTranslatorTest {
                 new SimpleField("key", IntegerType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
@@ -110,7 +111,7 @@ public class ResultTranslatorTest {
                 new SimpleField("key", BooleanType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
@@ -130,7 +131,7 @@ public class ResultTranslatorTest {
                 new SimpleField("key", BigDecimalType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
@@ -150,7 +151,7 @@ public class ResultTranslatorTest {
                 new SimpleField("key", BigIntegerType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
@@ -170,7 +171,7 @@ public class ResultTranslatorTest {
                 new SimpleField("key", DoubleType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
@@ -192,7 +193,7 @@ public class ResultTranslatorTest {
                 new SimpleField("key", UIDType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
@@ -212,7 +213,7 @@ public class ResultTranslatorTest {
                 new SimpleField("uid", StringType.TYPE)
                 );
 
-        new ResultTranslator(factory).translate(result, md);
+        new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
     }
 
     @Test
@@ -227,7 +228,7 @@ public class ResultTranslatorTest {
                 new SimpleField("key", BinaryType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
         JsonDoc jsonDocument = document.getOutputDocument();
@@ -252,7 +253,7 @@ public class ResultTranslatorTest {
                 new SimpleField("key", DateType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
@@ -270,7 +271,7 @@ public class ResultTranslatorTest {
                 new SimpleField("objectType", StringType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
@@ -288,7 +289,7 @@ public class ResultTranslatorTest {
                 new SimpleField("absentAttribute", StringType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
@@ -312,7 +313,7 @@ public class ResultTranslatorTest {
                 new ArrayField("objectClass", new SimpleArrayElement(StringType.TYPE))
                 );
 
-        DocCtx document = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
@@ -338,7 +339,7 @@ public class ResultTranslatorTest {
                 new SimpleField("objectClass#", IntegerType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory).translate(result, md);
+        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
@@ -374,7 +375,7 @@ public class ResultTranslatorTest {
                     }
                 }));
 
-        new ResultTranslator(factory).translate(result, md);
+        new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
     }
 
     @Test(expected = UnsupportedOperationException.class)
@@ -385,7 +386,7 @@ public class ResultTranslatorTest {
                 new ObjectField("fake")
                 );
 
-        new ResultTranslator(factory).translate(result, md);
+        new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
     }
 
     @Test(expected = UnsupportedOperationException.class)
@@ -396,7 +397,7 @@ public class ResultTranslatorTest {
                 new ReferenceField("fake")
                 );
 
-        new ResultTranslator(factory).translate(result, md);
+        new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
     }
 
     @Test(expected = UnsupportedOperationException.class)
@@ -423,7 +424,7 @@ public class ResultTranslatorTest {
 
         });
 
-        new ResultTranslator(factory).translate(result, md);
+        new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
     }
 
     protected EntityMetadata fakeEntityMetadata(String name, Field... fields){

@@ -21,6 +21,7 @@ package com.redhat.lightblue.crud.ldap.translator;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.query.ArrayContainsExpression;
 import com.redhat.lightblue.query.ArrayMatchExpression;
 import com.redhat.lightblue.query.FieldComparisonExpression;
@@ -39,6 +40,12 @@ import com.unboundid.ldap.sdk.Filter;
  * @author dcrissman
  */
 public class FilterTranslator {
+
+    private final LdapFieldNameTranslator fieldNameTranslator;
+
+    public FilterTranslator(LdapFieldNameTranslator fieldNameTranslator){
+        this.fieldNameTranslator = fieldNameTranslator;
+    }
 
     /**
      * <p>Translates a Lightblue {@link QueryExpression} into a UnboundID {@link Filter}.</p>
@@ -79,11 +86,11 @@ public class FilterTranslator {
     }
 
     private Filter translate(ArrayContainsExpression query){
-        String field = query.getArray().toString();
+        String attributeName = fieldNameTranslator.translateFieldName(query.getArray().toString());
 
         List<Filter> filters = new ArrayList<Filter>();
         for(Value value : query.getValues()){
-            filters.add(Filter.createEqualityFilter(field, value.getValue().toString()));
+            filters.add(Filter.createEqualityFilter(attributeName, value.getValue().toString()));
         }
 
         switch(query.getOp()){
@@ -124,10 +131,10 @@ public class FilterTranslator {
     }
 
     private Filter translate(NaryRelationalExpression query){
-        String field = query.getField().toString();
+        String attributeName = fieldNameTranslator.translateFieldName(query.getField().toString());
         List<Filter> filters = new ArrayList<Filter>();
         for(Value value : query.getValues()){
-            filters.add(Filter.createEqualityFilter(field, value.getValue().toString()));
+            filters.add(Filter.createEqualityFilter(attributeName, value.getValue().toString()));
         }
 
         switch (query.getOp()){
@@ -155,22 +162,22 @@ public class FilterTranslator {
     }
 
     private Filter translate(ValueComparisonExpression query){
-        String field = query.getField().toString();
+        String attributeName = fieldNameTranslator.translateFieldName(query.getField().toString());
         String rValue = query.getRvalue().getValue().toString();
 
         switch(query.getOp()){
             case _eq:
-                return Filter.createEqualityFilter(field, rValue);
+                return Filter.createEqualityFilter(attributeName, rValue);
             case _neq:
-                return Filter.createNOTFilter(Filter.createEqualityFilter(field, rValue));
+                return Filter.createNOTFilter(Filter.createEqualityFilter(attributeName, rValue));
             case _gte:
-                return Filter.createGreaterOrEqualFilter(field, rValue);
+                return Filter.createGreaterOrEqualFilter(attributeName, rValue);
             case _lte:
-                return Filter.createLessOrEqualFilter(field, rValue);
+                return Filter.createLessOrEqualFilter(attributeName, rValue);
             case _gt: //aka. !lte
-                return Filter.createNOTFilter(Filter.createLessOrEqualFilter(field, rValue));
+                return Filter.createNOTFilter(Filter.createLessOrEqualFilter(attributeName, rValue));
             case _lt: //aka. !gte
-                return Filter.createNOTFilter(Filter.createGreaterOrEqualFilter(field, rValue));
+                return Filter.createNOTFilter(Filter.createGreaterOrEqualFilter(attributeName, rValue));
             default:
                 throw new UnsupportedOperationException("Unsupported operation: " + query.getOp());
         }

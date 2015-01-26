@@ -1,5 +1,5 @@
 {
-    "ldap": {
+    "myldapserver": {
         "type" : "com.redhat.lightblue.config.ldap.LdapDataSourceConfiguration",
         "database" : "${ldap.database}",
 

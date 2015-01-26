@@ -67,7 +67,7 @@ public class LdapDataStoreParserTest {
         assertNotNull(store);
         assertEquals(DATABASE, store.getDatabase());
         assertEquals(BASE_DN, store.getBaseDN());
-        assertEquals(UNIQUE_ATTRIBUTE, store.getUniqueField());
+        assertEquals(UNIQUE_ATTRIBUTE, store.getUniqueAttribute());
     }
 
     @Test
@@ -83,7 +83,7 @@ public class LdapDataStoreParserTest {
         LdapDataStore store = new LdapDataStore();
         store.setDatabase(DATABASE);
         store.setBaseDN(BASE_DN);
-        store.setUniqueField(UNIQUE_ATTRIBUTE);
+        store.setUniqueAttribute(UNIQUE_ATTRIBUTE);
 
         JsonNode node = json("{}");
 

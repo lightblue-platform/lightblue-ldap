@@ -16,19 +16,26 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.redhat.lightblue.common.ldap;
+package com.redhat.lightblue.crud.ldap.model;
+
+import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 
 /**
- * LDAP specific constants
+ * An implementation of {@link LdapFieldNameTranslator} used by crud when
+ * no other implementation can be found.
  *
  * @author dcrissman
  */
-public final class LdapConstant {
+public class TrivialLdapFieldNameTranslator implements LdapFieldNameTranslator{
 
-    public static final String BACKEND = "ldap";
-    public static final String ATTRIBUTE_DN = "dn";
-    public static final String ATTRIBUTE_OBJECT_CLASS = "objectClass";
+    @Override
+    public String translateFieldName(String fieldName) {
+        return fieldName;
+    }
 
-    private LdapConstant(){}
+    @Override
+    public String translateAttributeName(String attributeName) {
+        return attributeName;
+    }
 
 }

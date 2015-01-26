@@ -16,19 +16,24 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.redhat.lightblue.common.ldap;
+package com.redhat.lightblue.crud.ldap.model;
 
-/**
- * LDAP specific constants
- *
- * @author dcrissman
- */
-public final class LdapConstant {
+import static org.junit.Assert.assertEquals;
 
-    public static final String BACKEND = "ldap";
-    public static final String ATTRIBUTE_DN = "dn";
-    public static final String ATTRIBUTE_OBJECT_CLASS = "objectClass";
+import org.junit.Test;
 
-    private LdapConstant(){}
+public class TrivialLdapFieldNameTranslatorTest {
+
+    @Test
+    public void testTranslateFieldName(){
+        String fieldName = "fakeFieldName";
+        assertEquals(fieldName, new TrivialLdapFieldNameTranslator().translateFieldName(fieldName));
+    }
+
+    @Test
+    public void testTranslateAttributeName(){
+        String attributeName = "fakeAttributeName";
+        assertEquals(attributeName, new TrivialLdapFieldNameTranslator().translateAttributeName(attributeName));
+    }
 
 }

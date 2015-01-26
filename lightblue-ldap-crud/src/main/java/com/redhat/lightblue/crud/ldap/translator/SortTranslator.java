@@ -21,6 +21,7 @@ package com.redhat.lightblue.crud.ldap.translator;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.query.CompositeSortKey;
 import com.redhat.lightblue.query.Sort;
 import com.redhat.lightblue.query.SortKey;
@@ -32,6 +33,12 @@ import com.redhat.lightblue.query.SortKey;
  * @author dcrissman
  */
 public class SortTranslator {
+
+    private final LdapFieldNameTranslator fieldNameTranslator;
+
+    public SortTranslator(LdapFieldNameTranslator fieldNameTranslator){
+        this.fieldNameTranslator = fieldNameTranslator;
+    }
 
     public com.unboundid.ldap.sdk.controls.SortKey[] translate(Sort sort){
         List<com.unboundid.ldap.sdk.controls.SortKey> results = new ArrayList<com.unboundid.ldap.sdk.controls.SortKey>();
@@ -51,7 +58,7 @@ public class SortTranslator {
         }
         else if(sort instanceof SortKey){
             SortKey key = (SortKey) sort;
-            results.add(new com.unboundid.ldap.sdk.controls.SortKey(key.getField().getLast(), key.isDesc()));
+            results.add(new com.unboundid.ldap.sdk.controls.SortKey(fieldNameTranslator.translateFieldName(key.getField().getLast()), key.isDesc()));
         }
         else{
             throw new IllegalArgumentException("Unsupported Sort type: " + sort.getClass().getName());
