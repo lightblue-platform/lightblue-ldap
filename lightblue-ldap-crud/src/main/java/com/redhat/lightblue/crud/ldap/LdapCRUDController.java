@@ -44,7 +44,7 @@ import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.CrudConstants;
 import com.redhat.lightblue.crud.DocCtx;
-import com.redhat.lightblue.crud.ldap.model.LazyLdapFieldNameTranslator;
+import com.redhat.lightblue.crud.ldap.model.TrivialLdapFieldNameTranslator;
 import com.redhat.lightblue.crud.ldap.translator.FilterTranslator;
 import com.redhat.lightblue.crud.ldap.translator.ResultTranslator;
 import com.redhat.lightblue.crud.ldap.translator.SortTranslator;
@@ -335,7 +335,7 @@ public class LdapCRUDController implements CRUDController{
         Object o = md.getEntityInfo().getProperties().get(LdapConstant.BACKEND);
 
         if(o == null){
-            return new LazyLdapFieldNameTranslator();
+            return new TrivialLdapFieldNameTranslator();
         }
 
         if(!(o instanceof LdapFieldNameTranslator)){

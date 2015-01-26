@@ -26,7 +26,7 @@ import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
  *
  * @author dcrissman
  */
-public class LazyLdapFieldNameTranslator implements LdapFieldNameTranslator{
+public class TrivialLdapFieldNameTranslator implements LdapFieldNameTranslator{
 
     @Override
     public String translateFieldName(String fieldName) {

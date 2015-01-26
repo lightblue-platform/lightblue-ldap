@@ -47,8 +47,7 @@ import com.unboundid.util.StaticUtils;
  */
 public class EntryBuilder extends TranslatorFromJson<Entry>{
 
-    private final LdapFieldNameTranslator fieldNameTranslator
-    ;
+    private final LdapFieldNameTranslator fieldNameTranslator;
 
     public EntryBuilder(EntityMetadata md, LdapFieldNameTranslator fieldNameTranslator){
         super(md);

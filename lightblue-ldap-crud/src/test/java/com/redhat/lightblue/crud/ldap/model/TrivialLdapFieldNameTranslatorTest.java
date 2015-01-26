@@ -22,18 +22,18 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-public class LazyLdapFieldNameTranslatorTest {
+public class TrivialLdapFieldNameTranslatorTest {
 
     @Test
     public void testTranslateFieldName(){
         String fieldName = "fakeFieldName";
-        assertEquals(fieldName, new LazyLdapFieldNameTranslator().translateFieldName(fieldName));
+        assertEquals(fieldName, new TrivialLdapFieldNameTranslator().translateFieldName(fieldName));
     }
 
     @Test
     public void testTranslateAttributeName(){
         String attributeName = "fakeAttributeName";
-        assertEquals(attributeName, new LazyLdapFieldNameTranslator().translateAttributeName(attributeName));
+        assertEquals(attributeName, new TrivialLdapFieldNameTranslator().translateAttributeName(attributeName));
     }
 
 }
