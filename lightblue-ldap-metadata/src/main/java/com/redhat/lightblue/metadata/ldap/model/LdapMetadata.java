@@ -31,7 +31,7 @@ import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
  *
  * @see com.redhat.lightblue.metadata.ldap.parser.LdapPropertyParser
  */
-public class LdapProperty implements LdapFieldNameTranslator{
+public class LdapMetadata implements LdapFieldNameTranslator{
 
     private final Map<String, String> fieldsToAttributes = new HashMap<String, String>();
 
@@ -64,7 +64,7 @@ public class LdapProperty implements LdapFieldNameTranslator{
     }
 
     /**
-     * Adds a {@link FieldAttributeMapping} to this {@link LdapProperty}.
+     * Adds a {@link FieldAttributeMapping} to this {@link LdapMetadata}.
      * @param fieldAttributeMapping - {@link FieldAttributeMapping}
      */
     public void addFieldToAttribute(String fieldName, String attributeName){

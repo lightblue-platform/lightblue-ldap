@@ -27,14 +27,14 @@ import java.util.Map;
 
 import org.junit.Test;
 
-public class LdapPropertyTest {
+public class LdapMetadataTest {
 
     @Test
     public void testTranslateFieldName(){
         String fieldName = "fakeFieldName";
         String attributeName = "fakeAttributeName";
 
-        LdapProperty property = new LdapProperty();
+        LdapMetadata property = new LdapMetadata();
         property.addFieldToAttribute(fieldName, attributeName);
         property.addFieldToAttribute("anotherField", "anotherAttribute");
 
@@ -45,7 +45,7 @@ public class LdapPropertyTest {
     public void testTranslateFieldName_ValueNotPresent(){
         String fieldName = "fakeFieldName";
 
-        assertEquals(fieldName, new LdapProperty().translateFieldName(fieldName));
+        assertEquals(fieldName, new LdapMetadata().translateFieldName(fieldName));
     }
 
     @Test
@@ -53,7 +53,7 @@ public class LdapPropertyTest {
         String fieldName = "fakeFieldName";
         String attributeName = "fakeAttributeName";
 
-        LdapProperty property = new LdapProperty();
+        LdapMetadata property = new LdapMetadata();
         property.addFieldToAttribute(fieldName, attributeName);
         property.addFieldToAttribute("anotherField", "anotherAttribute");
 
@@ -64,12 +64,12 @@ public class LdapPropertyTest {
     public void testTranslateAttributeName_ValueNotPresent(){
         String attributeName = "fakeAttributeName";
 
-        assertEquals(attributeName, new LdapProperty().translateAttributeName(attributeName));
+        assertEquals(attributeName, new LdapMetadata().translateAttributeName(attributeName));
     }
 
     @Test
     public void testGetFieldsToAttributes_AssertImmutable(){
-        LdapProperty property = new LdapProperty();
+        LdapMetadata property = new LdapMetadata();
         property.addFieldToAttribute("anotherField", "anotherAttribute");
 
         Map<String, String> fieldsToAttributes = property.getFieldsToAttributes();

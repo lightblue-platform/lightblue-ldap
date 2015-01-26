@@ -37,7 +37,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.common.ldap.LdapConstant;
-import com.redhat.lightblue.metadata.ldap.model.LdapProperty;
+import com.redhat.lightblue.metadata.ldap.model.LdapMetadata;
 import com.redhat.lightblue.test.MetadataUtil;
 
 public class LdapPropertyParserTest {
@@ -47,14 +47,14 @@ public class LdapPropertyParserTest {
 
     @Test
     public void testParse() throws IOException{
-        com.redhat.lightblue.metadata.ldap.model.LdapProperty ldapProperty = new LdapPropertyParser<JsonNode>().parse(
+        LdapMetadata ldapMetadata = new LdapPropertyParser<JsonNode>().parse(
                 LdapConstant.BACKEND,
                 MetadataUtil.createJSONMetadataParser(LdapConstant.BACKEND, null),
                 loadJsonNode("./ldap-segment-metadata.json").get("ldap"));
 
-        assertNotNull(ldapProperty);
+        assertNotNull(ldapMetadata);
 
-        Map<String, String> fieldsToAttributes = ldapProperty.getFieldsToAttributes();
+        Map<String, String> fieldsToAttributes = ldapMetadata.getFieldsToAttributes();
         assertNotNull(fieldsToAttributes);
         assertEquals(2, fieldsToAttributes.size());
 
@@ -66,14 +66,14 @@ public class LdapPropertyParserTest {
 
     @Test
     public void testParse_NoProperties() throws IOException{
-        LdapProperty ldapProperty = new LdapPropertyParser<JsonNode>().parse(
+        LdapMetadata ldapMetadata = new LdapPropertyParser<JsonNode>().parse(
                 LdapConstant.BACKEND,
                 MetadataUtil.createJSONMetadataParser(LdapConstant.BACKEND, null),
                 json("{\"ldap\": {}}").get("ldap"));
 
-        assertNotNull(ldapProperty);
+        assertNotNull(ldapMetadata);
 
-        assertTrue(ldapProperty.getFieldsToAttributes().isEmpty());
+        assertTrue(ldapMetadata.getFieldsToAttributes().isEmpty());
     }
 
     @Test
@@ -86,16 +86,16 @@ public class LdapPropertyParserTest {
 
     @Test
     public void testConvert() throws IOException, JSONException{
-        LdapProperty ldapProperty = new LdapProperty();
-        ldapProperty.addFieldToAttribute("firstName", "givenName");
-        ldapProperty.addFieldToAttribute("lastName", "sn");
+        LdapMetadata ldapMetadata = new LdapMetadata();
+        ldapMetadata.addFieldToAttribute("firstName", "givenName");
+        ldapMetadata.addFieldToAttribute("lastName", "sn");
 
         JsonNode node = json("{}");
 
         new LdapPropertyParser<JsonNode>().convert(
                 MetadataUtil.createJSONMetadataParser(LdapConstant.BACKEND, null),
                 node,
-                ldapProperty);
+                ldapMetadata);
 
         JSONAssert.assertEquals("{\"fieldsToAttributes\":[{\"field\":\"lastName\",\"attribute\":\"sn\"},{\"field\":\"firstName\",\"attribute\":\"givenName\"}]}",
                 node.toString(), false);
@@ -103,14 +103,14 @@ public class LdapPropertyParserTest {
 
     @Test
     public void testConvert_NoMappings() throws IOException, JSONException{
-        LdapProperty ldapProperty = new LdapProperty();
+        LdapMetadata ldapMetadata = new LdapMetadata();
 
         JsonNode node = json("{}");
 
         new LdapPropertyParser<JsonNode>().convert(
                 MetadataUtil.createJSONMetadataParser(LdapConstant.BACKEND, null),
                 node,
-                ldapProperty);
+                ldapMetadata);
 
         JSONAssert.assertEquals("{}",
                 node.toString(), true);

@@ -23,7 +23,7 @@ import java.util.Map.Entry;
 
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.metadata.MetadataConstants;
-import com.redhat.lightblue.metadata.ldap.model.LdapProperty;
+import com.redhat.lightblue.metadata.ldap.model.LdapMetadata;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.parser.PropertyParser;
 import com.redhat.lightblue.util.Error;
@@ -40,37 +40,37 @@ public class LdapPropertyParser <T> extends PropertyParser<T> {
     private static final String ATTRIBUTE = "attribute";
 
     @Override
-    public com.redhat.lightblue.metadata.ldap.model.LdapProperty parse(String name, MetadataParser<T> p, T node) {
+    public com.redhat.lightblue.metadata.ldap.model.LdapMetadata parse(String name, MetadataParser<T> p, T node) {
         if (!LdapConstant.BACKEND.equals(name)) {
             throw Error.get(MetadataConstants.ERR_ILL_FORMED_METADATA, name);
         }
 
-        LdapProperty ldapProperty = new LdapProperty();
+        LdapMetadata ldapMetadata = new LdapMetadata();
 
         List<T> fieldsToAttributesNode = p.getObjectList(node, FIELDS_TO_ATTRIBUTES);
         if(fieldsToAttributesNode != null){
             for(T fieldToAttributeNode : fieldsToAttributesNode){
-                ldapProperty.addFieldToAttribute(
+                ldapMetadata.addFieldToAttribute(
                         p.getRequiredStringProperty(fieldToAttributeNode, FIELD),
                         p.getRequiredStringProperty(fieldToAttributeNode, ATTRIBUTE));
             }
         }
 
-        return ldapProperty;
+        return ldapMetadata;
     }
 
     @Override
     public void convert(MetadataParser<T> p, T emptyNode, Object object) {
-        if(!(object instanceof LdapProperty)){
+        if(!(object instanceof LdapMetadata)){
             throw new IllegalArgumentException("Source type " + object.getClass() + " is not supported.");
         }
 
-        LdapProperty ldapProperty = (LdapProperty) object;
+        LdapMetadata ldapMetadata = (LdapMetadata) object;
 
-        if(!ldapProperty.getFieldsToAttributes().isEmpty()){
+        if(!ldapMetadata.getFieldsToAttributes().isEmpty()){
             Object fieldsToAttributesNode = p.newArrayField(emptyNode, FIELDS_TO_ATTRIBUTES);
 
-            for(Entry<String, String> entry : ldapProperty.getFieldsToAttributes().entrySet()){
+            for(Entry<String, String> entry : ldapMetadata.getFieldsToAttributes().entrySet()){
                 T fieldToAttributeNode = p.newNode();
                 p.putString(fieldToAttributeNode, FIELD, entry.getKey());
                 p.putString(fieldToAttributeNode, ATTRIBUTE, entry.getValue());
