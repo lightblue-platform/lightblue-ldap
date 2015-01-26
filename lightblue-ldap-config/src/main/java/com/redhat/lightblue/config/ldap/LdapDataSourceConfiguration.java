@@ -110,7 +110,7 @@ public class LdapDataSourceConfiguration implements DataSourceConfiguration{
         }
         else{
             throw new IllegalArgumentException("Unable to parse 'servers' for ldap database " + databaseName
-                    + ". Must be an instance of an array.");
+                    + ". Must be an instance of an array and must contain at least one entry with a host and port.");
         }
 
         String[] hosts = hostPortMap.keySet().toArray(new String[0]);
