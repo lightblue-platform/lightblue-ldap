@@ -235,9 +235,7 @@ public class LdapCRUDController implements CRUDController{
                     translatedDocs.add(resultTranslator.translate(entry));
                 }
                 catch(Exception e){
-                    DocCtx erroredDoc = new DocCtx(null);
-                    erroredDoc.addError(Error.get(e));
-                    translatedDocs.add(erroredDoc);
+                    ctx.addError(Error.get(e));
                 }
             }
             ctx.setDocuments(translatedDocs);
