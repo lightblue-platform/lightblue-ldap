@@ -103,23 +103,23 @@ public abstract class TranslatorFromJson<T> {
         }
 
         if (fieldNode instanceof SimpleField) {
-            translate((SimpleField) fieldNode, path, node, target);
+            translate((SimpleField) fieldNode, node, target);
         }
         else if (fieldNode instanceof ObjectField) {
-            translate((ObjectField) fieldNode, cursor, path, target);
+            translate((ObjectField) fieldNode, cursor, target);
         }
         else if (fieldNode instanceof ArrayField) {
-            translate((ArrayField) fieldNode, cursor, path, target);
+            translate((ArrayField) fieldNode, cursor, target);
         }
         else if (fieldNode instanceof ReferenceField) {
-            translate((ReferenceField) fieldNode, path, node, target);
+            translate((ReferenceField) fieldNode, node, target);
         }
         else{
             throw new UnsupportedOperationException("Field type is not supported: " + fieldNode.getClass().getName());
         }
     }
 
-    private void translate(ArrayField field, JsonNodeCursor cursor, Path path, T target){
+    private void translate(ArrayField field, JsonNodeCursor cursor, T target){
         if(!cursor.firstChild()){
             //TODO: throw exception?
             return;
@@ -132,10 +132,10 @@ public abstract class TranslatorFromJson<T> {
             do {
                 items.add(fromJson(arrayElement.getType(), cursor.getCurrentNode()));
             } while (cursor.nextSibling());
-            translateSimpleArray(field, path, items, target);
+            translateSimpleArray(field, items, target);
         }
         else if(arrayElement instanceof ObjectArrayElement){
-            translateObjectArray(field, cursor, path, target);
+            translateObjectArray(field, cursor, target);
         }
         else{
             throw new UnsupportedOperationException("ArrayElement type is not supported: " + arrayElement.getClass().getName());
@@ -144,7 +144,7 @@ public abstract class TranslatorFromJson<T> {
         cursor.parent();
     }
 
-    protected void translate(ObjectField field, JsonNodeCursor cursor, Path path, T target){
+    protected void translate(ObjectField field, JsonNodeCursor cursor, T target){
         if(!cursor.firstChild()){
             //TODO: throw exception?
             return;
@@ -156,12 +156,12 @@ public abstract class TranslatorFromJson<T> {
         cursor.parent();
     }
 
-    protected void translate(ReferenceField field, Path path, JsonNode node, T target){
+    protected void translate(ReferenceField field, JsonNode node, T target){
         //Do nothing by default!
     }
 
-    protected abstract void translate(SimpleField field, Path path, JsonNode node, T target);
-    protected abstract void translateSimpleArray(ArrayField field, Path path, List<Object> items, T target);
-    protected abstract void translateObjectArray(ArrayField field, JsonNodeCursor cursor, Path path, T target);
+    protected abstract void translate(SimpleField field, JsonNode node, T target);
+    protected abstract void translateSimpleArray(ArrayField field, List<Object> items, T target);
+    protected abstract void translateObjectArray(ArrayField field, JsonNodeCursor cursor, T target);
 
 }

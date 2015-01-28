@@ -35,7 +35,6 @@ import com.redhat.lightblue.metadata.types.BinaryType;
 import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.JsonNodeCursor;
-import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.Entry;
 import com.unboundid.util.StaticUtils;
 
@@ -73,8 +72,8 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     }
 
     @Override
-    protected void translate(SimpleField field, Path path, JsonNode node, Entry target) {
-        String attributeName = fieldNameTranslator.translateFieldName(path);
+    protected void translate(SimpleField field, JsonNode node, Entry target) {
+        String attributeName = fieldNameTranslator.translateFieldName(field.getFullPath());
 
         if(LdapConstant.ATTRIBUTE_DN.equalsIgnoreCase(attributeName)){
             throw new IllegalArgumentException(
@@ -101,10 +100,10 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     }
 
     @Override
-    protected void translateSimpleArray(ArrayField field, Path path, List<Object> items, Entry target) {
+    protected void translateSimpleArray(ArrayField field, List<Object> items, Entry target) {
         ArrayElement arrayElement = field.getElement();
         Type arrayElementType = arrayElement.getType();
-        String attributeName = fieldNameTranslator.translateFieldName(path);
+        String attributeName = fieldNameTranslator.translateFieldName(field.getFullPath());
 
         if(arrayElementType instanceof BinaryType){
             List<byte[]> bytes = new ArrayList<byte[]>();
@@ -123,7 +122,7 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     }
 
     @Override
-    protected void translateObjectArray(ArrayField field, JsonNodeCursor cursor, Path path, Entry target) {
+    protected void translateObjectArray(ArrayField field, JsonNodeCursor cursor, Entry target) {
         throw new UnsupportedOperationException("Object ArrayField type is not currently supported.");
     }
 
