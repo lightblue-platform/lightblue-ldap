@@ -287,7 +287,7 @@ public class LdapCRUDController implements CRUDController{
                 String uniqueAttributeName = getLdapDataStore(md).getUniqueAttribute();
                 String uniqueFieldName = property.translateAttributeName(uniqueAttributeName);
                 if(fields.getField(uniqueFieldName) == null){
-                    throw new IllegalArgumentException("Unique attribute not defined in fields: " + uniqueAttributeName);
+                    throw new IllegalArgumentException("Unique attribute must be defined in fields: " + uniqueAttributeName);
                 }
 
                 String dnFieldName = property.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
