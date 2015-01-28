@@ -89,8 +89,8 @@ public class EntryBuilderTest {
          * it requires two fields.
          */
         @Test
-        public void testFieldIsArrayField() throws Exception{
-            String arrayFieldName = "someArray";
+        public void testFieldIsSimpleArrayField() throws Exception{
+            String arrayFieldName = "someSimpleArray";
             String arrayCountFieldName = LightblueUtil.createArrayCountFieldName(arrayFieldName);
             Entry entry = buildEntry(
                     arrayCountFieldName,
@@ -108,6 +108,24 @@ public class EntryBuilderTest {
 
             assertNotNull(entry);
             assertNotNull(entry.getAttribute(arrayCountFieldName));
+        }
+
+        /**
+         * This test is kind of hacky as it requires json injection in order to make it work because
+         * it requires two fields.
+         * ObjectFields are not currently supported in LDAP, an exception should be thrown indicating as such.
+         */
+        @Test(expected = UnsupportedOperationException.class)
+        public void testObjectArrayField_ThrowsException() throws Exception{
+            String arrayFieldName = "someObjectArray";
+            String arrayCountFieldName = LightblueUtil.createArrayCountFieldName(arrayFieldName);
+            Entry entry = buildEntry(
+                    arrayCountFieldName,
+                    "{\"type\": \"integer\"}, " + quote(arrayFieldName) + ": {\"type\": \"array\", \"items\": {\"type\": \"object\",\"fields\": {\"someField\": {\"type\": \"string\"}}}}",
+                    "1," + quote(arrayFieldName) + ":[{\"someField\":\"hello\"}]");
+
+            assertNotNull(entry);
+            assertNull(entry.getAttribute(arrayFieldName));
         }
 
         @Test(expected = IllegalArgumentException.class)
