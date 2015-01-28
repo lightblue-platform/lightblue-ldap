@@ -35,8 +35,8 @@ public class TrivialLdapFieldNameTranslator implements LdapFieldNameTranslator{
     }
 
     @Override
-    public String translateAttributeName(String attributeName) {
-        return attributeName;
+    public Path translateAttributeName(String attributeName) {
+        return new Path(attributeName);
     }
 
 }

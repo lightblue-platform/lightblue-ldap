@@ -57,13 +57,13 @@ public class ResultTranslator {
     private final JsonNodeFactory factory;
     private final EntityMetadata md;
     private final LdapFieldNameTranslator fieldNameTranslator;
-    private final String fieldNameDN;
+    private final Path dnPath;
 
     public ResultTranslator(JsonNodeFactory factory, EntityMetadata md, LdapFieldNameTranslator fieldNameTranslator){
         this.factory = factory;
         this.md = md;
         this.fieldNameTranslator = fieldNameTranslator;
-        fieldNameDN = fieldNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
+        dnPath = fieldNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
     }
 
     public DocCtx translate(SearchResultEntry entry){
@@ -72,7 +72,7 @@ public class ResultTranslator {
 
         if (cursor.firstChild()) {
             ObjectNode node = toJson(entry, cursor, fields);
-            node.set(fieldNameDN, StringType.TYPE.toJson(factory, entry.getDN()));
+            node.set(dnPath.toString(), StringType.TYPE.toJson(factory, entry.getDN()));
             return new DocCtx(new JsonDoc(node));
         }
 
@@ -85,15 +85,14 @@ public class ResultTranslator {
         String entityName = md.getEntityInfo().getName();
 
         do {
-            FieldTreeNode field = fieldCursor.getCurrentNode();
-            String fieldName = field.getName();
+            Path fieldPath = fieldCursor.getCurrentPath();
 
-            if(fieldNameDN.equalsIgnoreCase(fieldName)){
+            if(dnPath.matches(fieldPath)){
                 //DN is not handled as a normal attribute, can be skipped.
                 continue;
             }
-            else if(LightblueUtil.isFieldObjectType(fieldName)){
-                node.set(fieldName, StringType.TYPE.toJson(factory, entityName));
+            else if(LightblueUtil.isFieldObjectType(fieldPath.toString())){
+                node.set(fieldPath.toString(), StringType.TYPE.toJson(factory, entityName));
             }
             else{
                 appendToJsonNode(entry, fieldCursor, node, fields);

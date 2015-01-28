@@ -39,6 +39,6 @@ public interface LdapFieldNameTranslator {
      * @param attributeName - ldap attribute name
      * @return metadata fieldName or the attributeName back at you if no mapping is present.
      */
-    public String translateAttributeName(String attributeName);
+    public Path translateAttributeName(String attributeName);
 
 }

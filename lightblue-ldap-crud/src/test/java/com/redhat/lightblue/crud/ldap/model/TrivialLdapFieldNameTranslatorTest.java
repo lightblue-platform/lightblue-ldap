@@ -35,7 +35,7 @@ public class TrivialLdapFieldNameTranslatorTest {
     @Test
     public void testTranslateAttributeName(){
         String attributeName = "fakeAttributeName";
-        assertEquals(attributeName, new TrivialLdapFieldNameTranslator().translateAttributeName(attributeName));
+        assertEquals(attributeName, new TrivialLdapFieldNameTranslator().translateAttributeName(attributeName).toString());
     }
 
 }

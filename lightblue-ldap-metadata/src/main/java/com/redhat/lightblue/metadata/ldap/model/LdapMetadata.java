@@ -61,13 +61,13 @@ public class LdapMetadata implements LdapFieldNameTranslator{
     }
 
     @Override
-    public String translateAttributeName(String attributeName){
+    public Path translateAttributeName(String attributeName){
         for(Entry<String, String> f2a : fieldsToAttributes.entrySet()){
             if(f2a.getValue().equalsIgnoreCase(attributeName)){
-                return f2a.getKey();
+                return new Path(f2a.getKey());
             }
         }
-        return attributeName;
+        return new Path(attributeName);
     }
 
     /**

@@ -125,12 +125,10 @@ public class LdapCRUDController implements CRUDController{
                 }
             }
 
-            JsonNode rootNode = document.getRoot();
-
-            String uniqueFieldName = fieldNameTranslator.translateAttributeName(store.getUniqueAttribute());
-            JsonNode uniqueNode = rootNode.get(uniqueFieldName);
+            Path uniqueFieldPath = fieldNameTranslator.translateAttributeName(store.getUniqueAttribute());
+            JsonNode uniqueNode = document.get(uniqueFieldPath);
             if(uniqueNode == null){
-                throw new IllegalArgumentException(uniqueFieldName + " is a required field");
+                throw new IllegalArgumentException(store.getUniqueAttribute() + " is a required field");
             }
 
             String dn = createDN(store, uniqueNode.asText());
@@ -281,18 +279,18 @@ public class LdapCRUDController implements CRUDController{
              */
             @Override
             public void beforeCreateNewSchema(Metadata m, EntityMetadata md) {
-                LdapFieldNameTranslator property = getLdapFieldNameTranslator(md);
+                LdapFieldNameTranslator ldapNameTranslator = getLdapFieldNameTranslator(md);
 
                 Fields fields = md.getEntitySchema().getFields();
-                String dnFieldName = property.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
-                if(!fields.has(dnFieldName)){
-                    fields.addNew(new SimpleField(dnFieldName, StringType.TYPE));
+                Path dnFieldPath = ldapNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
+                if(!fields.has(dnFieldPath.toString())){
+                    fields.addNew(new SimpleField(dnFieldPath.toString(), StringType.TYPE));
                 }
 
-                String objectClassFieldName = property.translateAttributeName(LdapConstant.ATTRIBUTE_OBJECT_CLASS);
-                if(!fields.has(objectClassFieldName)){
-                    fields.addNew(new ArrayField(objectClassFieldName, new SimpleArrayElement(StringType.TYPE)));
-                    fields.addNew(new SimpleField(LightblueUtil.createArrayCountFieldName(objectClassFieldName), IntegerType.TYPE));
+                Path objectClassFieldPath = ldapNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_OBJECT_CLASS);
+                if(!fields.has(objectClassFieldPath.toString())){
+                    fields.addNew(new ArrayField(objectClassFieldPath.toString(), new SimpleArrayElement(StringType.TYPE)));
+                    fields.addNew(new SimpleField(LightblueUtil.createArrayCountFieldName(objectClassFieldPath.toString()), IntegerType.TYPE));
                 }
             }
 
@@ -435,7 +433,7 @@ public class LdapCRUDController implements CRUDController{
                         ),
                         md);
 
-        String dnFieldName = fieldNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
+        Path dnFieldPath = fieldNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
 
         for(Entry<DocCtx, String> insertedDn : documentToDnMap.entrySet()){
             DocCtx document = insertedDn.getKey();
@@ -445,7 +443,7 @@ public class LdapCRUDController implements CRUDController{
             // If only dn is in the projection, then no need to query LDAP.
             if((requiredAttributeNames.size() == 1) && requiredAttributeNames.contains(LdapConstant.ATTRIBUTE_DN)){
                 ObjectNode node = factory.objectNode();
-                node.set(dnFieldName, StringType.TYPE.toJson(factory, dn));
+                node.set(dnFieldPath.toString(), StringType.TYPE.toJson(factory, dn));
                 projectionResponseJson = new DocCtx(new JsonDoc(node));
             }
             //TODO: else fetch entity from LDAP and project results.
