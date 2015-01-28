@@ -79,9 +79,10 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
         String attributeName = fieldNameTranslator.translateFieldName(field.getFullPath());
 
         if(LdapConstant.ATTRIBUTE_DN.equalsIgnoreCase(attributeName)){
-            throw new IllegalArgumentException(
-                    "'dn' should not be included as it's value will be derived from the metadata.basedn and" +
-                    " the metadata.uniqueattr. Including the 'dn' as an insert attribute is confusing.");
+            throw Error.get("Invalid Field Definition", "'" + LdapConstant.ATTRIBUTE_DN + "' should not be included as its value will be"
+                    + " derived from the metadata.basedn and"
+                    + " the metadata.uniqueattr. Including the '" + LdapConstant.ATTRIBUTE_DN
+                    + "' as an insert attribute is confusing.");
         }
         else if(LightblueUtil.isFieldObjectType(attributeName)
                 || LightblueUtil.isFieldAnArrayCount(attributeName, getEntityMetadata().getFields())){

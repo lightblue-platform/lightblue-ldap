@@ -128,7 +128,7 @@ public class LdapCRUDController implements CRUDController{
             Path uniqueFieldPath = fieldNameTranslator.translateAttributeName(store.getUniqueAttribute());
             JsonNode uniqueNode = document.get(uniqueFieldPath);
             if(uniqueNode == null){
-                throw new IllegalArgumentException(store.getUniqueAttribute() + " is a required field");
+                throw Error.get("Required Field", store.getUniqueAttribute());
             }
 
             String dn = createDN(store, uniqueNode.asText());

@@ -36,7 +36,6 @@ import com.redhat.lightblue.metadata.Type;
 import com.redhat.lightblue.util.Error;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.JsonNodeCursor;
-import com.redhat.lightblue.util.Path;
 
 /**
  * Defines a class that translates lightblue json nodes into
@@ -95,12 +94,11 @@ public abstract class TranslatorFromJson<T> {
      * @param target - T
      */
     protected void translate(JsonNodeCursor cursor, T target){
-        Path path = cursor.getCurrentPath();
         JsonNode node = cursor.getCurrentNode();
-        FieldTreeNode fieldNode = md.resolve(path);
+        FieldTreeNode fieldNode = md.resolve(cursor.getCurrentPath());
 
         if (fieldNode == null) {
-            throw new NullPointerException("No Metadata field found for: " + path.toString());
+            throw Error.get("Metadata Not Found", cursor.getCurrentPath().toString());
         }
 
         Error.push(fieldNode.getFullPath().getLast());
@@ -118,7 +116,7 @@ public abstract class TranslatorFromJson<T> {
             translate((ReferenceField) fieldNode, node, target);
         }
         else{
-            throw new UnsupportedOperationException("Field type is not supported: " + fieldNode.getClass().getName());
+            throw Error.get("Unsupported Feature: " + fieldNode.getClass().getName(), fieldNode.getFullPath().toString());
         }
 
         Error.pop();
@@ -143,7 +141,7 @@ public abstract class TranslatorFromJson<T> {
             translateObjectArray(field, cursor, target);
         }
         else{
-            throw new UnsupportedOperationException("ArrayElement type is not supported: " + arrayElement.getClass().getName());
+            throw Error.get("Unsupported Feature: " + arrayElement.getClass().getName(), field.getFullPath().toString());
         }
 
         cursor.parent();

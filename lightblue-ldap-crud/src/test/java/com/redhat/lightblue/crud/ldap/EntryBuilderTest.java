@@ -32,6 +32,7 @@ import java.util.Date;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -49,6 +50,7 @@ import com.redhat.lightblue.crud.ldap.model.TrivialLdapFieldNameTranslator;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.test.MetadataUtil;
+import com.redhat.lightblue.util.Error;
 import com.redhat.lightblue.util.JsonDoc;
 import com.unboundid.ldap.sdk.Entry;
 import com.unboundid.util.StaticUtils;
@@ -80,6 +82,11 @@ public class EntryBuilderTest {
 
         @Rule
         public ExpectedException expectedEx = ExpectedException.none();
+
+        @After
+        public void after(){
+            Error.reset();
+        }
 
         @Test
         public void testFieldIsObjectType() throws Exception{
@@ -134,8 +141,14 @@ public class EntryBuilderTest {
                     "1," + quote(arrayFieldName) + ":[{\"someField\":\"hello\"}]");
         }
 
-        @Test(expected = IllegalArgumentException.class)
+        /**
+         * DN fields should never be defined as they are technically not attributes.
+         */
+        @Test
         public void testFieldIsDN() throws Exception{
+            expectedEx.expect(com.redhat.lightblue.util.Error.class);
+            expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"dn=uid=someuid,dc=example,dc=com/dn\",\"errorCode\":\"Invalid Field Definition\",\"msg\":\"'dn' should not be included as its value will be derived from the metadata.basedn and the metadata.uniqueattr. Including the 'dn' as an insert attribute is confusing.\"}");
+
             buildEntry(LdapConstant.ATTRIBUTE_DN, "{\"type\": \"string\"}", quote("uid=someuid,dc=example,dc=com"));
         }
 
@@ -165,6 +178,11 @@ public class EntryBuilderTest {
                                 new String[]{"hello", "world"}
                     },
             });
+        }
+
+        @After
+        public void after(){
+            Error.reset();
         }
 
         private final String fieldName = "testfield";
