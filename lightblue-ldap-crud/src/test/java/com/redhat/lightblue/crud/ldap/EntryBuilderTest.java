@@ -32,7 +32,9 @@ import java.util.Date;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -76,6 +78,9 @@ public class EntryBuilderTest {
 
     public static class SpecializedTests {
 
+        @Rule
+        public ExpectedException expectedEx = ExpectedException.none();
+
         @Test
         public void testFieldIsObjectType() throws Exception{
             Entry entry = buildEntry(LightblueUtil.FIELD_OBJECT_TYPE, "{\"type\": \"string\"}", quote("someEntity"));
@@ -115,17 +120,18 @@ public class EntryBuilderTest {
          * it requires two fields.
          * ObjectFields are not currently supported in LDAP, an exception should be thrown indicating as such.
          */
-        @Test(expected = UnsupportedOperationException.class)
+        @Test
         public void testObjectArrayField_ThrowsException() throws Exception{
             String arrayFieldName = "someObjectArray";
             String arrayCountFieldName = LightblueUtil.createArrayCountFieldName(arrayFieldName);
-            Entry entry = buildEntry(
+
+            expectedEx.expect(com.redhat.lightblue.util.Error.class);
+            expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"dn=uid=someuid,dc=example,dc=com/" + arrayFieldName + "\",\"errorCode\":\"Unsupported Feature: object array\",\"msg\":\"" + arrayFieldName + "\"}");
+
+            buildEntry(
                     arrayCountFieldName,
                     "{\"type\": \"integer\"}, " + quote(arrayFieldName) + ": {\"type\": \"array\", \"items\": {\"type\": \"object\",\"fields\": {\"someField\": {\"type\": \"string\"}}}}",
                     "1," + quote(arrayFieldName) + ":[{\"someField\":\"hello\"}]");
-
-            assertNotNull(entry);
-            assertNull(entry.getAttribute(arrayFieldName));
         }
 
         @Test(expected = IllegalArgumentException.class)

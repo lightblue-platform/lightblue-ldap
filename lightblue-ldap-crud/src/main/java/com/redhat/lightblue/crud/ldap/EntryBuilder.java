@@ -33,6 +33,7 @@ import com.redhat.lightblue.metadata.SimpleField;
 import com.redhat.lightblue.metadata.Type;
 import com.redhat.lightblue.metadata.types.BinaryType;
 import com.redhat.lightblue.metadata.types.DateType;
+import com.redhat.lightblue.util.Error;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.JsonNodeCursor;
 import com.unboundid.ldap.sdk.Entry;
@@ -53,8 +54,10 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     }
 
     public Entry build(String dn, JsonDoc document){
+        Error.push(LdapConstant.ATTRIBUTE_DN + "=" + dn);
         Entry entry = new Entry(dn);
         translate(document, entry);
+        Error.pop();
         return entry;
     }
 
@@ -123,7 +126,7 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
 
     @Override
     protected void translateObjectArray(ArrayField field, JsonNodeCursor cursor, Entry target) {
-        throw new UnsupportedOperationException("Object ArrayField type is not currently supported.");
+        throw Error.get("Unsupported Feature: object array", field.getFullPath().toString());
     }
 
 }

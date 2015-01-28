@@ -33,6 +33,7 @@ import com.redhat.lightblue.metadata.ReferenceField;
 import com.redhat.lightblue.metadata.SimpleArrayElement;
 import com.redhat.lightblue.metadata.SimpleField;
 import com.redhat.lightblue.metadata.Type;
+import com.redhat.lightblue.util.Error;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.JsonNodeCursor;
 import com.redhat.lightblue.util.Path;
@@ -102,6 +103,8 @@ public abstract class TranslatorFromJson<T> {
             throw new NullPointerException("No Metadata field found for: " + path.toString());
         }
 
+        Error.push(fieldNode.getFullPath().getLast());
+
         if (fieldNode instanceof SimpleField) {
             translate((SimpleField) fieldNode, node, target);
         }
@@ -117,6 +120,8 @@ public abstract class TranslatorFromJson<T> {
         else{
             throw new UnsupportedOperationException("Field type is not supported: " + fieldNode.getClass().getName());
         }
+
+        Error.pop();
     }
 
     private void translate(ArrayField field, JsonNodeCursor cursor, T target){
@@ -149,6 +154,7 @@ public abstract class TranslatorFromJson<T> {
             //TODO: throw exception?
             return;
         }
+
         do {
             translate(cursor, target);
         } while (cursor.nextSibling());
