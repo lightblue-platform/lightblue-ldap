@@ -377,8 +377,7 @@ public class LdapCRUDController implements CRUDController{
                      * Handles the case of an array count field, which will not actually exist in
                      * the ldap entity.
                      */
-
-                    paths.add(new Path(node.toString().replace(fieldName, "") + LightblueUtil.createArrayFieldNameFromCountField(fieldName)));
+                    paths.add(node.mutableCopy().setLast(LightblueUtil.createArrayFieldNameFromCountField(fieldName)).immutableCopy());
                 }
                 else{
                     paths.add(node);
