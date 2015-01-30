@@ -34,37 +34,37 @@ import com.redhat.lightblue.util.Path;
  */
 public class LdapMetadata implements LdapFieldNameTranslator{
 
-    private final Map<String, String> fieldsToAttributes = new HashMap<String, String>();
+    private final Map<Path, String> fieldsToAttributes = new HashMap<Path, String>();
 
     /**
      * Returns an immutable copy of the internal collection of {@link FieldAttributeMapping}s.
      * @return a collection of {@link FieldAttributeMapping}s.
      */
-    public Map<String, String> getFieldsToAttributes(){
-        return new HashMap<String, String>(fieldsToAttributes);
+    public Map<Path, String> getFieldsToAttributes(){
+        return new HashMap<Path, String>(fieldsToAttributes);
     }
 
     @Override
     public String translateFieldName(Path path){
-        String attributeName = fieldsToAttributes.get(path.toString());
+        String attributeName = fieldsToAttributes.get(path);
         if(attributeName != null){
             return attributeName;
         }
 
-        String last = path.getLast();
+        Path last = path.suffix(1);
         attributeName = fieldsToAttributes.get(last);
         if(attributeName != null){
             return attributeName;
         }
 
-        return last;
+        return last.toString();
     }
 
     @Override
     public Path translateAttributeName(String attributeName){
-        for(Entry<String, String> f2a : fieldsToAttributes.entrySet()){
+        for(Entry<Path, String> f2a : fieldsToAttributes.entrySet()){
             if(f2a.getValue().equalsIgnoreCase(attributeName)){
-                return new Path(f2a.getKey());
+                return f2a.getKey();
             }
         }
         return new Path(attributeName);
@@ -74,8 +74,8 @@ public class LdapMetadata implements LdapFieldNameTranslator{
      * Adds a {@link FieldAttributeMapping} to this {@link LdapMetadata}.
      * @param fieldAttributeMapping - {@link FieldAttributeMapping}
      */
-    public void addFieldToAttribute(String fieldName, String attributeName){
-        fieldsToAttributes.put(fieldName, attributeName);
+    public void addFieldToAttribute(Path fieldPath, String attributeName){
+        fieldsToAttributes.put(fieldPath, attributeName);
     }
 
 }

@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.metadata.ldap.model.LdapMetadata;
 import com.redhat.lightblue.test.MetadataUtil;
+import com.redhat.lightblue.util.Path;
 
 public class LdapPropertyParserTest {
 
@@ -54,13 +55,13 @@ public class LdapPropertyParserTest {
 
         assertNotNull(ldapMetadata);
 
-        Map<String, String> fieldsToAttributes = ldapMetadata.getFieldsToAttributes();
+        Map<Path, String> fieldsToAttributes = ldapMetadata.getFieldsToAttributes();
         assertNotNull(fieldsToAttributes);
         assertEquals(2, fieldsToAttributes.size());
 
-        Map<String, String> expected = new HashMap<String, String>();
-        expected.put("firstName", "givenName");
-        expected.put("lastName", "sn");
+        Map<Path, String> expected = new HashMap<Path, String>();
+        expected.put(new Path("firstName"), "givenName");
+        expected.put(new Path("lastName"), "sn");
         assertMapEquivalent(expected, fieldsToAttributes);
     }
 
@@ -87,8 +88,8 @@ public class LdapPropertyParserTest {
     @Test
     public void testConvert() throws IOException, JSONException{
         LdapMetadata ldapMetadata = new LdapMetadata();
-        ldapMetadata.addFieldToAttribute("firstName", "givenName");
-        ldapMetadata.addFieldToAttribute("lastName", "sn");
+        ldapMetadata.addFieldToAttribute(new Path("firstName"), "givenName");
+        ldapMetadata.addFieldToAttribute(new Path("lastName"), "sn");
 
         JsonNode node = json("{}");
 

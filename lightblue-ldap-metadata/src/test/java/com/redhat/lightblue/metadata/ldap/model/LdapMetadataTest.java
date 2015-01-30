@@ -33,19 +33,19 @@ public class LdapMetadataTest {
 
     @Test
     public void testTranslateFieldName(){
-        String fieldName = "fakeFieldName";
+        Path fieldName = new Path("fakeFieldName");
         String attributeName = "fakeAttributeName";
 
         LdapMetadata metadata = new LdapMetadata();
         metadata.addFieldToAttribute(fieldName, attributeName);
-        metadata.addFieldToAttribute("anotherField", "anotherAttribute");
+        metadata.addFieldToAttribute(new Path("anotherField"), "anotherAttribute");
 
         assertEquals(attributeName, metadata.translateFieldName(new Path(fieldName)));
     }
 
     @Test
     public void testTranslateFieldName_WithPath(){
-        String fieldName = "fakePath.fakeFieldName";
+        Path fieldName = new Path("fakePath.fakeFieldName");
         String attributeName = "fakeAttributeName";
 
         LdapMetadata metadata = new LdapMetadata();
@@ -56,7 +56,7 @@ public class LdapMetadataTest {
 
     @Test
     public void testTranslateFieldName_WithPath_MatchesOnTail(){
-        String fieldName = "fakeFieldName";
+        Path fieldName = new Path("fakeFieldName");
         String pathedFieldName = "fakePath." + fieldName;
         String attributeName = "fakeAttributeName";
 
@@ -75,26 +75,26 @@ public class LdapMetadataTest {
 
     @Test
     public void testTranslateAttributeName(){
-        String fieldName = "fakeFieldName";
+        Path fieldName = new Path("fakeFieldName");
         String attributeName = "fakeAttributeName";
 
         LdapMetadata metadata = new LdapMetadata();
         metadata.addFieldToAttribute(fieldName, attributeName);
-        metadata.addFieldToAttribute("anotherField", "anotherAttribute");
+        metadata.addFieldToAttribute(new Path("anotherField"), "anotherAttribute");
 
-        assertEquals(fieldName, metadata.translateAttributeName(attributeName).toString());
+        assertEquals(fieldName, metadata.translateAttributeName(attributeName));
     }
 
     @Test
     public void testTranslateAttributeName_WithPath(){
-        String fieldName = "somePath.fakeFieldName";
+        Path fieldName = new Path("somePath.fakeFieldName");
         String attributeName = "fakeAttributeName";
 
         LdapMetadata metadata = new LdapMetadata();
         metadata.addFieldToAttribute(fieldName, attributeName);
-        metadata.addFieldToAttribute("anotherField", "anotherAttribute");
+        metadata.addFieldToAttribute(new Path("anotherField"), "anotherAttribute");
 
-        assertEquals(fieldName, metadata.translateAttributeName(attributeName).toString());
+        assertEquals(fieldName, metadata.translateAttributeName(attributeName));
     }
 
     @Test
@@ -107,9 +107,9 @@ public class LdapMetadataTest {
     @Test
     public void testGetFieldsToAttributes_AssertImmutable(){
         LdapMetadata metadata = new LdapMetadata();
-        metadata.addFieldToAttribute("anotherField", "anotherAttribute");
+        metadata.addFieldToAttribute(new Path("anotherField"), "anotherAttribute");
 
-        Map<String, String> fieldsToAttributes = metadata.getFieldsToAttributes();
+        Map<Path, String> fieldsToAttributes = metadata.getFieldsToAttributes();
         assertNotNull(fieldsToAttributes);
         assertMapEquivalent(fieldsToAttributes, metadata.getFieldsToAttributes());
         assertNotSame(fieldsToAttributes, metadata.getFieldsToAttributes());

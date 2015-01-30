@@ -24,11 +24,13 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.common.ldap.LdapConstant;
+import com.redhat.lightblue.common.ldap.LdapErrorCode;
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.metadata.ArrayElement;
 import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityMetadata;
+import com.redhat.lightblue.metadata.MetadataConstants;
 import com.redhat.lightblue.metadata.SimpleField;
 import com.redhat.lightblue.metadata.Type;
 import com.redhat.lightblue.metadata.types.BinaryType;
@@ -54,11 +56,17 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     }
 
     public Entry build(String dn, JsonDoc document){
+        Error.push("build entry");
         Error.push(LdapConstant.ATTRIBUTE_DN + "=" + dn);
-        Entry entry = new Entry(dn);
-        translate(document, entry);
-        Error.pop();
-        return entry;
+        try{
+            Entry entry = new Entry(dn);
+            translate(document, entry);
+            return entry;
+        }
+        finally{
+            Error.pop();
+            Error.pop();
+        }
     }
 
     @Override
@@ -79,10 +87,8 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
         String attributeName = fieldNameTranslator.translateFieldName(field.getFullPath());
 
         if(LdapConstant.ATTRIBUTE_DN.equalsIgnoreCase(attributeName)){
-            throw Error.get("Invalid Field Definition", "'" + LdapConstant.ATTRIBUTE_DN + "' should not be included as its value will be"
-                    + " derived from the metadata.basedn and"
-                    + " the metadata.uniqueattr. Including the '" + LdapConstant.ATTRIBUTE_DN
-                    + "' as an insert attribute is confusing.");
+            //DN is derived using metadata.uniqueattr, providing it is confusing.
+            throw Error.get(MetadataConstants.ERR_INVALID_FIELD_REFERENCE, LdapConstant.ATTRIBUTE_DN);
         }
         else if(LightblueUtil.isFieldObjectType(attributeName)
                 || LightblueUtil.isFieldAnArrayCount(attributeName, getEntityMetadata().getFields())){
@@ -127,7 +133,7 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
 
     @Override
     protected void translateObjectArray(ArrayField field, JsonNodeCursor cursor, Entry target) {
-        throw Error.get("Unsupported Feature: object array", field.getFullPath().toString());
+        throw Error.get(LdapErrorCode.ERR_UNSUPPORTED_FEATURE_OBJECT_ARRAY, field.getFullPath().toString());
     }
 
 }

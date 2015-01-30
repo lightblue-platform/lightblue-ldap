@@ -87,7 +87,7 @@ public class ResultTranslator {
         do {
             Path fieldPath = fieldCursor.getCurrentPath();
 
-            if(dnPath.matches(fieldPath)){
+            if(dnPath.equals(fieldPath)){
                 //DN is not handled as a normal attribute, can be skipped.
                 continue;
             }

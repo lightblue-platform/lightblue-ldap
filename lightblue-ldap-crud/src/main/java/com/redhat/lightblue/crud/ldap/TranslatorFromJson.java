@@ -23,10 +23,12 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
+import com.redhat.lightblue.common.ldap.LdapErrorCode;
 import com.redhat.lightblue.metadata.ArrayElement;
 import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.FieldTreeNode;
+import com.redhat.lightblue.metadata.MetadataConstants;
 import com.redhat.lightblue.metadata.ObjectArrayElement;
 import com.redhat.lightblue.metadata.ObjectField;
 import com.redhat.lightblue.metadata.ReferenceField;
@@ -97,35 +99,33 @@ public abstract class TranslatorFromJson<T> {
         JsonNode node = cursor.getCurrentNode();
         FieldTreeNode fieldNode = md.resolve(cursor.getCurrentPath());
 
-        if (fieldNode == null) {
-            throw Error.get("Metadata Not Found", cursor.getCurrentPath().toString());
-        }
-
         Error.push(fieldNode.getFullPath().getLast());
 
-        if (fieldNode instanceof SimpleField) {
-            translate((SimpleField) fieldNode, node, target);
+        try{
+            if (fieldNode instanceof SimpleField) {
+                translate((SimpleField) fieldNode, node, target);
+            }
+            else if (fieldNode instanceof ObjectField) {
+                translate((ObjectField) fieldNode, cursor, target);
+            }
+            else if (fieldNode instanceof ArrayField) {
+                translate((ArrayField) fieldNode, cursor, target);
+            }
+            else if (fieldNode instanceof ReferenceField) {
+                translate((ReferenceField) fieldNode, node, target);
+            }
+            else{
+                throw Error.get(LdapErrorCode.ERR_UNSUPPORTED_FEATURE + fieldNode.getClass().getName(), fieldNode.getFullPath().toString());
+            }
         }
-        else if (fieldNode instanceof ObjectField) {
-            translate((ObjectField) fieldNode, cursor, target);
+        finally{
+            Error.pop();
         }
-        else if (fieldNode instanceof ArrayField) {
-            translate((ArrayField) fieldNode, cursor, target);
-        }
-        else if (fieldNode instanceof ReferenceField) {
-            translate((ReferenceField) fieldNode, node, target);
-        }
-        else{
-            throw Error.get("Unsupported Feature: " + fieldNode.getClass().getName(), fieldNode.getFullPath().toString());
-        }
-
-        Error.pop();
     }
 
     private void translate(ArrayField field, JsonNodeCursor cursor, T target){
         if(!cursor.firstChild()){
-            //TODO: throw exception?
-            return;
+            throw Error.get(MetadataConstants.ERR_ILL_FORMED_METADATA, cursor.getCurrentPath().toString());
         }
 
         ArrayElement arrayElement = field.getElement();
@@ -141,7 +141,7 @@ public abstract class TranslatorFromJson<T> {
             translateObjectArray(field, cursor, target);
         }
         else{
-            throw Error.get("Unsupported Feature: " + arrayElement.getClass().getName(), field.getFullPath().toString());
+            throw Error.get(LdapErrorCode.ERR_UNSUPPORTED_FEATURE + arrayElement.getClass().getName(), field.getFullPath().toString());
         }
 
         cursor.parent();
@@ -149,8 +149,7 @@ public abstract class TranslatorFromJson<T> {
 
     protected void translate(ObjectField field, JsonNodeCursor cursor, T target){
         if(!cursor.firstChild()){
-            //TODO: throw exception?
-            return;
+            throw Error.get(MetadataConstants.ERR_ILL_FORMED_METADATA, cursor.getCurrentPath().toString());
         }
 
         do {

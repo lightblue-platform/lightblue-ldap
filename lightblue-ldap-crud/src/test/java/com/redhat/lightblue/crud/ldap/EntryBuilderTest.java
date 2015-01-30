@@ -43,6 +43,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 import com.redhat.lightblue.common.ldap.LdapConstant;
+import com.redhat.lightblue.common.ldap.LdapErrorCode;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.crud.ldap.EntryBuilderTest.ParameterizedTests;
 import com.redhat.lightblue.crud.ldap.EntryBuilderTest.SpecializedTests;
@@ -133,7 +134,7 @@ public class EntryBuilderTest {
             String arrayCountFieldName = LightblueUtil.createArrayCountFieldName(arrayFieldName);
 
             expectedEx.expect(com.redhat.lightblue.util.Error.class);
-            expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"dn=uid=someuid,dc=example,dc=com/" + arrayFieldName + "\",\"errorCode\":\"Unsupported Feature: object array\",\"msg\":\"" + arrayFieldName + "\"}");
+            expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"build entry/dn=uid=someuid,dc=example,dc=com/" + arrayFieldName + "\",\"errorCode\":\"" + LdapErrorCode.ERR_UNSUPPORTED_FEATURE_OBJECT_ARRAY + "\",\"msg\":\"" + arrayFieldName + "\"}");
 
             buildEntry(
                     arrayCountFieldName,
@@ -147,8 +148,7 @@ public class EntryBuilderTest {
         @Test
         public void testFieldIsDN() throws Exception{
             expectedEx.expect(com.redhat.lightblue.util.Error.class);
-            expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"dn=uid=someuid,dc=example,dc=com/dn\",\"errorCode\":\"Invalid Field Definition\",\"msg\":\"'dn' should not be included as its value will be derived from the metadata.basedn and the metadata.uniqueattr. Including the 'dn' as an insert attribute is confusing.\"}");
-
+            expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"build entry/dn=uid=someuid,dc=example,dc=com/dn\",\"errorCode\":\"metadata:InvalidFieldReference\",\"msg\":\"dn\"}");
             buildEntry(LdapConstant.ATTRIBUTE_DN, "{\"type\": \"string\"}", quote("uid=someuid,dc=example,dc=com"));
         }
 
