@@ -45,7 +45,7 @@ public class ITCaseLdapCRUDController_InvalidMetadata_Test extends AbstractLdapC
     @Test
     public void testMetadata_WithoutUniqueFieldDefined() throws Exception{
         expectedEx.expect(com.redhat.lightblue.util.Error.class);
-        expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"createNewMetadata(person)\",\"errorCode\":\"metadata:IllFormedMetadata\",\"msg\":\"Unique attribute must be defined in fields: uid\"}");
+        expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"createNewMetadata(person)\",\"errorCode\":\"ldap:UndefinedUniqueAttribute\",\"msg\":\"uid\"}");
 
         lightblueFactory = new LightblueFactory(
                 new DataSourcesConfiguration(loadJsonNode("./datasources.json")));

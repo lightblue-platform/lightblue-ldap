@@ -27,55 +27,92 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import com.redhat.lightblue.util.Path;
+
 public class LdapMetadataTest {
 
     @Test
     public void testTranslateFieldName(){
-        String fieldName = "fakeFieldName";
+        Path fieldName = new Path("fakeFieldName");
         String attributeName = "fakeAttributeName";
 
-        LdapMetadata property = new LdapMetadata();
-        property.addFieldToAttribute(fieldName, attributeName);
-        property.addFieldToAttribute("anotherField", "anotherAttribute");
+        LdapMetadata metadata = new LdapMetadata();
+        metadata.addFieldToAttribute(fieldName, attributeName);
+        metadata.addFieldToAttribute(new Path("anotherField"), "anotherAttribute");
 
-        assertEquals(attributeName, property.translateFieldName(fieldName));
+        assertEquals(attributeName, metadata.translateFieldName(new Path(fieldName)));
+    }
+
+    @Test
+    public void testTranslateFieldName_WithPath(){
+        Path fieldName = new Path("fakePath.fakeFieldName");
+        String attributeName = "fakeAttributeName";
+
+        LdapMetadata metadata = new LdapMetadata();
+        metadata.addFieldToAttribute(fieldName, attributeName);
+
+        assertEquals(attributeName, metadata.translateFieldName(new Path(fieldName)));
+    }
+
+    @Test
+    public void testTranslateFieldName_WithPath_MatchesOnTail(){
+        Path fieldName = new Path("fakeFieldName");
+        String pathedFieldName = "fakePath." + fieldName;
+        String attributeName = "fakeAttributeName";
+
+        LdapMetadata metadata = new LdapMetadata();
+        metadata.addFieldToAttribute(fieldName, attributeName);
+
+        assertEquals(attributeName, metadata.translateFieldName(new Path(pathedFieldName)));
     }
 
     @Test
     public void testTranslateFieldName_ValueNotPresent(){
         String fieldName = "fakeFieldName";
 
-        assertEquals(fieldName, new LdapMetadata().translateFieldName(fieldName));
+        assertEquals(fieldName, new LdapMetadata().translateFieldName(new Path(fieldName)));
     }
 
     @Test
     public void testTranslateAttributeName(){
-        String fieldName = "fakeFieldName";
+        Path fieldName = new Path("fakeFieldName");
         String attributeName = "fakeAttributeName";
 
-        LdapMetadata property = new LdapMetadata();
-        property.addFieldToAttribute(fieldName, attributeName);
-        property.addFieldToAttribute("anotherField", "anotherAttribute");
+        LdapMetadata metadata = new LdapMetadata();
+        metadata.addFieldToAttribute(fieldName, attributeName);
+        metadata.addFieldToAttribute(new Path("anotherField"), "anotherAttribute");
 
-        assertEquals(fieldName, property.translateAttributeName(attributeName));
+        assertEquals(fieldName, metadata.translateAttributeName(attributeName));
+    }
+
+    @Test
+    public void testTranslateAttributeName_WithPath(){
+        Path fieldName = new Path("somePath.fakeFieldName");
+        String attributeName = "fakeAttributeName";
+
+        LdapMetadata metadata = new LdapMetadata();
+        metadata.addFieldToAttribute(fieldName, attributeName);
+        metadata.addFieldToAttribute(new Path("anotherField"), "anotherAttribute");
+
+        assertEquals(fieldName, metadata.translateAttributeName(attributeName));
     }
 
     @Test
     public void testTranslateAttributeName_ValueNotPresent(){
         String attributeName = "fakeAttributeName";
 
-        assertEquals(attributeName, new LdapMetadata().translateAttributeName(attributeName));
+        assertEquals(attributeName, new LdapMetadata().translateAttributeName(attributeName).toString());
     }
 
     @Test
     public void testGetFieldsToAttributes_AssertImmutable(){
-        LdapMetadata property = new LdapMetadata();
-        property.addFieldToAttribute("anotherField", "anotherAttribute");
+        LdapMetadata metadata = new LdapMetadata();
+        metadata.addFieldToAttribute(new Path("anotherField"), "anotherAttribute");
 
-        Map<String, String> fieldsToAttributes = property.getFieldsToAttributes();
+        Map<Path, String> fieldsToAttributes = metadata.getFieldsToAttributes();
         assertNotNull(fieldsToAttributes);
-        assertMapEquivalent(fieldsToAttributes, property.getFieldsToAttributes());
-        assertNotSame(fieldsToAttributes, property.getFieldsToAttributes());
+        assertMapEquivalent(fieldsToAttributes, metadata.getFieldsToAttributes());
+        assertNotSame(fieldsToAttributes, metadata.getFieldsToAttributes());
     }
 
 }

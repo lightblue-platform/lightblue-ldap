@@ -22,18 +22,20 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import com.redhat.lightblue.util.Path;
+
 public class TrivialLdapFieldNameTranslatorTest {
 
     @Test
     public void testTranslateFieldName(){
         String fieldName = "fakeFieldName";
-        assertEquals(fieldName, new TrivialLdapFieldNameTranslator().translateFieldName(fieldName));
+        assertEquals(fieldName, new TrivialLdapFieldNameTranslator().translateFieldName(new Path(fieldName)));
     }
 
     @Test
     public void testTranslateAttributeName(){
         String attributeName = "fakeAttributeName";
-        assertEquals(attributeName, new TrivialLdapFieldNameTranslator().translateAttributeName(attributeName));
+        assertEquals(attributeName, new TrivialLdapFieldNameTranslator().translateAttributeName(attributeName).toString());
     }
 
 }

@@ -27,6 +27,7 @@ import com.redhat.lightblue.metadata.ldap.model.LdapMetadata;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.parser.PropertyParser;
 import com.redhat.lightblue.util.Error;
+import com.redhat.lightblue.util.Path;
 
 /**
  * {@link PropertyParser} implementation for LDAP.
@@ -51,7 +52,7 @@ public class LdapPropertyParser <T> extends PropertyParser<T> {
         if(fieldsToAttributesNode != null){
             for(T fieldToAttributeNode : fieldsToAttributesNode){
                 ldapMetadata.addFieldToAttribute(
-                        p.getRequiredStringProperty(fieldToAttributeNode, FIELD),
+                        new Path(p.getRequiredStringProperty(fieldToAttributeNode, FIELD)),
                         p.getRequiredStringProperty(fieldToAttributeNode, ATTRIBUTE));
             }
         }
@@ -70,9 +71,9 @@ public class LdapPropertyParser <T> extends PropertyParser<T> {
         if(!ldapMetadata.getFieldsToAttributes().isEmpty()){
             Object fieldsToAttributesNode = p.newArrayField(emptyNode, FIELDS_TO_ATTRIBUTES);
 
-            for(Entry<String, String> entry : ldapMetadata.getFieldsToAttributes().entrySet()){
+            for(Entry<Path, String> entry : ldapMetadata.getFieldsToAttributes().entrySet()){
                 T fieldToAttributeNode = p.newNode();
-                p.putString(fieldToAttributeNode, FIELD, entry.getKey());
+                p.putString(fieldToAttributeNode, FIELD, entry.getKey().toString());
                 p.putString(fieldToAttributeNode, ATTRIBUTE, entry.getValue());
 
                 p.addObjectToArray(fieldsToAttributesNode, fieldToAttributeNode);

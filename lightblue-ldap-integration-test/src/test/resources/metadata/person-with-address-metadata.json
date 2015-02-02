@@ -1,0 +1,49 @@
+{
+    "entityInfo": {
+        "name": "personWithAddress",
+        "datastore": {
+            "backend":"ldap",
+            "database": "${ldap.database}",
+            "basedn": "${ldap.personWithAddress.basedn}",
+            "uniqueattr": "uid"
+        },
+        "ldap": {
+            "fieldsToAttributes": [
+                {
+                    "field": "address.state",
+                    "attribute": "st"
+                }
+            ]
+        }
+    },
+    "schema": {
+        "name": "personWithAddress",
+        "version": {
+            "value": "1.0.0",
+            "changelog": "blahblah"
+        },
+        "status": {
+            "value": "active"
+        },
+        "access" : {
+             "insert": ["anyone"],
+             "update": ["anyone"],
+             "delete": ["anyone"],
+             "find": ["anyone"]
+        },
+        "fields": {
+            "uid": {"type": "string"},
+            "givenName": {"type": "string"},
+            "sn": {"type": "string"},
+            "cn": {"type": "string"},
+            "address": {
+                "type": "object",
+                "fields": {
+                    "street": {"type": "string"},
+                    "postalCode": {"type": "integer"},
+                    "state": {"type": "string"}
+                }
+            }
+        }
+    }
+}

@@ -20,9 +20,11 @@ package com.redhat.lightblue.metadata.ldap.model;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
+import com.redhat.lightblue.util.Path;
 
 /**
  * Container for special ldap properties parsed from the metadata.json file.
@@ -33,42 +35,49 @@ import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
  */
 public class LdapMetadata implements LdapFieldNameTranslator{
 
-    private final Map<String, String> fieldsToAttributes = new HashMap<String, String>();
+    private final BiMap<Path, String> fieldsToAttributes = HashBiMap.create();
 
     /**
      * Returns an immutable copy of the internal collection of {@link FieldAttributeMapping}s.
      * @return a collection of {@link FieldAttributeMapping}s.
      */
-    public Map<String, String> getFieldsToAttributes(){
-        return new HashMap<String, String>(fieldsToAttributes);
+    public Map<Path, String> getFieldsToAttributes(){
+        return new HashMap<Path, String>(fieldsToAttributes);
     }
 
     @Override
-    public String translateFieldName(String fieldName){
-        String attributeName = fieldsToAttributes.get(fieldName);
-        if(attributeName == null){
-            return fieldName;
+    public String translateFieldName(Path path){
+        String attributeName = fieldsToAttributes.get(path);
+        if(attributeName != null){
+            return attributeName;
         }
 
-        return attributeName;
+        Path last = path.suffix(1);
+        attributeName = fieldsToAttributes.get(last);
+        if(attributeName != null){
+            return attributeName;
+        }
+
+        return last.toString();
     }
 
     @Override
-    public String translateAttributeName(String attributeName){
-        for(Entry<String, String> f2a : fieldsToAttributes.entrySet()){
-            if(f2a.getValue().equalsIgnoreCase(attributeName)){
-                return f2a.getKey();
-            }
+    public Path translateAttributeName(String attributeName){
+        Path fieldPath = fieldsToAttributes.inverse().get(attributeName);
+
+        if(fieldPath == null){
+            return new Path(attributeName);
         }
-        return attributeName;
+
+        return fieldPath;
     }
 
     /**
      * Adds a {@link FieldAttributeMapping} to this {@link LdapMetadata}.
      * @param fieldAttributeMapping - {@link FieldAttributeMapping}
      */
-    public void addFieldToAttribute(String fieldName, String attributeName){
-        fieldsToAttributes.put(fieldName, attributeName);
+    public void addFieldToAttribute(Path fieldPath, String attributeName){
+        fieldsToAttributes.put(fieldPath, attributeName);
     }
 
 }

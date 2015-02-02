@@ -19,6 +19,7 @@
 package com.redhat.lightblue.crud.ldap.model;
 
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
+import com.redhat.lightblue.util.Path;
 
 /**
  * An implementation of {@link LdapFieldNameTranslator} used by crud when
@@ -29,13 +30,13 @@ import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 public class TrivialLdapFieldNameTranslator implements LdapFieldNameTranslator{
 
     @Override
-    public String translateFieldName(String fieldName) {
-        return fieldName;
+    public String translateFieldName(Path path) {
+        return path.getLast();
     }
 
     @Override
-    public String translateAttributeName(String attributeName) {
-        return attributeName;
+    public Path translateAttributeName(String attributeName) {
+        return new Path(attributeName);
     }
 
 }
