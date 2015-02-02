@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.config.DataSourceConfiguration;
 import com.redhat.lightblue.metadata.ldap.parser.LdapDataStoreParser;
+import com.redhat.lightblue.util.Error;
 import com.unboundid.ldap.sdk.BindRequest;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPConnectionPool;
@@ -136,7 +137,7 @@ public class LdapDataSourceConfiguration implements DataSourceConfiguration{
             connectionPool = new LDAPConnectionPool(serverSet, bindRequest, initialConnections, maxConnections);
         }
         catch(LDAPException e) {
-            throw new LdapConfigException("Unable to connect to ldap server(s).", e);
+            throw Error.get(e);
         }
     }
 
