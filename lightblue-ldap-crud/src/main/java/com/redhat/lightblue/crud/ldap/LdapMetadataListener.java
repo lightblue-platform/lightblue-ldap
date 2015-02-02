@@ -52,6 +52,16 @@ public class LdapMetadataListener implements MetadataListener{
         //Do Nothing!!
     }
 
+    @Override
+    public void afterUpdateEntityInfo(Metadata m, EntityInfo ei, boolean newEntity) {
+        //Do Nothing!!
+    }
+
+    @Override
+    public void afterCreateNewSchema(Metadata m, EntityMetadata md) {
+        //Do Nothing!!
+    }
+
     /**
      * Ensure that dn and objectClass are on the entity.
      */
@@ -60,51 +70,72 @@ public class LdapMetadataListener implements MetadataListener{
         LdapFieldNameTranslator ldapNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
         //TODO: check for array index or Path.any
 
-        Path dnFieldPath = ldapNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
-        try{
-            FieldTreeNode dnNode = md.resolve(dnFieldPath);
-            if((!(dnNode instanceof SimpleField)) || (!(dnNode.getType() instanceof StringType))){
-                throw Error.get(MetadataConstants.ERR_FIELD_WRONG_TYPE, dnNode.getFullPath().toString());
-            }
-        }
-        catch(Error e){
-            if(e.getErrorCode().equals(MetadataConstants.ERR_FIELD_WRONG_TYPE)){
-                throw e;
-            }
-            addFieldToParent(md, dnFieldPath, new SimpleField(dnFieldPath.getLast(), StringType.TYPE));
-        }
+        ensureDnField(md, ldapNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_DN));
 
-        Path objectClassFieldPath = ldapNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_OBJECT_CLASS);
-        try{
-            FieldTreeNode objectClassNode = md.resolve(objectClassFieldPath);
-            if(!(objectClassNode instanceof ArrayField)){
-                throw Error.get(MetadataConstants.ERR_FIELD_WRONG_TYPE, objectClassNode.getFullPath().toString());
-            }
-            ArrayField objectClassField = (ArrayField) objectClassNode;
-            ArrayElement arrayElement = objectClassField.getElement();
-            if((!(arrayElement instanceof SimpleArrayElement)) || (!(arrayElement.getType() instanceof StringType))){
-                throw Error.get(MetadataConstants.ERR_FIELD_WRONG_TYPE, objectClassField.getFullPath().toString());
-            }
-        }
-        catch(Error e){
-            if(e.getErrorCode().equals(MetadataConstants.ERR_FIELD_WRONG_TYPE)){
-                throw e;
-            }
-            addFieldToParent(md, objectClassFieldPath, new ArrayField(objectClassFieldPath.getLast(), new SimpleArrayElement(StringType.TYPE)));
-        }
+        Path objectClassFieldPath = ensureObjectClassField(md,
+                ldapNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_OBJECT_CLASS));
 
-        Path objectClassCountFieldPath = objectClassFieldPath.mutableCopy().pop().push(LightblueUtil.createArrayCountFieldName(objectClassFieldPath.getLast()));
+        ensureObjectClassCountField(md,
+                objectClassFieldPath.mutableCopy().pop().push(LightblueUtil.createArrayCountFieldName(objectClassFieldPath.getLast())));
+    }
+
+    /**
+     * Ensures the objectClass count field is present on the entity. If not, then it will added. If so, but
+     * is defined incorrectly, then an {@link Error} will be thrown.
+     */
+    private void ensureObjectClassCountField(EntityMetadata md, Path objectClassCountFieldPath) {
+        FieldTreeNode objectClassCountNode;
         try{
-            FieldTreeNode objectClassCountNode = md.resolve(objectClassCountFieldPath);
-            if((!(objectClassCountNode instanceof SimpleField)) || (!(objectClassCountNode.getType() instanceof IntegerType))){
-                throw Error.get(MetadataConstants.ERR_FIELD_WRONG_TYPE, objectClassCountNode.getFullPath().toString());
-            }
+            objectClassCountNode = md.resolve(objectClassCountFieldPath);
         }
         catch(Error e){
-            if(e.getErrorCode().equals(MetadataConstants.ERR_FIELD_WRONG_TYPE)){
-                throw e;
-            }
-            addFieldToParent(md, objectClassCountFieldPath, new SimpleField(objectClassCountFieldPath.getLast(), IntegerType.TYPE));
+            addFieldToParent(md, objectClassCountFieldPath,
+                    (Field)(objectClassCountNode = new SimpleField(objectClassCountFieldPath.getLast(), IntegerType.TYPE)));
+        }
+        if((!(objectClassCountNode instanceof SimpleField)) || (!(objectClassCountNode.getType() instanceof IntegerType))){
+            throw Error.get(MetadataConstants.ERR_FIELD_WRONG_TYPE, objectClassCountNode.getFullPath().toString());
+        }
+    }
+
+    /**
+     * Ensures the objectClass field is present on the entity. If not, then it will added. If so, but
+     * is defined incorrectly, then an {@link Error} will be thrown.
+     */
+    private Path ensureObjectClassField(EntityMetadata md, Path objectClassFieldPath) {
+        FieldTreeNode objectClassNode;
+        try{
+            objectClassNode = md.resolve(objectClassFieldPath);
+        }
+        catch(Error e){
+            addFieldToParent(md, objectClassFieldPath,
+                    (Field) (objectClassNode = new ArrayField(objectClassFieldPath.getLast(), new SimpleArrayElement(StringType.TYPE))));
+        }
+        if(!(objectClassNode instanceof ArrayField)){
+            throw Error.get(MetadataConstants.ERR_FIELD_WRONG_TYPE, objectClassNode.getFullPath().toString());
+        }
+        ArrayField objectClassField = (ArrayField) objectClassNode;
+        ArrayElement arrayElement = objectClassField.getElement();
+        if((!(arrayElement instanceof SimpleArrayElement)) || (!(arrayElement.getType() instanceof StringType))){
+            throw Error.get(MetadataConstants.ERR_FIELD_WRONG_TYPE, objectClassField.getFullPath().toString());
+        }
+        return objectClassFieldPath;
+    }
+
+    /**
+     * Ensures the dn field is present on the entity. If not, then it will added. If so, but
+     * is defined incorrectly, then an {@link Error} will be thrown.
+     */
+    private void ensureDnField(EntityMetadata md, Path dnFieldPath) {
+        FieldTreeNode dnNode;
+        try{
+            dnNode = md.resolve(dnFieldPath);
+        }
+        catch(Error e){
+            addFieldToParent(md, dnFieldPath,
+                    (Field)(dnNode = new SimpleField(dnFieldPath.getLast(), StringType.TYPE)));
+        }
+        if((!(dnNode instanceof SimpleField)) || (!(dnNode.getType() instanceof StringType))){
+            throw Error.get(MetadataConstants.ERR_FIELD_WRONG_TYPE, dnNode.getFullPath().toString());
         }
     }
 
@@ -135,16 +166,6 @@ public class LdapMetadataListener implements MetadataListener{
             }
         }
         fields.addNew(newField);
-    }
-
-    @Override
-    public void afterUpdateEntityInfo(Metadata m, EntityInfo ei, boolean newEntity) {
-        //Do Nothing!!
-    }
-
-    @Override
-    public void afterCreateNewSchema(Metadata m, EntityMetadata md) {
-        //Do Nothing!!
     }
 
 }
