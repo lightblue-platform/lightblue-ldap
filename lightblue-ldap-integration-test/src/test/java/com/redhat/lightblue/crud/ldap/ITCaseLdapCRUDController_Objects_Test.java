@@ -35,39 +35,34 @@ import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
 import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
 import com.unboundid.ldap.sdk.Attribute;
 
-/**
- * This test suite is designed to ensure that the LDAP properties work correctly.
- *
- * @author dcrissman
- */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCRUDController{
+public class ITCaseLdapCRUDController_Objects_Test extends AbstractLdapCRUDController{
 
-    private static final String BASEDB_CUSTOMERS = "ou=Customers,dc=example,dc=com";
+    private static final String BASEDB_USERS = "ou=Users,dc=example,dc=com";
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        ldapServer.add(BASEDB_CUSTOMERS,  new Attribute[]{
+        ldapServer.add(BASEDB_USERS,  new Attribute[]{
                 new Attribute("objectClass", "top"),
                 new Attribute("objectClass", "organizationalUnit"),
-                new Attribute("ou", "Customers")});
+                new Attribute("ou", "Users")});
 
         System.setProperty("ldap.host", "localhost");
         System.setProperty("ldap.port", String.valueOf(LdapServerExternalResource.DEFAULT_PORT));
         System.setProperty("ldap.database", "test");
-        System.setProperty("ldap.customer.basedn", BASEDB_CUSTOMERS);
+        System.setProperty("ldap.personWithAddress.basedn", BASEDB_USERS);
 
         System.setProperty("mongo.host", "localhost");
         System.setProperty("mongo.port", String.valueOf(MongoServerExternalResource.DEFAULT_PORT));
         System.setProperty("mongo.database", "lightblue");
 
-        initLightblueFactory("./datasources.json", "./metadata/customer-metadata.json");
+        initLightblueFactory("./datasources.json", "./metadata/person-with-address-metadata.json");
     }
 
     @Test
-    public void test1CustomerInsertWithProperties() throws Exception{
+    public void test1PersonWithAddress_Insert() throws Exception{
         Response response = lightblueFactory.getMediator().insert(
-                createRequest_FromResource(InsertionRequest.class, "./crud/insert/customer-insert-single.json"));
+                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-with-address-insert-single.json"));
 
         assertNotNull(response);
         assertNoErrors(response);
@@ -77,14 +72,14 @@ public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCR
         JsonNode entityData = response.getEntityData();
         assertNotNull(entityData);
         JSONAssert.assertEquals(
-                "[{\"id\":\"uid=frodo.baggins," + BASEDB_CUSTOMERS + "\"}]",
+                "[{\"dn\":\"uid=john.doe," + BASEDB_USERS + "\"}]",
                 entityData.toString(), false);
     }
 
     @Test
-    public void test2FindCustomerWithProperties() throws Exception{
+    public void test2PersonWithAddress_Find() throws Exception{
         Response response = lightblueFactory.getMediator().find(
-                createRequest_FromResource(FindRequest.class, "./crud/find/customer-find-single.json"));
+                createRequest_FromResource(FindRequest.class, "./crud/find/person-with-address-find-single.json"));
 
         assertNotNull(response);
         assertNoErrors(response);
@@ -94,14 +89,8 @@ public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCR
         JsonNode entityData = response.getEntityData();
         assertNotNull(entityData);
         JSONAssert.assertEquals(
-                "[{\"id\":\"uid=frodo.baggins," + BASEDB_CUSTOMERS + "\","
-                        + "\"customerId\":\"frodo.baggins\","
-                        + "\"firstName\":\"Frodo\","
-                        + "\"lastName\":\"Baggins\","
-                        + "\"cn\":\"Frodo Baggins\","
-                        + "\"interfaces#\":4,"
-                        + "\"interfaces\":[\"top\",\"person\",\"organizationalPerson\",\"inetOrgPerson\"]}]",
-                        entityData.toString(), true);
+                "[{\"dn\":\"uid=john.doe," + BASEDB_USERS + "\",\"address\":{\"street\":\"123 Some St.\",\"postalCode\":12345,\"state\":\"NC\"}}]",
+                entityData.toString(), true);
     }
 
 }

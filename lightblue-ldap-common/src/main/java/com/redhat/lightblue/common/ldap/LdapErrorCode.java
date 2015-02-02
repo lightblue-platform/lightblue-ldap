@@ -18,27 +18,19 @@
  */
 package com.redhat.lightblue.common.ldap;
 
-import com.redhat.lightblue.util.Path;
-
 /**
- * Represents a class that can translate back and forth between a fieldName and an LDAP attributeName.
+ * Error codes specific to LDAP
  *
  * @author dcrissman
  */
-public interface LdapFieldNameTranslator {
+public final class LdapErrorCode {
 
-    /**
-     * Returns the attributeName with the given fieldName.
-     * @param fieldName - metadata field name
-     * @return ldap attributeName or the fieldName back at you if no mapping is present.
-     */
-    public String translateFieldName(Path path);
+    /** An unsupported feature was used. */
+    public static final String ERR_UNSUPPORTED_FEATURE = "ldap:UnsupportedFeature:";
 
-    /**
-     * Returns the fieldName with the given attributeName.
-     * @param attributeName - ldap attribute name
-     * @return metadata fieldName or the attributeName back at you if no mapping is present.
-     */
-    public Path translateAttributeName(String attributeName);
+    /** Lightblue-Ldap does not currently support object arrays. This error indicates that such a field was used. */
+    public static final String ERR_UNSUPPORTED_FEATURE_OBJECT_ARRAY = ERR_UNSUPPORTED_FEATURE + "ObjectArray";
+
+    private LdapErrorCode(){}
 
 }

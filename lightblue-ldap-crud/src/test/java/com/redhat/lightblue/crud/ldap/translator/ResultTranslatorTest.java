@@ -378,15 +378,23 @@ public class ResultTranslatorTest {
         new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
     }
 
-    @Test(expected = UnsupportedOperationException.class)
+    @Test
     public void testTranslate_ObjectField() throws JSONException{
-        SearchResultEntry result =  new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{new Attribute("fake")});
+        SearchResultEntry result =  new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{new Attribute("key", "value")});
 
-        EntityMetadata md = fakeEntityMetadata("fakeMetadata",
-                new ObjectField("fake")
-                );
+        ObjectField objectField = new ObjectField("fakeObject");
+        objectField.getFields().addNew(new SimpleField("key", StringType.TYPE));
 
-        new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        EntityMetadata md = fakeEntityMetadata("fakeMetadata", objectField);
+
+        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+
+        assertNotNull(document);
+
+        JSONAssert.assertEquals(
+                "{\"dn\":\"uid=john.doe,dc=example,dc=com\",\"fakeObject\":{\"key\":\"value\"}}",
+                document.getOutputDocument().toString(),
+                true);
     }
 
     @Test(expected = UnsupportedOperationException.class)

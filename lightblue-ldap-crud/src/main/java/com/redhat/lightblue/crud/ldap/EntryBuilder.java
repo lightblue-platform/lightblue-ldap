@@ -24,19 +24,20 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.common.ldap.LdapConstant;
+import com.redhat.lightblue.common.ldap.LdapErrorCode;
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.metadata.ArrayElement;
 import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityMetadata;
-import com.redhat.lightblue.metadata.ObjectField;
+import com.redhat.lightblue.metadata.MetadataConstants;
 import com.redhat.lightblue.metadata.SimpleField;
 import com.redhat.lightblue.metadata.Type;
 import com.redhat.lightblue.metadata.types.BinaryType;
 import com.redhat.lightblue.metadata.types.DateType;
+import com.redhat.lightblue.util.Error;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.JsonNodeCursor;
-import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.Entry;
 import com.unboundid.util.StaticUtils;
 
@@ -55,9 +56,17 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     }
 
     public Entry build(String dn, JsonDoc document){
-        Entry entry = new Entry(dn);
-        translate(document, entry);
-        return entry;
+        Error.push("build entry");
+        Error.push(LdapConstant.ATTRIBUTE_DN + "=" + dn);
+        try{
+            Entry entry = new Entry(dn);
+            translate(document, entry);
+            return entry;
+        }
+        finally{
+            Error.pop();
+            Error.pop();
+        }
     }
 
     @Override
@@ -74,13 +83,12 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     }
 
     @Override
-    protected void translate(SimpleField field, Path path, JsonNode node, Entry target) {
-        String attributeName = fieldNameTranslator.translateFieldName(field.getName());
+    protected void translate(SimpleField field, JsonNode node, Entry target) {
+        String attributeName = fieldNameTranslator.translateFieldName(field.getFullPath());
 
         if(LdapConstant.ATTRIBUTE_DN.equalsIgnoreCase(attributeName)){
-            throw new IllegalArgumentException(
-                    "'dn' should not be included as it's value will be derived from the metadata.basedn and" +
-                    " the metadata.uniqueattr. Including the 'dn' as an insert attribute is confusing.");
+            //DN is derived using metadata.uniqueattr, providing it is confusing.
+            throw Error.get(MetadataConstants.ERR_INVALID_FIELD_REFERENCE, LdapConstant.ATTRIBUTE_DN);
         }
         else if(LightblueUtil.isFieldObjectType(attributeName)
                 || LightblueUtil.isFieldAnArrayCount(attributeName, getEntityMetadata().getFields())){
@@ -102,15 +110,10 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     }
 
     @Override
-    protected void translate(ObjectField field, Path path, JsonNode node, Entry target) {
-        throw new UnsupportedOperationException("ObjectField type is not currently supported.");
-    }
-
-    @Override
-    protected void translateSimpleArray(ArrayField field, Path path, List<Object> items, Entry target) {
+    protected void translateSimpleArray(ArrayField field, List<Object> items, Entry target) {
         ArrayElement arrayElement = field.getElement();
         Type arrayElementType = arrayElement.getType();
-        String attributeName = fieldNameTranslator.translateFieldName(field.getName());
+        String attributeName = fieldNameTranslator.translateFieldName(field.getFullPath());
 
         if(arrayElementType instanceof BinaryType){
             List<byte[]> bytes = new ArrayList<byte[]>();
@@ -130,7 +133,7 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
 
     @Override
     protected void translateObjectArray(ArrayField field, JsonNodeCursor cursor, Entry target) {
-        throw new UnsupportedOperationException("Object ArrayField type is not currently supported.");
+        throw Error.get(LdapErrorCode.ERR_UNSUPPORTED_FEATURE_OBJECT_ARRAY, field.getFullPath().toString());
     }
 
 }

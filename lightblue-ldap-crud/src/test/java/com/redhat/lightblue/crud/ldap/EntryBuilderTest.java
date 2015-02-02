@@ -32,7 +32,10 @@ import java.util.Date;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -40,6 +43,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 import com.redhat.lightblue.common.ldap.LdapConstant;
+import com.redhat.lightblue.common.ldap.LdapErrorCode;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.crud.ldap.EntryBuilderTest.ParameterizedTests;
 import com.redhat.lightblue.crud.ldap.EntryBuilderTest.SpecializedTests;
@@ -47,6 +51,7 @@ import com.redhat.lightblue.crud.ldap.model.TrivialLdapFieldNameTranslator;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.test.MetadataUtil;
+import com.redhat.lightblue.util.Error;
 import com.redhat.lightblue.util.JsonDoc;
 import com.unboundid.ldap.sdk.Entry;
 import com.unboundid.util.StaticUtils;
@@ -76,6 +81,14 @@ public class EntryBuilderTest {
 
     public static class SpecializedTests {
 
+        @Rule
+        public ExpectedException expectedEx = ExpectedException.none();
+
+        @After
+        public void after(){
+            Error.reset();
+        }
+
         @Test
         public void testFieldIsObjectType() throws Exception{
             Entry entry = buildEntry(LightblueUtil.FIELD_OBJECT_TYPE, "{\"type\": \"string\"}", quote("someEntity"));
@@ -89,8 +102,8 @@ public class EntryBuilderTest {
          * it requires two fields.
          */
         @Test
-        public void testFieldIsArrayField() throws Exception{
-            String arrayFieldName = "someArray";
+        public void testFieldIsSimpleArrayField() throws Exception{
+            String arrayFieldName = "someSimpleArray";
             String arrayCountFieldName = LightblueUtil.createArrayCountFieldName(arrayFieldName);
             Entry entry = buildEntry(
                     arrayCountFieldName,
@@ -110,8 +123,32 @@ public class EntryBuilderTest {
             assertNotNull(entry.getAttribute(arrayCountFieldName));
         }
 
-        @Test(expected = IllegalArgumentException.class)
+        /**
+         * This test is kind of hacky as it requires json injection in order to make it work because
+         * it requires two fields.
+         * ObjectFields are not currently supported in LDAP, an exception should be thrown indicating as such.
+         */
+        @Test
+        public void testObjectArrayField_ThrowsException() throws Exception{
+            String arrayFieldName = "someObjectArray";
+            String arrayCountFieldName = LightblueUtil.createArrayCountFieldName(arrayFieldName);
+
+            expectedEx.expect(com.redhat.lightblue.util.Error.class);
+            expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"build entry/dn=uid=someuid,dc=example,dc=com/" + arrayFieldName + "\",\"errorCode\":\"" + LdapErrorCode.ERR_UNSUPPORTED_FEATURE_OBJECT_ARRAY + "\",\"msg\":\"" + arrayFieldName + "\"}");
+
+            buildEntry(
+                    arrayCountFieldName,
+                    "{\"type\": \"integer\"}, " + quote(arrayFieldName) + ": {\"type\": \"array\", \"items\": {\"type\": \"object\",\"fields\": {\"someField\": {\"type\": \"string\"}}}}",
+                    "1," + quote(arrayFieldName) + ":[{\"someField\":\"hello\"}]");
+        }
+
+        /**
+         * DN fields should never be defined as they are technically not attributes.
+         */
+        @Test
         public void testFieldIsDN() throws Exception{
+            expectedEx.expect(com.redhat.lightblue.util.Error.class);
+            expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"build entry/dn=uid=someuid,dc=example,dc=com/dn\",\"errorCode\":\"metadata:InvalidFieldReference\",\"msg\":\"dn\"}");
             buildEntry(LdapConstant.ATTRIBUTE_DN, "{\"type\": \"string\"}", quote("uid=someuid,dc=example,dc=com"));
         }
 
@@ -141,6 +178,11 @@ public class EntryBuilderTest {
                                 new String[]{"hello", "world"}
                     },
             });
+        }
+
+        @After
+        public void after(){
+            Error.reset();
         }
 
         private final String fieldName = "testfield";

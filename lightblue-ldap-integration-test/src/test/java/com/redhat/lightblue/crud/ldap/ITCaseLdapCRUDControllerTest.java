@@ -55,11 +55,11 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController{
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        ldapServer.add("ou=Users,dc=example,dc=com",  new Attribute[]{
+        ldapServer.add(BASEDB_USERS,  new Attribute[]{
                 new Attribute("objectClass", "top"),
                 new Attribute("objectClass", "organizationalUnit"),
                 new Attribute("ou", "Users")});
-        ldapServer.add("ou=Departments,dc=example,dc=com",  new Attribute[]{
+        ldapServer.add(BASEDB_DEPARTMENTS,  new Attribute[]{
                 new Attribute("objectClass", "top"),
                 new Attribute("objectClass", "organizationalUnit"),
                 new Attribute("ou", "Departments")});
