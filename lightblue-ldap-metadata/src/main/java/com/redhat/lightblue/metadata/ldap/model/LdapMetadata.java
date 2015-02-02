@@ -20,8 +20,9 @@ package com.redhat.lightblue.metadata.ldap.model;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.util.Path;
 
@@ -34,7 +35,7 @@ import com.redhat.lightblue.util.Path;
  */
 public class LdapMetadata implements LdapFieldNameTranslator{
 
-    private final Map<Path, String> fieldsToAttributes = new HashMap<Path, String>();
+    private final BiMap<Path, String> fieldsToAttributes = HashBiMap.create();
 
     /**
      * Returns an immutable copy of the internal collection of {@link FieldAttributeMapping}s.
@@ -62,12 +63,13 @@ public class LdapMetadata implements LdapFieldNameTranslator{
 
     @Override
     public Path translateAttributeName(String attributeName){
-        for(Entry<Path, String> f2a : fieldsToAttributes.entrySet()){
-            if(f2a.getValue().equalsIgnoreCase(attributeName)){
-                return f2a.getKey();
-            }
+        Path fieldPath = fieldsToAttributes.inverse().get(attributeName);
+
+        if(fieldPath == null){
+            return new Path(attributeName);
         }
-        return new Path(attributeName);
+
+        return fieldPath;
     }
 
     /**
