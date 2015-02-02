@@ -20,8 +20,6 @@ package com.redhat.lightblue.crud.ldap;
 
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
-import com.redhat.lightblue.common.ldap.LightblueUtil;
-import com.redhat.lightblue.metadata.ArrayElement;
 import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityInfo;
 import com.redhat.lightblue.metadata.EntityMetadata;
@@ -33,9 +31,9 @@ import com.redhat.lightblue.metadata.MetadataConstants;
 import com.redhat.lightblue.metadata.MetadataListener;
 import com.redhat.lightblue.metadata.ObjectArrayElement;
 import com.redhat.lightblue.metadata.ObjectField;
+import com.redhat.lightblue.metadata.PredefinedFields;
 import com.redhat.lightblue.metadata.SimpleArrayElement;
 import com.redhat.lightblue.metadata.SimpleField;
-import com.redhat.lightblue.metadata.types.IntegerType;
 import com.redhat.lightblue.metadata.types.StringType;
 import com.redhat.lightblue.util.Error;
 import com.redhat.lightblue.util.Path;
@@ -72,36 +70,17 @@ public class LdapMetadataListener implements MetadataListener{
 
         ensureDnField(md, ldapNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_DN));
 
-        Path objectClassFieldPath = ensureObjectClassField(md,
+        ensureObjectClassField(md,
                 ldapNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_OBJECT_CLASS));
 
-        ensureObjectClassCountField(md,
-                objectClassFieldPath.mutableCopy().pop().push(LightblueUtil.createArrayCountFieldName(objectClassFieldPath.getLast())));
-    }
-
-    /**
-     * Ensures the objectClass count field is present on the entity. If not, then it will added. If so, but
-     * is defined incorrectly, then an {@link Error} will be thrown.
-     */
-    private void ensureObjectClassCountField(EntityMetadata md, Path objectClassCountFieldPath) {
-        FieldTreeNode objectClassCountNode;
-        try{
-            objectClassCountNode = md.resolve(objectClassCountFieldPath);
-        }
-        catch(Error e){
-            addFieldToParent(md, objectClassCountFieldPath,
-                    (Field)(objectClassCountNode = new SimpleField(objectClassCountFieldPath.getLast(), IntegerType.TYPE)));
-        }
-        if((!(objectClassCountNode instanceof SimpleField)) || (!(objectClassCountNode.getType() instanceof IntegerType))){
-            throw Error.get(MetadataConstants.ERR_FIELD_WRONG_TYPE, objectClassCountNode.getFullPath().toString());
-        }
+        PredefinedFields.ensurePredefinedFields(md);
     }
 
     /**
      * Ensures the objectClass field is present on the entity. If not, then it will added. If so, but
      * is defined incorrectly, then an {@link Error} will be thrown.
      */
-    private Path ensureObjectClassField(EntityMetadata md, Path objectClassFieldPath) {
+    private void ensureObjectClassField(EntityMetadata md, Path objectClassFieldPath) {
         FieldTreeNode objectClassNode;
         try{
             objectClassNode = md.resolve(objectClassFieldPath);
@@ -114,11 +93,9 @@ public class LdapMetadataListener implements MetadataListener{
             throw Error.get(MetadataConstants.ERR_FIELD_WRONG_TYPE, objectClassNode.getFullPath().toString());
         }
         ArrayField objectClassField = (ArrayField) objectClassNode;
-        ArrayElement arrayElement = objectClassField.getElement();
-        if((!(arrayElement instanceof SimpleArrayElement)) || (!(arrayElement.getType() instanceof StringType))){
+        if(!(objectClassField.getElement().getType() instanceof StringType)){
             throw Error.get(MetadataConstants.ERR_FIELD_WRONG_TYPE, objectClassField.getFullPath().toString());
         }
-        return objectClassFieldPath;
     }
 
     /**
@@ -134,7 +111,7 @@ public class LdapMetadataListener implements MetadataListener{
             addFieldToParent(md, dnFieldPath,
                     (Field)(dnNode = new SimpleField(dnFieldPath.getLast(), StringType.TYPE)));
         }
-        if((!(dnNode instanceof SimpleField)) || (!(dnNode.getType() instanceof StringType))){
+        if(!(dnNode.getType() instanceof StringType)){
             throw Error.get(MetadataConstants.ERR_FIELD_WRONG_TYPE, dnNode.getFullPath().toString());
         }
     }

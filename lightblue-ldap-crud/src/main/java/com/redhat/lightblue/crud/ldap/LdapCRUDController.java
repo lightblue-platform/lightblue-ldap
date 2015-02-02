@@ -29,7 +29,6 @@ import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.redhat.lightblue.common.ldap.DBResolver;
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapDataStore;
@@ -376,9 +375,9 @@ public class LdapCRUDController implements CRUDController{
 
             // If only dn is in the projection, then no need to query LDAP.
             if((requiredAttributeNames.size() == 1) && requiredAttributeNames.contains(LdapConstant.ATTRIBUTE_DN)){
-                ObjectNode node = factory.objectNode();
-                node.set(dnFieldPath.toString(), StringType.TYPE.toJson(factory, dn));
-                projectionResponseJson = new DocCtx(new JsonDoc(node));
+                JsonDoc jdoc = new JsonDoc(factory.objectNode());
+                jdoc.modify(dnFieldPath, StringType.TYPE.toJson(factory, dn), true);
+                projectionResponseJson = new DocCtx(jdoc);
             }
             //TODO: else fetch entity from LDAP and project results.
             //TODO: Probably want to batch fetch as opposed to individual fetches.

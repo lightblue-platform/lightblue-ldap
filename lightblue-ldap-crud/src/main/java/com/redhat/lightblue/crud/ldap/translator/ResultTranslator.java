@@ -71,9 +71,9 @@ public class ResultTranslator {
         Fields fields = md.getFields();
 
         if (cursor.firstChild()) {
-            ObjectNode node = toJson(entry, cursor, fields);
-            node.set(dnPath.toString(), StringType.TYPE.toJson(factory, entry.getDN()));
-            return new DocCtx(new JsonDoc(node));
+            JsonDoc jdoc = new JsonDoc(toJson(entry, cursor, fields));
+            jdoc.modify(dnPath, StringType.TYPE.toJson(factory, entry.getDN()), true);
+            return new DocCtx(jdoc);
         }
 
         //TODO: What to do in case of a null value here?
