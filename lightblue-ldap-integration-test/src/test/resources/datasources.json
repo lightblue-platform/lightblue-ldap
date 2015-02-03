@@ -3,7 +3,7 @@
         "type" : "com.redhat.lightblue.config.ldap.LdapDataSourceConfiguration",
         "database" : "${ldap.database}",
 
-        "bindableDn" : "uid=admin,dc=example,dc=com",
+        "bindabledn" : "uid=admin,dc=example,dc=com",
         "password" : "password",
         "numberOfInitialConnections" : 5,
         "maxNumberOfConnections" : 10,
