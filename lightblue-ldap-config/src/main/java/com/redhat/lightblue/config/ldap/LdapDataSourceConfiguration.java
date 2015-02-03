@@ -48,7 +48,7 @@ public class LdapDataSourceConfiguration implements DataSourceConfiguration{
     private static final Logger LOGGER = LoggerFactory.getLogger(LdapDataSourceConfiguration.class);
 
     private static final String LDAP_CONFIG_DATABASE = "database";
-    private static final String LDAP_CONFIG_BINDABLE_DB = "bindableDn";
+    private static final String LDAP_CONFIG_BINDABLE_DB = "bindabledn";
     private static final String LDAP_CONFIG_PASSWORD = "password";
     private static final String LDAP_CONFIG_NUMBER_OF_INITIAL_CONNECTIONS = "numberOfInitialConnections";
     private static final String LDAP_CONFIG_MAX_NUMBER_OF_CONNECTIONS = "maxNumberOfConnections";
