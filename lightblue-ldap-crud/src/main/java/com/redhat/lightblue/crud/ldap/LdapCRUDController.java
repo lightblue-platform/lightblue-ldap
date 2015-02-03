@@ -49,7 +49,6 @@ import com.redhat.lightblue.crud.ldap.translator.SortTranslator;
 import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
 import com.redhat.lightblue.eval.Projector;
 import com.redhat.lightblue.hystrix.ldap.InsertCommand;
-import com.redhat.lightblue.metadata.DataStore;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.FieldCursor;
 import com.redhat.lightblue.metadata.MetadataConstants;
@@ -98,7 +97,7 @@ public class LdapCRUDController implements CRUDController{
         }
 
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
-        LdapDataStore store = getLdapDataStore(md);
+        LdapDataStore store = LdapCrudUtil.getLdapDataStore(md);
         LdapFieldNameTranslator fieldNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
 
         FieldAccessRoleEvaluator roles = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
@@ -191,7 +190,7 @@ public class LdapCRUDController implements CRUDController{
         }
 
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
-        LdapDataStore store = getLdapDataStore(md);
+        LdapDataStore store = LdapCrudUtil.getLdapDataStore(md);
 
         CRUDFindResponse response = new CRUDFindResponse();
         response.setSize(0);
@@ -258,22 +257,6 @@ public class LdapCRUDController implements CRUDController{
     @Override
     public MetadataListener getMetadataListener() {
         return new LdapMetadataListener();
-    }
-
-    /**
-     * Shortcut method to get and return the {@link LdapDataStore} on the passed in
-     * {@link EntityMetadata}.
-     * @param md - {@link EntityMetadata}
-     * @return {@link LdapDataStore}
-     * @throws IllegalArgumentException if an {@link LdapDataStore} is not set
-     * on the {@link EntityMetadata}.
-     */
-    private LdapDataStore getLdapDataStore(EntityMetadata md){
-        DataStore store = md.getDataStore();
-        if(!(store instanceof LdapDataStore)){
-            throw new IllegalArgumentException("DataStore of type " + store.getClass() + " is not supported.");
-        }
-        return (LdapDataStore) store;
     }
 
     /**

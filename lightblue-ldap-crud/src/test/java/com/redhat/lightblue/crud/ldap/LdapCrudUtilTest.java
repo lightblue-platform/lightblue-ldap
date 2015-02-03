@@ -24,9 +24,11 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import com.redhat.lightblue.common.ldap.LdapConstant;
+import com.redhat.lightblue.common.ldap.LdapDataStore;
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.crud.ldap.model.TrivialLdapFieldNameTranslator;
 import com.redhat.lightblue.metadata.EntityMetadata;
+import com.redhat.lightblue.test.metadata.FakeDataStore;
 import com.redhat.lightblue.util.Path;
 
 public class LdapCrudUtilTest {
@@ -68,6 +70,24 @@ public class LdapCrudUtilTest {
         EntityMetadata md = createTestEntityMetadataWithLdapProperty(new Object());
 
         LdapCrudUtil.getLdapFieldNameTranslator(md);
+    }
+
+    @Test
+    public void testGetLdapDataStore(){
+        EntityMetadata md = new EntityMetadata("fake");
+        md.setDataStore(new LdapDataStore());
+
+        LdapDataStore store = LdapCrudUtil.getLdapDataStore(md);
+
+        assertNotNull(store);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGetLdapDataStore_WrongDataStore(){
+        EntityMetadata md = new EntityMetadata("fake");
+        md.setDataStore(new FakeDataStore("fakeDS"));
+
+        LdapCrudUtil.getLdapDataStore(md);
     }
 
     /** Fake implementation of {@link LdapFieldNameTranslator} for testing purposes. */

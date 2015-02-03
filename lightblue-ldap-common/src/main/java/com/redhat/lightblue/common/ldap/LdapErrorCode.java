@@ -31,6 +31,9 @@ public final class LdapErrorCode {
     /** Lightblue-Ldap does not currently support object arrays. This error indicates that such a field was used. */
     public static final String ERR_UNSUPPORTED_FEATURE_OBJECT_ARRAY = ERR_UNSUPPORTED_FEATURE + "ObjectArray";
 
+    /** The unique attribute (aka. entityInfo uniqueattr) was not also defined in the schema fields. */
+    public static final String ERR_UNDEFINED_UNIQUE_ATTRIBUTE = "ldap:UndefinedUniqueAttribute";
+
     private LdapErrorCode(){}
 
 }

@@ -19,6 +19,7 @@
 package com.redhat.lightblue.crud.ldap;
 
 import com.redhat.lightblue.common.ldap.LdapConstant;
+import com.redhat.lightblue.common.ldap.LdapErrorCode;
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityInfo;
@@ -66,6 +67,10 @@ public class LdapMetadataListener implements MetadataListener{
     @Override
     public void beforeCreateNewSchema(Metadata m, EntityMetadata md) {
         LdapFieldNameTranslator ldapNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
+
+        assertUniqueFieldExists(md, ldapNameTranslator.translateAttributeName(
+                LdapCrudUtil.getLdapDataStore(md).getUniqueAttribute()));
+
         //TODO: check for array index or Path.any
 
         ensureDnField(md, ldapNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_DN));
@@ -74,6 +79,20 @@ public class LdapMetadataListener implements MetadataListener{
                 ldapNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_OBJECT_CLASS));
 
         PredefinedFields.ensurePredefinedFields(md);
+    }
+
+    /**
+     * Simply asserts that the unique field is defined in the schema.
+     * @throws Error
+     */
+    private void assertUniqueFieldExists(EntityMetadata md, Path uniqueFieldPath) {
+        try{
+            md.resolve(uniqueFieldPath);
+        }
+        catch(Error e){
+            //ignore e, it only means the field does not exist
+            throw Error.get(LdapErrorCode.ERR_UNDEFINED_UNIQUE_ATTRIBUTE, uniqueFieldPath.toString());
+        }
     }
 
     /**

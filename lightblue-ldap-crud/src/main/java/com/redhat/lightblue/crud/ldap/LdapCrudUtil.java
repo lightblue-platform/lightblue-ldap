@@ -19,8 +19,10 @@
 package com.redhat.lightblue.crud.ldap;
 
 import com.redhat.lightblue.common.ldap.LdapConstant;
+import com.redhat.lightblue.common.ldap.LdapDataStore;
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.crud.ldap.model.TrivialLdapFieldNameTranslator;
+import com.redhat.lightblue.metadata.DataStore;
 import com.redhat.lightblue.metadata.EntityMetadata;
 
 /**
@@ -48,6 +50,22 @@ public final class LdapCrudUtil {
             throw new IllegalArgumentException("Object of type " + o.getClass() + " is not supported.");
         }
         return (LdapFieldNameTranslator) o;
+    }
+
+    /**
+     * Shortcut method to get and return the {@link LdapDataStore} on the passed in
+     * {@link EntityMetadata}.
+     * @param md - {@link EntityMetadata}
+     * @return {@link LdapDataStore}
+     * @throws IllegalArgumentException if an {@link LdapDataStore} is not set
+     * on the {@link EntityMetadata}.
+     */
+    public static LdapDataStore getLdapDataStore(EntityMetadata md){
+        DataStore store = md.getDataStore();
+        if(!(store instanceof LdapDataStore)){
+            throw new IllegalArgumentException("DataStore of type " + store.getClass() + " is not supported.");
+        }
+        return (LdapDataStore) store;
     }
 
     private LdapCrudUtil(){}

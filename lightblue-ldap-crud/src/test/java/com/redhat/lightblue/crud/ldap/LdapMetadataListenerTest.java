@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import com.redhat.lightblue.common.ldap.LdapConstant;
+import com.redhat.lightblue.common.ldap.LdapDataStore;
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityMetadata;
@@ -40,12 +41,18 @@ import com.redhat.lightblue.util.Path;
 
 public class LdapMetadataListenerTest {
 
+    private void setupEntityMetadata(EntityMetadata md){
+        md.getFields().addNew(new SimpleField("uniqAttr", StringType.TYPE));
+        md.setDataStore(new LdapDataStore("db", "baseDN", "uniqAttr"));
+    }
+
     /**
      * No fields are defined, so ensure the fields are automatically created.
      */
     @Test
     public void testBeforeCreateNewSchema(){
         EntityMetadata md = new EntityMetadata("fake");
+        setupEntityMetadata(md);
 
         LdapMetadataListener listener = new LdapMetadataListener();
         listener.beforeCreateNewSchema(null, md);
@@ -61,6 +68,7 @@ public class LdapMetadataListenerTest {
     @Test
     public void testBeforeCreateNewSchema_alreadyHasDefinedDnAndObjectClass(){
         EntityMetadata md = new EntityMetadata("fake");
+        setupEntityMetadata(md);
         Fields fields = md.getEntitySchema().getFields();
 
         SimpleField dnField = new SimpleField(LdapConstant.ATTRIBUTE_DN, StringType.TYPE);
@@ -92,6 +100,7 @@ public class LdapMetadataListenerTest {
 
         EntityMetadata md = LdapCrudUtilTest.createTestEntityMetadataWithLdapProperty(
                 new FakeLdapFieldNameTranslator(fieldName, LdapConstant.ATTRIBUTE_DN));
+        setupEntityMetadata(md);
         md.getFields().addNew(new ObjectField("someobject"));
 
         LdapMetadataListener listener = new LdapMetadataListener();
@@ -110,6 +119,7 @@ public class LdapMetadataListenerTest {
 
         EntityMetadata md = LdapCrudUtilTest.createTestEntityMetadataWithLdapProperty(
                 new FakeLdapFieldNameTranslator(fieldName, LdapConstant.ATTRIBUTE_OBJECT_CLASS));
+        setupEntityMetadata(md);
         md.getFields().addNew(new ObjectField("someobject"));
 
         LdapMetadataListener listener = new LdapMetadataListener();
@@ -122,6 +132,7 @@ public class LdapMetadataListenerTest {
     @Test(expected = Error.class)
     public void testBeforeCreateNewSchema_alreadyHasDefinedDn_butAsWrongType(){
         EntityMetadata md = new EntityMetadata("fake");
+        setupEntityMetadata(md);
         Fields fields = md.getEntitySchema().getFields();
 
         fields.addNew(new SimpleField(LdapConstant.ATTRIBUTE_DN, IntegerType.TYPE));
@@ -132,6 +143,7 @@ public class LdapMetadataListenerTest {
     @Test(expected = Error.class)
     public void testBeforeCreateNewSchema_alreadyHasDefinedDn_butAsWrongField(){
         EntityMetadata md = new EntityMetadata("fake");
+        setupEntityMetadata(md);
         Fields fields = md.getEntitySchema().getFields();
 
         fields.addNew(new ArrayField(LdapConstant.ATTRIBUTE_DN));
@@ -142,6 +154,7 @@ public class LdapMetadataListenerTest {
     @Test(expected = Error.class)
     public void testBeforeCreateNewSchema_alreadyHasDefinedObjectClass_butAsWrongType(){
         EntityMetadata md = new EntityMetadata("fake");
+        setupEntityMetadata(md);
         Fields fields = md.getEntitySchema().getFields();
 
         fields.addNew(new SimpleField(LdapConstant.ATTRIBUTE_OBJECT_CLASS, StringType.TYPE));
@@ -152,6 +165,7 @@ public class LdapMetadataListenerTest {
     @Test(expected = Error.class)
     public void testBeforeCreateNewSchema_alreadyHasDefinedObjectClass_butAsWrongField(){
         EntityMetadata md = new EntityMetadata("fake");
+        setupEntityMetadata(md);
         Fields fields = md.getEntitySchema().getFields();
 
         fields.addNew(new SimpleField(LdapConstant.ATTRIBUTE_OBJECT_CLASS));
@@ -162,6 +176,7 @@ public class LdapMetadataListenerTest {
     @Test(expected = Error.class)
     public void testBeforeCreateNewSchema_alreadyHasDefinedObjectClass_butWithWrongElementType(){
         EntityMetadata md = new EntityMetadata("fake");
+        setupEntityMetadata(md);
         Fields fields = md.getEntitySchema().getFields();
 
         fields.addNew(new ArrayField(LdapConstant.ATTRIBUTE_OBJECT_CLASS, new SimpleArrayElement(IntegerType.TYPE)));
@@ -172,6 +187,7 @@ public class LdapMetadataListenerTest {
     @Test(expected = Error.class)
     public void testBeforeCreateNewSchema_alreadyHasDefinedObjectClass_butWithWrongElementField(){
         EntityMetadata md = new EntityMetadata("fake");
+        setupEntityMetadata(md);
         Fields fields = md.getEntitySchema().getFields();
 
         ArrayField field = new ArrayField(LdapConstant.ATTRIBUTE_OBJECT_CLASS, new ObjectArrayElement());
@@ -183,6 +199,7 @@ public class LdapMetadataListenerTest {
     @Test(expected = Error.class)
     public void testBeforeCreateNewSchema_alreadyHasDefinedObjectClassCount_butAsWrongType(){
         EntityMetadata md = new EntityMetadata("fake");
+        setupEntityMetadata(md);
         Fields fields = md.getEntitySchema().getFields();
 
         fields.addNew(new SimpleField(LdapConstant.ATTRIBUTE_OBJECT_CLASS + "#", StringType.TYPE));
@@ -193,11 +210,21 @@ public class LdapMetadataListenerTest {
     @Test(expected = Error.class)
     public void testBeforeCreateNewSchema_alreadyHasDefinedObjectClassCount_butAsWrongField(){
         EntityMetadata md = new EntityMetadata("fake");
+        setupEntityMetadata(md);
         Fields fields = md.getEntitySchema().getFields();
 
         fields.addNew(new ArrayField(LdapConstant.ATTRIBUTE_OBJECT_CLASS + "#"));
 
         new LdapMetadataListener().beforeCreateNewSchema(null, md);
+    }
+
+    @Test(expected = Error.class)
+    public void testBeforeCreateNewSchema_uniqAttrNotDefinedInSchema(){
+        EntityMetadata md = new EntityMetadata("fake");
+        md.setDataStore(new LdapDataStore("db", "baseDN", "uniqAttr"));
+
+        LdapMetadataListener listener = new LdapMetadataListener();
+        listener.beforeCreateNewSchema(null, md);
     }
 
     /** Fake implementation of {@link LdapFieldNameTranslator} for testing purposes. */
