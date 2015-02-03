@@ -122,7 +122,7 @@ public class LdapCRUDController implements CRUDController{
                 throw Error.get(MetadataConstants.ERR_PARSE_MISSING_ELEMENT, store.getUniqueAttribute());
             }
 
-            String dn = createDN(store, uniqueNode.asText());
+            String dn = LdapCrudUtil.createDN(store, uniqueNode.asText());
             documentToDnMap.put(document, dn);
             try{
                 entries.add(entryBuilder.build(dn, document));
@@ -257,17 +257,6 @@ public class LdapCRUDController implements CRUDController{
     @Override
     public MetadataListener getMetadataListener() {
         return new LdapMetadataListener();
-    }
-
-    /**
-     * Creates and returns a unique DN.
-     * @param store - {@link LdapDataStore} to use as the BaseDN and field that
-     * is used to represent uniqueness.
-     * @param uniqueValue - value that makes the entity unique.
-     * @return a string representation of the DN.
-     */
-    private String createDN(LdapDataStore store, String uniqueValue){
-        return store.getUniqueAttribute() + "=" + uniqueValue + "," + store.getBaseDN();
     }
 
     /**

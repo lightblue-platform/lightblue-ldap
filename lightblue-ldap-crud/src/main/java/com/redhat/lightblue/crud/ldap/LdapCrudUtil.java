@@ -68,6 +68,17 @@ public final class LdapCrudUtil {
         return (LdapDataStore) store;
     }
 
+    /**
+     * Creates and returns a unique DN.
+     * @param store - {@link LdapDataStore} to use as the BaseDN and field that
+     * is used to represent uniqueness.
+     * @param uniqueValue - value that makes the entity unique.
+     * @return a string representation of the DN.
+     */
+    public static String createDN(LdapDataStore store, String uniqueValue){
+        return store.getUniqueAttribute() + "=" + uniqueValue + "," + store.getBaseDN();
+    }
+
     private LdapCrudUtil(){}
 
 }
