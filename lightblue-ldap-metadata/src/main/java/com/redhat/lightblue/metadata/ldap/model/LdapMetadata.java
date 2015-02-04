@@ -18,7 +18,7 @@
  */
 package com.redhat.lightblue.metadata.ldap.model;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 import com.google.common.collect.BiMap;
@@ -38,11 +38,11 @@ public class LdapMetadata implements LdapFieldNameTranslator{
     private final BiMap<Path, String> fieldsToAttributes = HashBiMap.create();
 
     /**
-     * Returns an immutable copy of the internal collection of {@link FieldAttributeMapping}s.
+     * Returns an unmodifiable copy of the internal collection of {@link FieldAttributeMapping}s.
      * @return a collection of {@link FieldAttributeMapping}s.
      */
     public Map<Path, String> getFieldsToAttributes(){
-        return new HashMap<Path, String>(fieldsToAttributes);
+        return Collections.unmodifiableMap(fieldsToAttributes);
     }
 
     @Override
