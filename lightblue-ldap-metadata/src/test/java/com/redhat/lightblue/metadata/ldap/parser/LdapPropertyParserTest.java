@@ -18,15 +18,17 @@
  */
 package com.redhat.lightblue.metadata.ldap.parser;
 
-import static com.redhat.lightblue.ldap.test.Assert.assertMapEquivalent;
 import static com.redhat.lightblue.util.JsonUtils.json;
 import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
+import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import org.json.JSONException;
@@ -62,7 +64,10 @@ public class LdapPropertyParserTest {
         Map<Path, String> expected = new HashMap<Path, String>();
         expected.put(new Path("firstName"), "givenName");
         expected.put(new Path("lastName"), "sn");
-        assertMapEquivalent(expected, fieldsToAttributes);
+
+        //assert the two maps are identical
+        assertEquals(fieldsToAttributes.size(), expected.size());
+        assertThat(new HashSet<Object>(fieldsToAttributes.entrySet()), hasItems(expected.entrySet().toArray()));
     }
 
     @Test
