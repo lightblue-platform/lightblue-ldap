@@ -18,11 +18,13 @@
  */
 package com.redhat.lightblue.metadata.ldap.model;
 
-import static com.redhat.lightblue.ldap.test.Assert.assertMapEquivalent;
+import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertThat;
 
+import java.util.HashSet;
 import java.util.Map;
 
 import org.junit.Test;
@@ -111,7 +113,12 @@ public class LdapMetadataTest {
 
         Map<Path, String> fieldsToAttributes = metadata.getFieldsToAttributes();
         assertNotNull(fieldsToAttributes);
-        assertMapEquivalent(fieldsToAttributes, metadata.getFieldsToAttributes());
+
+        //assert the two maps are identical
+        assertEquals(fieldsToAttributes.size(), metadata.getFieldsToAttributes().size());
+        assertThat(new HashSet<Object>(fieldsToAttributes.entrySet()), hasItems(metadata.getFieldsToAttributes().entrySet().toArray()));
+
+        //... but are not the same object
         assertNotSame(fieldsToAttributes, metadata.getFieldsToAttributes());
     }
 
