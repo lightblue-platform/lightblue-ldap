@@ -19,6 +19,7 @@
 package com.redhat.lightblue.metadata.ldap.parser;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import com.redhat.lightblue.common.ldap.LdapConstant;
@@ -68,10 +69,11 @@ public class LdapPropertyParser <T> extends PropertyParser<T> {
 
         LdapMetadata ldapMetadata = (LdapMetadata) object;
 
-        if(!ldapMetadata.getFieldsToAttributes().isEmpty()){
+        Map<Path, String> fieldsToAttributes = ldapMetadata.getFieldsToAttributes();
+        if(!fieldsToAttributes.isEmpty()){
             Object fieldsToAttributesNode = p.newArrayField(emptyNode, FIELDS_TO_ATTRIBUTES);
 
-            for(Entry<Path, String> entry : ldapMetadata.getFieldsToAttributes().entrySet()){
+            for(Entry<Path, String> entry : fieldsToAttributes.entrySet()){
                 T fieldToAttributeNode = p.newNode();
                 p.putString(fieldToAttributeNode, FIELD, entry.getKey().toString());
                 p.putString(fieldToAttributeNode, ATTRIBUTE, entry.getValue());
