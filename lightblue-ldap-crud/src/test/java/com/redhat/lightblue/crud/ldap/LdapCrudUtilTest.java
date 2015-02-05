@@ -18,6 +18,7 @@
  */
 package com.redhat.lightblue.crud.ldap;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -88,6 +89,13 @@ public class LdapCrudUtilTest {
         md.setDataStore(new FakeDataStore("fakeDS"));
 
         LdapCrudUtil.getLdapDataStore(md);
+    }
+
+    @Test
+    public void testCreateDN(){
+        LdapDataStore store = new LdapDataStore("database", "baseDn", "uniqueId");
+
+        assertEquals("uniqueId=uniqueValue,baseDn", LdapCrudUtil.createDN(store, "uniqueValue"));
     }
 
     /** Fake implementation of {@link LdapFieldNameTranslator} for testing purposes. */
