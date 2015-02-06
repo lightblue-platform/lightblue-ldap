@@ -91,7 +91,7 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
             throw Error.get(MetadataConstants.ERR_INVALID_FIELD_REFERENCE, LdapConstant.ATTRIBUTE_DN);
         }
         else if(LightblueUtil.isFieldObjectType(attributeName)
-                || LightblueUtil.isFieldAnArrayCount(attributeName, getEntityMetadata().getFields())){
+                || LightblueUtil.isFieldAnArrayCount(attributeName, entityMetadata.getFields())){
             /*
              * Indicates the field is auto-generated for lightblue purposes. These fields
              * should not be inserted into LDAP.

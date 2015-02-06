@@ -72,6 +72,10 @@ public final class LightblueUtil {
             return false;
         }
 
+        /*
+         * Ensure that the actual array field exists also, otherwise it might be a field
+         * that simply ends with a '#' character.
+         */
         Field field = metadataFields.getField(createArrayFieldNameFromCountField(fieldName));
         if((field != null) && (field instanceof ArrayField)){
             return true;

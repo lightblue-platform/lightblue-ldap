@@ -52,14 +52,10 @@ import com.redhat.lightblue.util.JsonNodeCursor;
  */
 public abstract class TranslatorFromJson<T> {
 
-    private final EntityMetadata md;
+    protected final EntityMetadata entityMetadata;
 
     public TranslatorFromJson(EntityMetadata md){
-        this.md = md;
-    }
-
-    public EntityMetadata getEntityMetadata(){
-        return md;
+        this.entityMetadata = md;
     }
 
     protected Object fromJson(Type type, JsonNode node){
@@ -97,7 +93,7 @@ public abstract class TranslatorFromJson<T> {
      */
     protected void translate(JsonNodeCursor cursor, T target){
         JsonNode node = cursor.getCurrentNode();
-        FieldTreeNode fieldNode = md.resolve(cursor.getCurrentPath());
+        FieldTreeNode fieldNode = entityMetadata.resolve(cursor.getCurrentPath());
 
         Error.push(fieldNode.getFullPath().getLast());
 

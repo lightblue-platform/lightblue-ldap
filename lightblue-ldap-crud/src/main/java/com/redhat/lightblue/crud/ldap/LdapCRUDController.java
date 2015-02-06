@@ -43,7 +43,7 @@ import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.CrudConstants;
 import com.redhat.lightblue.crud.DocCtx;
-import com.redhat.lightblue.crud.ldap.translator.ResultTranslator;
+import com.redhat.lightblue.crud.ldap.translator.ResultTranslatorToJson;
 import com.redhat.lightblue.crud.ldap.translator.SortTranslator;
 import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
 import com.redhat.lightblue.eval.Projector;
@@ -216,11 +216,11 @@ public class LdapCRUDController implements CRUDController{
             SearchResult result = connection.search(request);
 
             response.setSize(result.getEntryCount());
-            ResultTranslator resultTranslator = new ResultTranslator(ctx.getFactory().getNodeFactory(), md, fieldNameTranslator);
+            ResultTranslatorToJson resultTranslator = new ResultTranslatorToJson(ctx.getFactory().getNodeFactory(), md, fieldNameTranslator);
             List<DocCtx> translatedDocs = new ArrayList<DocCtx>();
             for(SearchResultEntry entry : result.getSearchEntries()){
                 try{
-                    translatedDocs.add(resultTranslator.translate(entry));
+                    translatedDocs.add(new DocCtx(resultTranslator.translate(entry)));
                 }
                 catch(Exception e){
                     ctx.addError(Error.get(e));
