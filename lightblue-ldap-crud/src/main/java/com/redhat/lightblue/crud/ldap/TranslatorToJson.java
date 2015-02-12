@@ -38,6 +38,15 @@ import com.redhat.lightblue.metadata.Type;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.Path;
 
+/**
+ * Defines a class that take a response from a datasource and translates it
+ * into something Lightblue can use.
+ *
+ * @author dcrissman
+ *
+ * @param <S> - The source type that this {@link TranslatorToJson} converts
+ * to json.
+ */
 public abstract class TranslatorToJson<S> {
 
     private final JsonNodeFactory factory;
@@ -52,6 +61,11 @@ public abstract class TranslatorToJson<S> {
         return type.toJson(factory, value);
     }
 
+    /**
+     * Translates the source to a {@link JsonDoc}.
+     * @param source - Object containing the source data.
+     * @return {@link JsonDoc}
+     */
     public JsonDoc translate(S source){
         FieldCursor cursor = entityMetadata.getFieldCursor();
 

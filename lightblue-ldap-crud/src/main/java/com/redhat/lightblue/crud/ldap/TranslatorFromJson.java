@@ -45,10 +45,8 @@ import com.redhat.lightblue.util.JsonNodeCursor;
  *
  * @author dcrissman
  *
- * @param <T> - A entity that the specific datastore knows how
+ * @param <T> - The target entity type that the specific datastore knows how
  * to interact with.
- *
- * @see #translate(JsonDoc, Object)
  */
 public abstract class TranslatorFromJson<T> {
 
