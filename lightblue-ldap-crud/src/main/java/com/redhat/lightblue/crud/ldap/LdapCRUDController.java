@@ -204,7 +204,7 @@ public class LdapCRUDController implements CRUDController{
             SearchRequest request = new SearchRequest(
                     store.getBaseDN(),
                     SearchScope.SUB,
-                    new FilterBuilder(fieldNameTranslator).iterate(query),
+                    new FilterBuilder(fieldNameTranslator).build(query),
                     translateFieldNames(fieldNameTranslator, gatherRequiredFields(md, projection, query, sort)).toArray(new String[0]));
             if(sort != null){
                 request.addControl(new ServerSideSortRequestControl(false, new SortTranslator(fieldNameTranslator).translate(sort)));

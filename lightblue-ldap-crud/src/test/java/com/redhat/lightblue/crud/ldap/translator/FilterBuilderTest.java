@@ -51,8 +51,8 @@ public class FilterBuilderTest {
 
     @SuppressWarnings("serial")
     @Test(expected = IllegalArgumentException.class)
-    public void testiterate_UnsupportedFilterType(){
-        new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(new QueryExpression(){
+    public void testbuild_UnsupportedFilterType(){
+        new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(new QueryExpression(){
 
             @Override
             public JsonNode toJson() {
@@ -63,179 +63,179 @@ public class FilterBuilderTest {
     }
 
     @Test
-    public void testiterate_ValueComparisonExpression_Equals(){
+    public void testbuild_ValueComparisonExpression_Equals(){
         QueryExpression query = new ValueComparisonExpression(
                 new Path("somekey"), BinaryComparisonOperator._eq, new Value("somevalue"));
 
-        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
         assertEquals("(somekey=somevalue)", filter.toString());
     }
 
     @Test
-    public void testiterate_ValueComparisonExpression_NotEquals(){
+    public void testbuild_ValueComparisonExpression_NotEquals(){
         QueryExpression query = new ValueComparisonExpression(
                 new Path("somekey"), BinaryComparisonOperator._neq, new Value("somevalue"));
 
-        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
         assertEquals("(!(somekey=somevalue))", filter.toString());
     }
 
     @Test
-    public void testiterate_ValueComparisonExpression_GTE(){
+    public void testbuild_ValueComparisonExpression_GTE(){
         QueryExpression query = new ValueComparisonExpression(
                 new Path("somekey"), BinaryComparisonOperator._gte, new Value("somevalue"));
 
-        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
         assertEquals("(somekey>=somevalue)", filter.toString());
     }
 
     @Test
-    public void testiterate_ValueComparisonExpression_GT(){
+    public void testbuild_ValueComparisonExpression_GT(){
         QueryExpression query = new ValueComparisonExpression(
                 new Path("somekey"), BinaryComparisonOperator._gt, new Value("somevalue"));
 
-        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
         assertEquals("(!(somekey<=somevalue))", filter.toString());
     }
 
     @Test
-    public void testiterate_ValueComparisonExpression_LTE(){
+    public void testbuild_ValueComparisonExpression_LTE(){
         QueryExpression query = new ValueComparisonExpression(
                 new Path("somekey"), BinaryComparisonOperator._lte, new Value("somevalue"));
 
-        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
         assertEquals("(somekey<=somevalue)", filter.toString());
     }
 
     @Test
-    public void testiterate_ValueComparisonExpression_LT(){
+    public void testbuild_ValueComparisonExpression_LT(){
         QueryExpression query = new ValueComparisonExpression(
                 new Path("somekey"), BinaryComparisonOperator._lt, new Value("somevalue"));
 
-        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
         assertEquals("(!(somekey>=somevalue))", filter.toString());
     }
 
     @Test
-    public void testiterate_UnaryLogicalExpression_NOT(){
+    public void testbuild_UnaryLogicalExpression_NOT(){
         QueryExpression query = new UnaryLogicalExpression(
                 UnaryLogicalOperator._not,
                 new ValueComparisonExpression(new Path("somekey"), BinaryComparisonOperator._eq, new Value("somevalue")));
 
-        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
         assertEquals("(!(somekey=somevalue))", filter.toString());
     }
 
     @Test
-    public void testiterate_NaryValueRelationalExpression_IN(){
+    public void testbuild_NaryValueRelationalExpression_IN(){
         QueryExpression query = new NaryValueRelationalExpression(
                 new Path("somekey"),
                 NaryRelationalOperator._in,
                 Arrays.asList(new Value("somevalue"), new Value("someothervalue")));
 
-        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
         assertEquals("(|(somekey=somevalue)(somekey=someothervalue))", filter.toString());
     }
 
     @Test
-    public void testiterate_NaryValueRelationalExpression_NOT_IN(){
+    public void testbuild_NaryValueRelationalExpression_NOT_IN(){
         QueryExpression query = new NaryValueRelationalExpression(
                 new Path("somekey"),
                 NaryRelationalOperator._not_in,
                 Arrays.asList(new Value("somevalue"), new Value("someothervalue")));
 
-        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
         assertEquals("(!(|(somekey=somevalue)(somekey=someothervalue)))", filter.toString());
     }
 
     @Test
-    public void testiterate_NaryLogicalExpression_AND(){
+    public void testbuild_NaryLogicalExpression_AND(){
         QueryExpression query = new NaryLogicalExpression(
                 NaryLogicalOperator._and, new ArrayList<QueryExpression>(Arrays.asList(
                         new ValueComparisonExpression(new Path("somekey"), BinaryComparisonOperator._eq, new Value("somevalue")),
                         new ValueComparisonExpression(new Path("someotherkey"), BinaryComparisonOperator._eq, new Value("someothervalue")))));
 
-        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
         assertEquals("(&(somekey=somevalue)(someotherkey=someothervalue))", filter.toString());
     }
 
     @Test
-    public void testiterate_NaryLogicalExpression_OR(){
+    public void testbuild_NaryLogicalExpression_OR(){
         QueryExpression query = new NaryLogicalExpression(
                 NaryLogicalOperator._or, new ArrayList<QueryExpression>(Arrays.asList(
                         new ValueComparisonExpression(new Path("somekey"), BinaryComparisonOperator._eq, new Value("somevalue")),
                         new ValueComparisonExpression(new Path("someotherkey"), BinaryComparisonOperator._eq, new Value("someothervalue")))));
 
-        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
         assertEquals("(|(somekey=somevalue)(someotherkey=someothervalue))", filter.toString());
     }
 
     @Test
-    public void testiterate_ArrayContainsExpression_ANY(){
+    public void testbuild_ArrayContainsExpression_ANY(){
         QueryExpression query = new ArrayContainsExpression(
                 new Path("somekey"),
                 ContainsOperator._any,
                 Arrays.asList(new Value("somevalue"), new Value("someothervalue")));
 
-        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
         assertEquals("(|(somekey=somevalue)(somekey=someothervalue))", filter.toString());
     }
 
     @Test
-    public void testiterate_ArrayContainsExpression_ALL(){
+    public void testbuild_ArrayContainsExpression_ALL(){
         QueryExpression query = new ArrayContainsExpression(
                 new Path("somekey"),
                 ContainsOperator._all,
                 Arrays.asList(new Value("somevalue"), new Value("someothervalue")));
 
-        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
         assertEquals("(&(somekey=somevalue)(somekey=someothervalue))", filter.toString());
     }
 
     @Test
-    public void testiterate_ArrayContainsExpression_NONE(){
+    public void testbuild_ArrayContainsExpression_NONE(){
         QueryExpression query = new ArrayContainsExpression(
                 new Path("somekey"),
                 ContainsOperator._none,
                 Arrays.asList(new Value("somevalue"), new Value("someothervalue")));
 
-        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        Filter filter = new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
         assertEquals("(!(&(somekey=somevalue)(somekey=someothervalue)))", filter.toString());
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testiterate_ArrayMatchExpression(){
+    public void testbuild_ArrayMatchExpression(){
         QueryExpression query = new ArrayMatchExpression(null, null);
 
-        new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testiterate_FieldComparisonExpression(){
+    public void testbuild_FieldComparisonExpression(){
         QueryExpression query = new FieldComparisonExpression(null, null, null);
 
-        new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testiterate_RegexMatchExpression(){
+    public void testbuild_RegexMatchExpression(){
         QueryExpression query = new RegexMatchExpression(null, null, false, false, false, false);
 
-        new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testiterate_NaryFieldRelationalExpression(){
+    public void testbuild_NaryFieldRelationalExpression(){
         QueryExpression query = new NaryFieldRelationalExpression(null, null, null);
 
-        new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testiterate_AllMatchExpression(){
+    public void testbuild_AllMatchExpression(){
         QueryExpression query = new AllMatchExpression();
 
-        new FilterBuilder(new TrivialLdapFieldNameTranslator()).iterate(query);
+        new FilterBuilder(new TrivialLdapFieldNameTranslator()).build(query);
     }
 
 }
