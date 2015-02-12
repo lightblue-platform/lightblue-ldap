@@ -37,9 +37,7 @@ import com.redhat.lightblue.Response;
 import com.redhat.lightblue.crud.FindRequest;
 import com.redhat.lightblue.crud.InsertionRequest;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
-import com.redhat.lightblue.ldap.test.LdapServerExternalResource.InMemoryLdapServer;
 import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
-import com.redhat.lightblue.mongo.test.MongoServerExternalResource.InMemoryMongoServer;
 import com.redhat.lightblue.test.FakeClientIdentification;
 import com.unboundid.ldap.sdk.Attribute;
 
@@ -49,8 +47,6 @@ import com.unboundid.ldap.sdk.Attribute;
  *
  * @author dcrissman
  */
-@InMemoryLdapServer
-@InMemoryMongoServer
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController{
 
@@ -59,11 +55,11 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController{
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        ldapServer.add("ou=Users,dc=example,dc=com",  new Attribute[]{
+        ldapServer.add(BASEDB_USERS,  new Attribute[]{
                 new Attribute("objectClass", "top"),
                 new Attribute("objectClass", "organizationalUnit"),
                 new Attribute("ou", "Users")});
-        ldapServer.add("ou=Departments,dc=example,dc=com",  new Attribute[]{
+        ldapServer.add(BASEDB_DEPARTMENTS,  new Attribute[]{
                 new Attribute("objectClass", "top"),
                 new Attribute("objectClass", "organizationalUnit"),
                 new Attribute("ou", "Departments")});

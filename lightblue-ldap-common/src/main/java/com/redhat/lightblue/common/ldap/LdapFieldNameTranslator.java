@@ -18,17 +18,27 @@
  */
 package com.redhat.lightblue.common.ldap;
 
+import com.redhat.lightblue.util.Path;
+
 /**
- * LDAP specific constants
+ * Represents a class that can translate back and forth between a fieldName and an LDAP attributeName.
  *
  * @author dcrissman
  */
-public final class LdapConstant {
+public interface LdapFieldNameTranslator {
 
-    public static final String BACKEND = "ldap";
-    public static final String ATTRIBUTE_DN = "dn";
-    public static final String ATTRIBUTE_OBJECT_CLASS = "objectClass";
+    /**
+     * Returns the attributeName with the given fieldName.
+     * @param fieldName - metadata field name
+     * @return ldap attributeName or the fieldName back at you if no mapping is present.
+     */
+    public String translateFieldName(Path path);
 
-    private LdapConstant(){}
+    /**
+     * Returns the fieldName with the given attributeName.
+     * @param attributeName - ldap attribute name
+     * @return metadata fieldName or the attributeName back at you if no mapping is present.
+     */
+    public Path translateAttributeName(String attributeName);
 
 }

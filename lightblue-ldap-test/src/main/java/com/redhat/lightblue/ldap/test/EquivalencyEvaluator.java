@@ -16,19 +16,22 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.redhat.lightblue.common.ldap;
+package com.redhat.lightblue.ldap.test;
 
 /**
- * LDAP specific constants
- *
- * @author dcrissman
+ * When two Objects can be equivalent for testing purposes, but the equals method was not overridden
+ * or does not provide the desired functionality.
+ * 
+ * @author Dennis Crissman
  */
-public final class LdapConstant {
+public interface EquivalencyEvaluator {
 
-    public static final String BACKEND = "ldap";
-    public static final String ATTRIBUTE_DN = "dn";
-    public static final String ATTRIBUTE_OBJECT_CLASS = "objectClass";
-
-    private LdapConstant(){}
+	/**
+	 * Determines if the two passed in objects are equivalent as defined by the implementation.
+	 * @param obj1
+	 * @param obj2
+	 * @return <code>true</code> if objects are evuivalent, otherwise <code>false</code>.
+	 */
+	boolean isEquivalent(Object obj1, Object obj2);
 
 }

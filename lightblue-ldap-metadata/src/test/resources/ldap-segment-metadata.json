@@ -1,0 +1,14 @@
+{
+    "ldap": {
+        "fieldsToAttributes": [
+            {
+                "field": "firstName",
+                "attribute": "givenName"
+            },
+            {
+                "field": "lastName",
+                "attribute": "sn"
+            }
+        ]
+    }
+}

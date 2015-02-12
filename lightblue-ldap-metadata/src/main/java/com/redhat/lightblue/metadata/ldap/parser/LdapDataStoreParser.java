@@ -46,7 +46,7 @@ public class LdapDataStoreParser<T> implements DataStoreParser<T> {
         LdapDataStore dataStore = new LdapDataStore();
         dataStore.setDatabase(p.getRequiredStringProperty(node, DATABASE));
         dataStore.setBaseDN(p.getRequiredStringProperty(node, BASEDN));
-        dataStore.setUniqueField(p.getRequiredStringProperty(node, UNIQUE_FIELD));
+        dataStore.setUniqueAttribute(p.getRequiredStringProperty(node, UNIQUE_FIELD));
 
         return dataStore;
     }
@@ -60,7 +60,7 @@ public class LdapDataStoreParser<T> implements DataStoreParser<T> {
         LdapDataStore ds = (LdapDataStore) store;
         p.putString(emptyNode, DATABASE, ds.getDatabase());
         p.putString(emptyNode, BASEDN, ds.getBaseDN());
-        p.putString(emptyNode, UNIQUE_FIELD, ds.getUniqueField());
+        p.putString(emptyNode, UNIQUE_FIELD, ds.getUniqueAttribute());
     }
 
     @Override

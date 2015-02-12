@@ -23,13 +23,16 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.redhat.lightblue.common.ldap.LdapConstant;
+import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.crud.DocCtx;
+import com.redhat.lightblue.metadata.ArrayElement;
 import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.FieldCursor;
 import com.redhat.lightblue.metadata.FieldTreeNode;
 import com.redhat.lightblue.metadata.Fields;
+import com.redhat.lightblue.metadata.ObjectArrayElement;
 import com.redhat.lightblue.metadata.ObjectField;
 import com.redhat.lightblue.metadata.ReferenceField;
 import com.redhat.lightblue.metadata.SimpleArrayElement;
@@ -40,6 +43,7 @@ import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.metadata.types.IntegerType;
 import com.redhat.lightblue.metadata.types.StringType;
 import com.redhat.lightblue.util.JsonDoc;
+import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldap.sdk.SearchResultEntry;
 
@@ -51,69 +55,93 @@ import com.unboundid.ldap.sdk.SearchResultEntry;
 public class ResultTranslator {
 
     private final JsonNodeFactory factory;
+    private final EntityMetadata md;
+    private final LdapFieldNameTranslator fieldNameTranslator;
+    private final Path dnPath;
 
-    public ResultTranslator(JsonNodeFactory factory){
+    public ResultTranslator(JsonNodeFactory factory, EntityMetadata md, LdapFieldNameTranslator fieldNameTranslator){
         this.factory = factory;
+        this.md = md;
+        this.fieldNameTranslator = fieldNameTranslator;
+        dnPath = fieldNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
     }
 
-    public DocCtx translate(SearchResultEntry entry, EntityMetadata md){
+    public DocCtx translate(SearchResultEntry entry){
         FieldCursor cursor = md.getFieldCursor();
-        String entityName = md.getEntityInfo().getName();
         Fields fields = md.getFields();
+
         if (cursor.firstChild()) {
-            return new DocCtx(new JsonDoc(toJson(entry, cursor, entityName, fields)));
+            JsonDoc jdoc = new JsonDoc(toJson(entry, cursor, fields));
+            jdoc.modify(dnPath, StringType.TYPE.toJson(factory, entry.getDN()), true);
+            return new DocCtx(jdoc);
         }
 
         //TODO: What to do in case of a null value here?
         return null;
     }
 
-    private JsonNode toJson(SearchResultEntry entry, FieldCursor fieldCursor, String entityName, Fields fields){
+    private ObjectNode toJson(SearchResultEntry entry, FieldCursor fieldCursor, Fields fields){
         ObjectNode node = factory.objectNode();
+        String entityName = md.getEntityInfo().getName();
 
         do {
-            FieldTreeNode field = fieldCursor.getCurrentNode();
-            String fieldName = field.getName();
-            if(LightblueUtil.isFieldAnArrayCount(fieldName, fields)){
-                /*
-                 * This case will be handled by the array itself, allowing this to
-                 * process runs the risk of nulling out the correct value.
-                 */
+            Path fieldPath = fieldCursor.getCurrentPath();
+
+            if(dnPath.equals(fieldPath)){
+                //DN is not handled as a normal attribute, can be skipped.
                 continue;
             }
-
-            Attribute attr = entry.getAttribute(fieldName);
-
-            JsonNode value = null;
-            if(attr != null){
-                if (field instanceof SimpleField) {
-                    value = toJson((SimpleField)field, attr);
-                }
-                else if (field instanceof ObjectField) {
-                    value = toJson((ObjectField)field, attr);
-                }
-                else if (field instanceof ArrayField){
-                    value = toJson((ArrayField)field, attr, fieldCursor);
-                    node.set(
-                            LightblueUtil.createArrayCountFieldName(fieldName),
-                            IntegerType.TYPE.toJson(factory, attr.getValues().length));
-                }
-                else if (field instanceof ReferenceField) {
-                    value = toJson((ReferenceField)field, attr);
-                }
-                else{
-                    throw new UnsupportedOperationException("Unknown Field type: " + field.getClass().getName());
-                }
+            else if(LightblueUtil.isFieldObjectType(fieldPath.toString())){
+                node.set(fieldPath.toString(), StringType.TYPE.toJson(factory, entityName));
             }
-            else if(LightblueUtil.isFieldObjectType(fieldName)){
-                value = StringType.TYPE.toJson(factory, entityName);
+            else{
+                appendToJsonNode(entry, fieldCursor, node, fields);
             }
 
-            node.set(fieldName, value);
         } while(fieldCursor.nextSibling());
 
-        node.set(LdapConstant.FIELD_DN, StringType.TYPE.toJson(factory, entry.getDN()));
         return node;
+    }
+
+    private void appendToJsonNode(SearchResultEntry entry, FieldCursor fieldCursor, ObjectNode targetNode, Fields fields){
+        FieldTreeNode field = fieldCursor.getCurrentNode();
+        String fieldName = field.getName();
+        Path path = fieldCursor.getCurrentPath();
+
+        String attributeName = fieldNameTranslator.translateFieldName(path);
+        Attribute attr = entry.getAttribute(attributeName);
+
+        JsonNode value = null;
+
+        if(LightblueUtil.isFieldAnArrayCount(fieldName, fields)){
+            /*
+             * This case will be handled by the array itself, allowing this to
+             * process runs the risk of nulling out the correct value.
+             */
+            return;
+        }
+        else if (field instanceof ObjectField) {
+            value = toJson((ObjectField)field, fieldCursor, entry);
+        }
+        else if(attr != null){
+            if (field instanceof SimpleField) {
+                value = toJson((SimpleField)field, attr);
+            }
+            else if (field instanceof ArrayField){
+                value = toJson((ArrayField)field, attr, fieldCursor);
+                targetNode.set(
+                        LightblueUtil.createArrayCountFieldName(fieldName),
+                        IntegerType.TYPE.toJson(factory, attr.getValues().length));
+            }
+            else if (field instanceof ReferenceField) {
+                value = toJson((ReferenceField)field, attr);
+            }
+            else{
+                throw new UnsupportedOperationException("Unknown Field type: " + field.getClass().getName());
+            }
+        }
+
+        targetNode.set(fieldName, value);
     }
 
     private JsonNode toJson(SimpleField field, Attribute attr){
@@ -137,28 +165,41 @@ public class ResultTranslator {
         return field.getType().toJson(factory, value);
     }
 
-    private JsonNode toJson(ObjectField field, Attribute attr){
-        throw new UnsupportedOperationException("ObjectField type not currently supported.");
+    private JsonNode toJson(ObjectField field, FieldCursor fieldCursor, SearchResultEntry entry){
+        if(!fieldCursor.firstChild()){
+            //TODO: Should an exception be thrown here?
+            return null;
+        }
+
+        JsonNode node = toJson(entry, fieldCursor, field.getFields());
+
+        fieldCursor.parent();
+
+        return node;
     }
 
     private JsonNode toJson(ArrayField field, Attribute attr, FieldCursor fieldCursor){
         if(!fieldCursor.firstChild()){
+            //TODO: Should an exception be thrown here?
             return null;
         }
 
-        String[] values = attr.getValues();
         FieldTreeNode node = fieldCursor.getCurrentNode();
 
-        if(!(node instanceof SimpleArrayElement)){
-            throw new UnsupportedOperationException("ArrayElement type is not supported: " + node.getClass().getName());
-        }
-
-        //TODO: Determine if LDAP would support an ObjectArrayElement
-
+        ArrayElement arrayElement = field.getElement();
         ArrayNode valueNode = factory.arrayNode();
 
-        for(String value : values){
-            valueNode.add(node.getType().toJson(factory, value));
+        if (arrayElement instanceof SimpleArrayElement) {
+            String[] values = attr.getValues();
+            for(String value : values){
+                valueNode.add(node.getType().toJson(factory, value));
+            }
+        }
+        else if(arrayElement instanceof ObjectArrayElement){
+            throw new UnsupportedOperationException("Object ArrayField type is not currently supported.");
+        }
+        else{
+            throw new UnsupportedOperationException("ArrayElement type is not supported: " + node.getClass().getName());
         }
 
         fieldCursor.parent();

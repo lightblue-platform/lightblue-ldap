@@ -48,7 +48,7 @@ public class LdapDataSourceConfiguration implements DataSourceConfiguration{
     private static final Logger LOGGER = LoggerFactory.getLogger(LdapDataSourceConfiguration.class);
 
     private static final String LDAP_CONFIG_DATABASE = "database";
-    private static final String LDAP_CONFIG_BINDABLE_DB = "bindableDn";
+    private static final String LDAP_CONFIG_BINDABLE_DB = "bindabledn";
     private static final String LDAP_CONFIG_PASSWORD = "password";
     private static final String LDAP_CONFIG_NUMBER_OF_INITIAL_CONNECTIONS = "numberOfInitialConnections";
     private static final String LDAP_CONFIG_MAX_NUMBER_OF_CONNECTIONS = "maxNumberOfConnections";
@@ -71,6 +71,20 @@ public class LdapDataSourceConfiguration implements DataSourceConfiguration{
         return LdapDataStoreParser.class;
     }
 
+    /**
+     * Returns a {@link LDAPConnection} instance to use for communicating with the
+     * underlying database. The returned connection may not always be to the same
+     * database node if a connection pool is being used.
+     * @return a {@link LDAPConnection} instance.
+     * @throws LDAPException
+     */
+    public LDAPConnection getLdapConnection() throws LDAPException{
+        if(connectionPool == null){
+            throw new IllegalStateException("Class has not yet been initialized");
+        }
+        return connectionPool.getConnection();
+    }
+
     @Override
     public void initializeFromJson(JsonNode node) {
         if(node == null){
@@ -85,38 +99,11 @@ public class LdapDataSourceConfiguration implements DataSourceConfiguration{
                 parseJsonNode(node, LDAP_CONFIG_BINDABLE_DB, true).asText(),
                 parseJsonNode(node, LDAP_CONFIG_PASSWORD, true).asText());
 
-        int initialConnections = DEFAULT_NUMBER_OF_INITIAL_CONNECTIONS;
-        JsonNode initialConnectionsNode = parseJsonNode(node, LDAP_CONFIG_NUMBER_OF_INITIAL_CONNECTIONS, false);
-        if(initialConnectionsNode != null){
-            initialConnections = initialConnectionsNode.asInt(DEFAULT_NUMBER_OF_INITIAL_CONNECTIONS);
-        }
-
-        int maxConnections = DEFAULT_MAX_NUMBER_OF_CONNECTIONS;
-        JsonNode maxConnectionsNode = parseJsonNode(node, LDAP_CONFIG_MAX_NUMBER_OF_CONNECTIONS, false);
-        if(maxConnectionsNode != null){
-            maxConnections = maxConnectionsNode.asInt(DEFAULT_MAX_NUMBER_OF_CONNECTIONS);
-        }
-
-        JsonNode serversNode = parseJsonNode(node, "servers", true);
-        Map<String, Integer> hostPortMap = new HashMap<String, Integer>();
-        if(serversNode.isArray()){
-            Iterator<JsonNode> serversIterator = serversNode.elements();
-            while(serversIterator.hasNext()){
-                JsonNode serverNode = serversIterator.next();
-                hostPortMap.put(
-                        parseJsonNode(serverNode, LDAP_SERVER_CONFIG_HOST, true).asText(),
-                        parseJsonNode(serverNode, LDAP_SERVER_CONFIG_PORT, true).asInt());
-            }
-        }
-        else{
-            throw new IllegalArgumentException("Unable to parse 'servers' for ldap database " + databaseName
-                    + ". Must be an instance of an array.");
-        }
+        int initialConnections = parseInitialConnections(node);
+        int maxConnections = parseMaxConnections(node);
+        Map<String, Integer> hostPortMap = parseServers(node);
 
         String[] hosts = hostPortMap.keySet().toArray(new String[0]);
-        if(hostPortMap.isEmpty()){
-            throw new IllegalArgumentException("At least 1 server must be provided for ldap database " + databaseName);
-        }
 
         ServerSet serverSet;
         if(hostPortMap.size() == 1){
@@ -140,11 +127,46 @@ public class LdapDataSourceConfiguration implements DataSourceConfiguration{
         }
     }
 
-    public LDAPConnection getLdapConnection() throws LDAPException{
-        if(connectionPool == null){
-            throw new IllegalStateException("Class has not yet been initialized");
+    private Map<String, Integer> parseServers(JsonNode node) {
+        JsonNode serversNode = parseJsonNode(node, "servers", true);
+        Map<String, Integer> hostPortMap = new HashMap<String, Integer>();
+        if(serversNode.isArray()){
+            Iterator<JsonNode> serversIterator = serversNode.elements();
+            while(serversIterator.hasNext()){
+                JsonNode serverNode = serversIterator.next();
+                hostPortMap.put(
+                        parseJsonNode(serverNode, LDAP_SERVER_CONFIG_HOST, true).asText(),
+                        parseJsonNode(serverNode, LDAP_SERVER_CONFIG_PORT, true).asInt());
+            }
         }
-        return connectionPool.getConnection();
+        else{
+            throw new IllegalArgumentException("Unable to parse 'servers' for ldap database " + databaseName
+                    + ". Must be an instance of an array and must contain at least one entry with a host and port.");
+        }
+
+        if(hostPortMap.isEmpty()){
+            throw new IllegalArgumentException("At least 1 server must be provided for ldap database " + databaseName);
+        }
+
+        return hostPortMap;
+    }
+
+    private int parseMaxConnections(JsonNode node) {
+        int maxConnections = DEFAULT_MAX_NUMBER_OF_CONNECTIONS;
+        JsonNode maxConnectionsNode = parseJsonNode(node, LDAP_CONFIG_MAX_NUMBER_OF_CONNECTIONS, false);
+        if(maxConnectionsNode != null){
+            maxConnections = maxConnectionsNode.asInt(DEFAULT_MAX_NUMBER_OF_CONNECTIONS);
+        }
+        return maxConnections;
+    }
+
+    private int parseInitialConnections(JsonNode node) {
+        int initialConnections = DEFAULT_NUMBER_OF_INITIAL_CONNECTIONS;
+        JsonNode initialConnectionsNode = parseJsonNode(node, LDAP_CONFIG_NUMBER_OF_INITIAL_CONNECTIONS, false);
+        if(initialConnectionsNode != null){
+            initialConnections = initialConnectionsNode.asInt(DEFAULT_NUMBER_OF_INITIAL_CONNECTIONS);
+        }
+        return initialConnections;
     }
 
     private JsonNode parseJsonNode(JsonNode node, String key, boolean required){

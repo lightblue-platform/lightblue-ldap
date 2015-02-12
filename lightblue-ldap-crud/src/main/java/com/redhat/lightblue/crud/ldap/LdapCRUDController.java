@@ -19,6 +19,7 @@
 package com.redhat.lightblue.crud.ldap;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,10 +29,10 @@ import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.redhat.lightblue.common.ldap.DBResolver;
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapDataStore;
+import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.crud.CRUDController;
 import com.redhat.lightblue.crud.CRUDDeleteResponse;
@@ -48,17 +49,10 @@ import com.redhat.lightblue.crud.ldap.translator.SortTranslator;
 import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
 import com.redhat.lightblue.eval.Projector;
 import com.redhat.lightblue.hystrix.ldap.InsertCommand;
-import com.redhat.lightblue.metadata.ArrayField;
-import com.redhat.lightblue.metadata.DataStore;
-import com.redhat.lightblue.metadata.EntityInfo;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.FieldCursor;
-import com.redhat.lightblue.metadata.Fields;
-import com.redhat.lightblue.metadata.Metadata;
+import com.redhat.lightblue.metadata.MetadataConstants;
 import com.redhat.lightblue.metadata.MetadataListener;
-import com.redhat.lightblue.metadata.SimpleArrayElement;
-import com.redhat.lightblue.metadata.SimpleField;
-import com.redhat.lightblue.metadata.types.IntegerType;
 import com.redhat.lightblue.metadata.types.StringType;
 import com.redhat.lightblue.query.Projection;
 import com.redhat.lightblue.query.QueryExpression;
@@ -103,10 +97,11 @@ public class LdapCRUDController implements CRUDController{
         }
 
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
-        LdapDataStore store = getLdapDataStore(md);
+        LdapDataStore store = LdapCrudUtil.getLdapDataStore(md);
+        LdapFieldNameTranslator fieldNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
 
         FieldAccessRoleEvaluator roles = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
-        EntryBuilder entryBuilder = new EntryBuilder(md);
+        EntryBuilder entryBuilder = new EntryBuilder(md, fieldNameTranslator);
 
         //Create Entry instances for each document.
         List<com.unboundid.ldap.sdk.Entry> entries = new ArrayList<com.unboundid.ldap.sdk.Entry>();
@@ -121,14 +116,13 @@ public class LdapCRUDController implements CRUDController{
                 }
             }
 
-            JsonNode rootNode = document.getRoot();
-
-            JsonNode uniqueNode = rootNode.get(store.getUniqueField());
+            Path uniqueFieldPath = fieldNameTranslator.translateAttributeName(store.getUniqueAttribute());
+            JsonNode uniqueNode = document.get(uniqueFieldPath);
             if(uniqueNode == null){
-                throw new IllegalArgumentException(store.getUniqueField() + " is a required field");
+                throw Error.get(MetadataConstants.ERR_PARSE_MISSING_ELEMENT, store.getUniqueAttribute());
             }
 
-            String dn = createDN(store, uniqueNode.asText());
+            String dn = LdapCrudUtil.createDN(store, uniqueNode.asText());
             documentToDnMap.put(document, dn);
             try{
                 entries.add(entryBuilder.build(dn, document));
@@ -196,22 +190,24 @@ public class LdapCRUDController implements CRUDController{
         }
 
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
-        LdapDataStore store = getLdapDataStore(md);
+        LdapDataStore store = LdapCrudUtil.getLdapDataStore(md);
 
         CRUDFindResponse response = new CRUDFindResponse();
         response.setSize(0);
 
         LDAPConnection connection = getNewLdapConnection(store);
 
+        LdapFieldNameTranslator fieldNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
+
         try {
             //TODO: Support scopes other than SUB
             SearchRequest request = new SearchRequest(
                     store.getBaseDN(),
                     SearchScope.SUB,
-                    new FilterTranslator().translate(query),
-                    collectRequiredFields(md, projection, query, sort).toArray(new String[0]));
+                    new FilterTranslator(fieldNameTranslator).translate(query),
+                    translateFieldNames(fieldNameTranslator, gatherRequiredFields(md, projection, query, sort)).toArray(new String[0]));
             if(sort != null){
-                request.addControl(new ServerSideSortRequestControl(false, new SortTranslator().translate(sort)));
+                request.addControl(new ServerSideSortRequestControl(false, new SortTranslator(fieldNameTranslator).translate(sort)));
             }
             if((from != null) && (from > 0)){
                 int endPos = to.intValue() - from.intValue();
@@ -221,16 +217,14 @@ public class LdapCRUDController implements CRUDController{
             SearchResult result = connection.search(request);
 
             response.setSize(result.getEntryCount());
-            ResultTranslator resultTranslator = new ResultTranslator(ctx.getFactory().getNodeFactory());
+            ResultTranslator resultTranslator = new ResultTranslator(ctx.getFactory().getNodeFactory(), md, fieldNameTranslator);
             List<DocCtx> translatedDocs = new ArrayList<DocCtx>();
             for(SearchResultEntry entry : result.getSearchEntries()){
                 try{
-                    translatedDocs.add(resultTranslator.translate(entry, md));
+                    translatedDocs.add(resultTranslator.translate(entry));
                 }
                 catch(Exception e){
-                    DocCtx erroredDoc = new DocCtx(null);
-                    erroredDoc.addError(Error.get(e));
-                    translatedDocs.add(erroredDoc);
+                    ctx.addError(Error.get(e));
                 }
             }
             ctx.setDocuments(translatedDocs);
@@ -243,7 +237,7 @@ public class LdapCRUDController implements CRUDController{
                                     ctx.getCallerRoles()).getExcludedFields(FieldAccessRoleEvaluator.Operation.find)
                             ),
                             md);
-            for (DocCtx document : ctx.getDocuments()) {
+            for (DocCtx document : ctx.getDocumentsWithoutErrors()) {
                 document.setOutputDocument(projector.project(document, ctx.getFactory().getNodeFactory()));
             }
         }
@@ -262,65 +256,7 @@ public class LdapCRUDController implements CRUDController{
 
     @Override
     public MetadataListener getMetadataListener() {
-        return new MetadataListener() {
-
-            @Override
-            public void beforeUpdateEntityInfo(Metadata m, EntityInfo ei, boolean newEntity) {
-                //Do Nothing!!
-            }
-
-            /**
-             * Ensure that dn and objectClass are on the entity.
-             */
-            @Override
-            public void beforeCreateNewSchema(Metadata m, EntityMetadata md) {
-                Fields fields = md.getEntitySchema().getFields();
-                if(!fields.has(LdapConstant.FIELD_DN)){
-                    fields.addNew(new SimpleField(LdapConstant.FIELD_DN, StringType.TYPE));
-                }
-                if(!fields.has(LdapConstant.FIELD_OBJECT_CLASS)){
-                    fields.addNew(new ArrayField(LdapConstant.FIELD_OBJECT_CLASS, new SimpleArrayElement(StringType.TYPE)));
-                    fields.addNew(new SimpleField(LightblueUtil.createArrayCountFieldName(LdapConstant.FIELD_OBJECT_CLASS), IntegerType.TYPE));
-                }
-            }
-
-            @Override
-            public void afterUpdateEntityInfo(Metadata m, EntityInfo ei, boolean newEntity) {
-                //Do Nothing!!
-            }
-
-            @Override
-            public void afterCreateNewSchema(Metadata m, EntityMetadata md) {
-                //Do Nothing!!
-            }
-        };
-    }
-
-    /**
-     * Shortcut method to get and return the {@link LdapDataStore} on the passed in
-     * {@link EntityMetadata}.
-     * @param md - {@link EntityMetadata}
-     * @return {@link LdapDataStore}
-     * @throws IllegalArgumentException if an {@link LdapDataStore} is not set
-     * on the {@link EntityMetadata}.
-     */
-    private LdapDataStore getLdapDataStore(EntityMetadata md){
-        DataStore store = md.getDataStore();
-        if(!(store instanceof LdapDataStore)){
-            throw new IllegalArgumentException("DataStore of type " + store.getClass() + " is not supported.");
-        }
-        return (LdapDataStore) store;
-    }
-
-    /**
-     * Creates and returns a unique DN.
-     * @param store - {@link LdapDataStore} to use as the BaseDN and field that
-     * is used to represent uniqueness.
-     * @param uniqueValue - value that makes the entity unique.
-     * @return a string representation of the DN.
-     */
-    private String createDN(LdapDataStore store, String uniqueValue){
-        return store.getUniqueField() + "=" + uniqueValue + "," + store.getBaseDN();
+        return new LdapMetadataListener();
     }
 
     /**
@@ -332,9 +268,9 @@ public class LdapCRUDController implements CRUDController{
      * @param sort - (optional) {@link Sort}.
      * @return list of field names.
      */
-    private Set<String> collectRequiredFields(EntityMetadata md,
+    private Set<Path> gatherRequiredFields(EntityMetadata md,
             Projection projection, QueryExpression query, Sort sort){
-        Set<String> fields = new HashSet<String>();
+        Set<Path> paths = new HashSet<Path>();
 
         FieldCursor cursor = md.getFieldCursor();
         while(cursor.next()) {
@@ -349,15 +285,31 @@ public class LdapCRUDController implements CRUDController{
                      * Handles the case of an array count field, which will not actually exist in
                      * the ldap entity.
                      */
-                    fields.add(LightblueUtil.createArrayFieldNameFromCountField(fieldName));
+                    paths.add(node.mutableCopy().setLast(LightblueUtil.createArrayFieldNameFromCountField(fieldName)).immutableCopy());
                 }
                 else{
-                    fields.add(fieldName);
+                    paths.add(node);
                 }
             }
         }
 
-        return fields;
+        return paths;
+    }
+
+    /**
+     * Translates a <code>Collection</code> of fieldNames into a <code>Set</code> of
+     * attributeNames
+     * @param property - {@link LdapFieldNameTranslator}.
+     * @param fieldNames - <code>Collection</code> of fieldNames to translated
+     * @return <code>Set</code> of translated attributeNames.
+     */
+    private Set<String> translateFieldNames(LdapFieldNameTranslator property, Collection<Path> fieldNames){
+        Set<String> attributes = new HashSet<String>();
+        for(Path path : fieldNames){
+            attributes.add(property.translateFieldName(path));
+        }
+
+        return attributes;
     }
 
     /**
@@ -374,7 +326,9 @@ public class LdapCRUDController implements CRUDController{
 
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
         JsonNodeFactory factory = ctx.getFactory().getNodeFactory();
-        Set<String> requiredFields = collectRequiredFields(md, projection, null, null);
+        LdapFieldNameTranslator fieldNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
+
+        Set<String> requiredAttributeNames = translateFieldNames(fieldNameTranslator, gatherRequiredFields(md, projection, null, null));
         Projector projector = Projector.getInstance(
                 Projection.add(
                         projection,
@@ -384,16 +338,18 @@ public class LdapCRUDController implements CRUDController{
                         ),
                         md);
 
+        Path dnFieldPath = fieldNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
+
         for(Entry<DocCtx, String> insertedDn : documentToDnMap.entrySet()){
             DocCtx document = insertedDn.getKey();
             String dn = insertedDn.getValue();
             DocCtx projectionResponseJson = null;
 
             // If only dn is in the projection, then no need to query LDAP.
-            if((requiredFields.size() == 1) && requiredFields.contains(LdapConstant.FIELD_DN)){
-                ObjectNode node = factory.objectNode();
-                node.set(LdapConstant.FIELD_DN, StringType.TYPE.toJson(factory, dn));
-                projectionResponseJson = new DocCtx(new JsonDoc(node));
+            if((requiredAttributeNames.size() == 1) && requiredAttributeNames.contains(LdapConstant.ATTRIBUTE_DN)){
+                JsonDoc jdoc = new JsonDoc(factory.objectNode());
+                jdoc.modify(dnFieldPath, StringType.TYPE.toJson(factory, dn), true);
+                projectionResponseJson = new DocCtx(jdoc);
             }
             //TODO: else fetch entity from LDAP and project results.
             //TODO: Probably want to batch fetch as opposed to individual fetches.

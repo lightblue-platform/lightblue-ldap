@@ -36,6 +36,7 @@ import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig;
 import com.unboundid.ldap.listener.InMemoryListenerConfig;
 import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldap.sdk.LDAPException;
+import com.unboundid.ldap.sdk.schema.Schema;
 import com.unboundid.ldif.LDIFException;
 
 public class LdapServerExternalResource extends ExternalResource {
@@ -52,7 +53,7 @@ public class LdapServerExternalResource extends ExternalResource {
      */
     @SuppressWarnings("serial")
     public static LdapServerExternalResource createDefaultInstance(){
-        return new LdapServerExternalResource(new LinkedHashMap<String, Attribute[]>(){{
+        return new LdapServerExternalResource(null, new LinkedHashMap<String, Attribute[]>(){{
             put("dc=com", new Attribute[]{
                     new Attribute("objectClass", "top"),
                     new Attribute("objectClass", "domain"),
@@ -86,12 +87,14 @@ public class LdapServerExternalResource extends ExternalResource {
     private InMemoryDirectoryServer server = null;
     private InMemoryLdapServer imlsAnnotation = null;
     private final LinkedHashMap<String, Attribute[]> preloadDnData;
+    private final Schema schema;
 
     public LdapServerExternalResource(){
-        this.preloadDnData = null;
+        this(null, null);
     }
 
-    public LdapServerExternalResource(LinkedHashMap<String, Attribute[]> preload){
+    public LdapServerExternalResource(Schema schema, LinkedHashMap<String, Attribute[]> preload){
+        this.schema = schema;
         this.preloadDnData = preload;
     }
 
@@ -120,7 +123,7 @@ public class LdapServerExternalResource extends ExternalResource {
         InMemoryListenerConfig listenerConfig = new InMemoryListenerConfig(
                 imlsAnnotation.name(), null, imlsAnnotation.port(), null, null, null);
         config.setListenerConfigs(listenerConfig);
-        config.setSchema(null); // do not check (attribute) schema
+        config.setSchema(schema); // do not check (attribute) schema
 
         server = new InMemoryDirectoryServer(config);
         server.startListening();

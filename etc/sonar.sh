@@ -10,7 +10,7 @@ rhc port-forward sonar -n lightblue &
 sleep 10
 
 # build and publish
-mvn clean install -Dmaven.test.failure.ignore=true
+mvn clean install -Dmaven.test.failure.ignore=true  
 mvn -e -B sonar:sonar
 
 # cleanup port forwarding

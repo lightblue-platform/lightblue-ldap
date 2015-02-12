@@ -16,19 +16,25 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.redhat.lightblue.common.ldap;
+package com.redhat.lightblue.ldap.test;
 
 /**
- * LDAP specific constants
+ * Simple implementation that calls the equals method on the first object
+ * and passes in the second.
  *
  * @author dcrissman
  */
-public final class LdapConstant {
+public class DefaultEquivalencyEvaluator implements EquivalencyEvaluator{
 
-    public static final String BACKEND = "ldap";
-    public static final String ATTRIBUTE_DN = "dn";
-    public static final String ATTRIBUTE_OBJECT_CLASS = "objectClass";
-
-    private LdapConstant(){}
+    @Override
+    public boolean isEquivalent(Object obj1, Object obj2) {
+        if(obj1 == null){
+            if(obj2 == null){
+                return true;
+            }
+            return false;
+        }
+        return obj1.equals(obj2);
+    }
 
 }
