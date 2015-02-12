@@ -43,7 +43,6 @@ import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.CrudConstants;
 import com.redhat.lightblue.crud.DocCtx;
-import com.redhat.lightblue.crud.ldap.translator.FilterTranslator;
 import com.redhat.lightblue.crud.ldap.translator.ResultTranslator;
 import com.redhat.lightblue.crud.ldap.translator.SortTranslator;
 import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
@@ -204,7 +203,7 @@ public class LdapCRUDController implements CRUDController{
             SearchRequest request = new SearchRequest(
                     store.getBaseDN(),
                     SearchScope.SUB,
-                    new FilterTranslator(fieldNameTranslator).translate(query),
+                    new FilterBuilder(fieldNameTranslator).build(query),
                     translateFieldNames(fieldNameTranslator, gatherRequiredFields(md, projection, query, sort)).toArray(new String[0]));
             if(sort != null){
                 request.addControl(new ServerSideSortRequestControl(false, new SortTranslator(fieldNameTranslator).translate(sort)));
