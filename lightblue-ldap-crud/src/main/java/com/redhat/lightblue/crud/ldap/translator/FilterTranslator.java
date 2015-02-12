@@ -22,16 +22,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
+import com.redhat.lightblue.query.AllMatchExpression;
 import com.redhat.lightblue.query.ArrayContainsExpression;
 import com.redhat.lightblue.query.ArrayMatchExpression;
 import com.redhat.lightblue.query.FieldComparisonExpression;
+import com.redhat.lightblue.query.NaryFieldRelationalExpression;
 import com.redhat.lightblue.query.NaryLogicalExpression;
-import com.redhat.lightblue.query.NaryRelationalExpression;
+import com.redhat.lightblue.query.NaryValueRelationalExpression;
 import com.redhat.lightblue.query.QueryExpression;
+import com.redhat.lightblue.query.QueryIteratorSkeleton;
 import com.redhat.lightblue.query.RegexMatchExpression;
 import com.redhat.lightblue.query.UnaryLogicalExpression;
 import com.redhat.lightblue.query.Value;
 import com.redhat.lightblue.query.ValueComparisonExpression;
+import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.Filter;
 
 /**
@@ -39,7 +43,7 @@ import com.unboundid.ldap.sdk.Filter;
  *
  * @author dcrissman
  */
-public class FilterTranslator {
+public class FilterTranslator extends QueryIteratorSkeleton<Filter>{
 
     private final LdapFieldNameTranslator fieldNameTranslator;
 
@@ -47,45 +51,8 @@ public class FilterTranslator {
         this.fieldNameTranslator = fieldNameTranslator;
     }
 
-    /**
-     * <p>Translates a Lightblue {@link QueryExpression} into a UnboundID {@link Filter}.</p>
-     * @param query - {@link QueryExpression}
-     * @return {@link Filter}
-     */
-    //NOTE: This method is internally called recursively.
-    public Filter translate(QueryExpression query){
-        Filter filter;
-        if (query instanceof ArrayContainsExpression) {
-            filter = translate((ArrayContainsExpression) query);
-        }
-        else if (query instanceof ArrayMatchExpression) {
-            filter = translate((ArrayMatchExpression) query);
-        }
-        else if (query instanceof FieldComparisonExpression) {
-            filter = translate((FieldComparisonExpression) query);
-        }
-        else if (query instanceof NaryLogicalExpression) {
-            filter = translate((NaryLogicalExpression) query);
-        }
-        else if (query instanceof NaryRelationalExpression) {
-            filter = translate((NaryRelationalExpression) query);
-        }
-        else if (query instanceof RegexMatchExpression) {
-            filter = translate((RegexMatchExpression) query);
-        }
-        else if (query instanceof UnaryLogicalExpression) {
-            filter = translate((UnaryLogicalExpression) query);
-        }
-        else if (query instanceof ValueComparisonExpression){
-            filter = translate((ValueComparisonExpression) query);
-        }
-        else{
-            throw new UnsupportedOperationException("Unsupported QueryExpression type: " + query.getClass());
-        }
-        return filter;
-    }
-
-    private Filter translate(ArrayContainsExpression query){
+    @Override
+    protected Filter itrArrayContainsExpression(ArrayContainsExpression query, Path path){
         String attributeName = fieldNameTranslator.translateFieldName(query.getArray());
 
         List<Filter> filters = new ArrayList<Filter>();
@@ -105,20 +72,23 @@ public class FilterTranslator {
         }
     }
 
-    private Filter translate(ArrayMatchExpression query){
+    @Override
+    protected Filter itrArrayMatchExpression(ArrayMatchExpression query, Path path){
         //TODO: Support
         throw new UnsupportedOperationException("Operation not yet supported");
     }
 
-    private Filter translate(FieldComparisonExpression query){
+    @Override
+    protected Filter itrFieldComparisonExpression(FieldComparisonExpression query, Path path){
         //TODO: Support
         throw new UnsupportedOperationException("Operation not yet supported");
     }
 
-    private Filter translate(NaryLogicalExpression query){
+    @Override
+    protected Filter itrNaryLogicalExpression(NaryLogicalExpression query, Path path){
         List<Filter> filters = new ArrayList<Filter>();
         for(QueryExpression subQuery : query.getQueries()){
-            filters.add(translate(subQuery));
+            filters.add(iterate(subQuery)); //TODO Path?
         }
         switch (query.getOp()){
             case _and:
@@ -130,7 +100,8 @@ public class FilterTranslator {
         }
     }
 
-    private Filter translate(NaryRelationalExpression query){
+    @Override
+    protected Filter itrNaryValueRelationalExpression(NaryValueRelationalExpression query, Path path){
         String attributeName = fieldNameTranslator.translateFieldName(query.getField());
         List<Filter> filters = new ArrayList<Filter>();
         for(Value value : query.getValues()){
@@ -147,21 +118,24 @@ public class FilterTranslator {
         }
     }
 
-    private Filter translate(RegexMatchExpression query){
+    @Override
+    protected Filter itrRegexMatchExpression(RegexMatchExpression query, Path path){
         //TODO: Support
         throw new UnsupportedOperationException("Operation not yet supported");
     }
 
-    private Filter translate(UnaryLogicalExpression query){
+    @Override
+    protected Filter itrUnaryLogicalExpression(UnaryLogicalExpression query, Path path){
         switch(query.getOp()){
             case _not:
-                return Filter.createNOTFilter(translate(query.getQuery()));
+                return Filter.createNOTFilter(iterate(query.getQuery(), path));
             default:
                 throw new UnsupportedOperationException("Unsupported operation: " + query.getOp());
         }
     }
 
-    private Filter translate(ValueComparisonExpression query){
+    @Override
+    protected Filter itrValueComparisonExpression(ValueComparisonExpression query, Path path){
         String attributeName = fieldNameTranslator.translateFieldName(query.getField());
         String rValue = query.getRvalue().getValue().toString();
 
@@ -181,6 +155,18 @@ public class FilterTranslator {
             default:
                 throw new UnsupportedOperationException("Unsupported operation: " + query.getOp());
         }
+    }
+
+    @Override
+    protected Filter itrAllMatchExpression(AllMatchExpression q, Path context) {
+        //TODO: Support
+        throw new UnsupportedOperationException("Operation not yet supported");
+    }
+
+    @Override
+    protected Filter itrNaryFieldRelationalExpression(NaryFieldRelationalExpression q, Path context) {
+        //TODO: Support
+        throw new UnsupportedOperationException("Operation not yet supported");
     }
 
 }
