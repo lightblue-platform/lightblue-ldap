@@ -43,11 +43,11 @@ import com.unboundid.ldap.sdk.Filter;
  *
  * @author dcrissman
  */
-public class FilterTranslator extends QueryIteratorSkeleton<Filter>{
+public class FilterBuilder extends QueryIteratorSkeleton<Filter>{
 
     private final LdapFieldNameTranslator fieldNameTranslator;
 
-    public FilterTranslator(LdapFieldNameTranslator fieldNameTranslator){
+    public FilterBuilder(LdapFieldNameTranslator fieldNameTranslator){
         this.fieldNameTranslator = fieldNameTranslator;
     }
 
