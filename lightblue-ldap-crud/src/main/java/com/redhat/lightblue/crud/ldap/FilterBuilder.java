@@ -94,7 +94,7 @@ public class FilterBuilder {
         protected Filter itrNaryLogicalExpression(NaryLogicalExpression query, Path path){
             List<Filter> filters = new ArrayList<Filter>();
             for(QueryExpression subQuery : query.getQueries()){
-                filters.add(iterate(subQuery)); //TODO Path?
+                filters.add(iterate(subQuery, path));
             }
             switch (query.getOp()){
                 case _and:
