@@ -16,7 +16,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.redhat.lightblue.crud.ldap;
+package com.redhat.lightblue.crud.ldap.translator;
 
 import static com.redhat.lightblue.util.JsonUtils.json;
 import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadResource;
@@ -45,9 +45,9 @@ import org.junit.runners.Suite.SuiteClasses;
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapErrorCode;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
-import com.redhat.lightblue.crud.ldap.EntryBuilderTest.ParameterizedTests;
-import com.redhat.lightblue.crud.ldap.EntryBuilderTest.SpecializedTests;
 import com.redhat.lightblue.crud.ldap.model.TrivialLdapFieldNameTranslator;
+import com.redhat.lightblue.crud.ldap.translator.EntryBuilderTest.ParameterizedTests;
+import com.redhat.lightblue.crud.ldap.translator.EntryBuilderTest.SpecializedTests;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.test.MetadataUtil;
