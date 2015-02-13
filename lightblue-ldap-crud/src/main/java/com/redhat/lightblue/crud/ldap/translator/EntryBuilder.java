@@ -26,7 +26,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapErrorCode;
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
-import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.metadata.ArrayElement;
 import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityMetadata;
@@ -38,6 +37,7 @@ import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.util.Error;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.JsonNodeCursor;
+import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.Entry;
 import com.unboundid.util.StaticUtils;
 
@@ -46,7 +46,7 @@ import com.unboundid.util.StaticUtils;
  *
  * @author dcrissman
  */
-public class EntryBuilder extends TranslatorFromJson<Entry>{
+public class EntryBuilder extends NonPersistedPredefinedFieldTranslatorFromJson<Entry>{
 
     private final LdapFieldNameTranslator fieldNameTranslator;
 
@@ -84,19 +84,11 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
 
     @Override
     protected void translate(SimpleField field, JsonNode node, Entry target) {
-        String attributeName = fieldNameTranslator.translateFieldName(field.getFullPath());
+        String attributeName = getFieldNameAsKnownByDatasource(field.getFullPath());
 
         if(LdapConstant.ATTRIBUTE_DN.equalsIgnoreCase(attributeName)){
             //DN is derived using metadata.uniqueattr, providing it is confusing.
             throw Error.get(MetadataConstants.ERR_INVALID_FIELD_REFERENCE, LdapConstant.ATTRIBUTE_DN);
-        }
-        else if(LightblueUtil.isFieldObjectType(attributeName)
-                || LightblueUtil.isFieldAnArrayCount(attributeName, entityMetadata.getFields())){
-            /*
-             * Indicates the field is auto-generated for lightblue purposes. These fields
-             * should not be inserted into LDAP.
-             */
-            return;
         }
 
         Type type = field.getType();
@@ -113,7 +105,7 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     protected void translateSimpleArray(ArrayField field, List<Object> items, Entry target) {
         ArrayElement arrayElement = field.getElement();
         Type arrayElementType = arrayElement.getType();
-        String attributeName = fieldNameTranslator.translateFieldName(field.getFullPath());
+        String attributeName = getFieldNameAsKnownByDatasource(field.getFullPath());
 
         if(arrayElementType instanceof BinaryType){
             List<byte[]> bytes = new ArrayList<byte[]>();
@@ -134,6 +126,11 @@ public class EntryBuilder extends TranslatorFromJson<Entry>{
     @Override
     protected void translateObjectArray(ArrayField field, JsonNodeCursor cursor, Entry target) {
         throw Error.get(LdapErrorCode.ERR_UNSUPPORTED_FEATURE_OBJECT_ARRAY, field.getFullPath().toString());
+    }
+
+    @Override
+    protected String getFieldNameAsKnownByDatasource(Path path) {
+        return fieldNameTranslator.translateFieldName(path);
     }
 
 }
