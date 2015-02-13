@@ -43,7 +43,7 @@ import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.CrudConstants;
 import com.redhat.lightblue.crud.DocCtx;
-import com.redhat.lightblue.crud.ldap.translator.EntryBuilder;
+import com.redhat.lightblue.crud.ldap.translator.EntryTranslatorFromJson;
 import com.redhat.lightblue.crud.ldap.translator.ResultTranslatorToJson;
 import com.redhat.lightblue.crud.ldap.translator.SortTranslator;
 import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
@@ -101,7 +101,7 @@ public class LdapCRUDController implements CRUDController{
         LdapFieldNameTranslator fieldNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
 
         FieldAccessRoleEvaluator roles = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
-        EntryBuilder entryBuilder = new EntryBuilder(md, fieldNameTranslator);
+        EntryTranslatorFromJson entryTranslatorFromJson = new EntryTranslatorFromJson(md, fieldNameTranslator);
 
         //Create Entry instances for each document.
         List<com.unboundid.ldap.sdk.Entry> entries = new ArrayList<com.unboundid.ldap.sdk.Entry>();
@@ -125,7 +125,7 @@ public class LdapCRUDController implements CRUDController{
             String dn = LdapCrudUtil.createDN(store, uniqueNode.asText());
             documentToDnMap.put(document, dn);
             try{
-                entries.add(entryBuilder.build(dn, document));
+                entries.add(entryTranslatorFromJson.translate(document, dn));
             }
             catch(Exception e){
                 document.addError(Error.get(e));

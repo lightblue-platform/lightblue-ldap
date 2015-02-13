@@ -46,8 +46,8 @@ import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapErrorCode;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.crud.ldap.model.TrivialLdapFieldNameTranslator;
-import com.redhat.lightblue.crud.ldap.translator.EntryBuilderTest.ParameterizedTests;
-import com.redhat.lightblue.crud.ldap.translator.EntryBuilderTest.SpecializedTests;
+import com.redhat.lightblue.crud.ldap.translator.EntryTranslatorFromJsonTest.ParameterizedTests;
+import com.redhat.lightblue.crud.ldap.translator.EntryTranslatorFromJsonTest.SpecializedTests;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.test.MetadataUtil;
@@ -58,7 +58,7 @@ import com.unboundid.util.StaticUtils;
 
 @RunWith(Suite.class)
 @SuiteClasses({ParameterizedTests.class, SpecializedTests.class})
-public class EntryBuilderTest {
+public class EntryTranslatorFromJsonTest {
 
     protected static Entry buildEntry(String fieldName, String metadataType, String crudValue) throws Exception{
         String metadata = loadResource("./metadata/entryBuilderTest-metadata-template.json")
@@ -69,10 +69,10 @@ public class EntryBuilderTest {
                 .replaceFirst("#value", crudValue);
 
         EntityMetadata md = MetadataUtil.createEntityMetadata(LdapConstant.BACKEND, json(metadata), null, null);
-        EntryBuilder builder = new EntryBuilder(md, new TrivialLdapFieldNameTranslator());
+        EntryTranslatorFromJson builder = new EntryTranslatorFromJson(md, new TrivialLdapFieldNameTranslator());
 
-        return builder.build("uid=someuid,dc=example,dc=com",
-                new JsonDoc(json(crud).get("data")));
+        return builder.translate(new JsonDoc(json(crud).get("data")),
+                "uid=someuid,dc=example,dc=com");
     }
 
     protected static String quote(String text){
@@ -134,7 +134,7 @@ public class EntryBuilderTest {
             String arrayCountFieldName = LightblueUtil.createArrayCountFieldName(arrayFieldName);
 
             expectedEx.expect(com.redhat.lightblue.util.Error.class);
-            expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"build entry/dn=uid=someuid,dc=example,dc=com/" + arrayFieldName + "\",\"errorCode\":\"" + LdapErrorCode.ERR_UNSUPPORTED_FEATURE_OBJECT_ARRAY + "\",\"msg\":\"" + arrayFieldName + "\"}");
+            expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"dn=uid=someuid,dc=example,dc=com/translating from json/" + arrayFieldName + "\",\"errorCode\":\"" + LdapErrorCode.ERR_UNSUPPORTED_FEATURE_OBJECT_ARRAY + "\",\"msg\":\"" + arrayFieldName + "\"}");
 
             buildEntry(
                     arrayCountFieldName,
@@ -148,7 +148,7 @@ public class EntryBuilderTest {
         @Test
         public void testFieldIsDN() throws Exception{
             expectedEx.expect(com.redhat.lightblue.util.Error.class);
-            expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"build entry/dn=uid=someuid,dc=example,dc=com/dn\",\"errorCode\":\"metadata:InvalidFieldReference\",\"msg\":\"dn\"}");
+            expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"dn=uid=someuid,dc=example,dc=com/translating from json/dn\",\"errorCode\":\"metadata:InvalidFieldReference\",\"msg\":\"dn\"}");
             buildEntry(LdapConstant.ATTRIBUTE_DN, "{\"type\": \"string\"}", quote("uid=someuid,dc=example,dc=com"));
         }
 

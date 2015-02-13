@@ -42,29 +42,32 @@ import com.unboundid.ldap.sdk.Entry;
 import com.unboundid.util.StaticUtils;
 
 /**
- * Builds populated instances of {@link Entry} for LDAP interaction.
+ * Translates Lightblue json into populated instances of {@link Entry} for LDAP interaction.
  *
  * @author dcrissman
  */
-public class EntryBuilder extends NonPersistedPredefinedFieldTranslatorFromJson<Entry>{
+public class EntryTranslatorFromJson extends NonPersistedPredefinedFieldTranslatorFromJson<Entry>{
 
     private final LdapFieldNameTranslator fieldNameTranslator;
 
-    public EntryBuilder(EntityMetadata entityMetadata, LdapFieldNameTranslator fieldNameTranslator){
+    public EntryTranslatorFromJson(EntityMetadata entityMetadata, LdapFieldNameTranslator fieldNameTranslator){
         super(entityMetadata);
         this.fieldNameTranslator = fieldNameTranslator;
     }
 
-    public Entry build(String dn, JsonDoc document){
-        Error.push("build entry");
-        Error.push(LdapConstant.ATTRIBUTE_DN + "=" + dn);
+    public Entry translate(JsonDoc document, String dn){
+        Entry entry = new Entry(dn);
+        translate(document, entry);
+        return entry;
+    }
+
+    @Override
+    public void translate(JsonDoc document, Entry target){
+        Error.push(LdapConstant.ATTRIBUTE_DN + "=" + target.getDN());
         try{
-            Entry entry = new Entry(dn);
-            translate(document, entry);
-            return entry;
+            super.translate(document, target);
         }
         finally{
-            Error.pop();
             Error.pop();
         }
     }

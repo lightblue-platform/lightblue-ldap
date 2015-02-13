@@ -71,15 +71,21 @@ public abstract class TranslatorFromJson<T> {
      * @param target - T
      */
     public void translate(JsonDoc document, T target){
-        JsonNodeCursor cursor = document.cursor();
-        if (!cursor.firstChild()) {
-            //TODO throw exception?
-            return;
-        }
+        Error.push("translating from json");
+        try{
+            JsonNodeCursor cursor = document.cursor();
+            if (!cursor.firstChild()) {
+                //TODO throw exception?
+                return;
+            }
 
-        do {
-            translate(cursor, target);
-        } while (cursor.nextSibling());
+            do {
+                translate(cursor, target);
+            } while (cursor.nextSibling());
+        }
+        finally{
+            Error.pop();
+        }
     }
 
     /**

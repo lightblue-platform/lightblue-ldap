@@ -34,6 +34,7 @@ import com.redhat.lightblue.metadata.Type;
 import com.redhat.lightblue.metadata.types.BinaryType;
 import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.metadata.types.StringType;
+import com.redhat.lightblue.util.Error;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.Attribute;
@@ -57,9 +58,15 @@ public class ResultTranslatorToJson extends NonPersistedPredefinedFieldTranslato
 
     @Override
     public JsonDoc translate(SearchResultEntry entry){
-        JsonDoc jdoc = super.translate(entry);
-        jdoc.modify(dnPath, toJson(StringType.TYPE, entry.getDN()), true);
-        return jdoc;
+        Error.push(LdapConstant.ATTRIBUTE_DN + "=" + entry.getDN());
+        try{
+            JsonDoc jdoc = super.translate(entry);
+            jdoc.modify(dnPath, toJson(StringType.TYPE, entry.getDN()), true);
+            return jdoc;
+        }
+        finally{
+            Error.pop();
+        }
     }
 
     @Override

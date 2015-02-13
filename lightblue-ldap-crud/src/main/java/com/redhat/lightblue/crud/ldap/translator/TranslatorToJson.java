@@ -35,6 +35,7 @@ import com.redhat.lightblue.metadata.ReferenceField;
 import com.redhat.lightblue.metadata.SimpleArrayElement;
 import com.redhat.lightblue.metadata.SimpleField;
 import com.redhat.lightblue.metadata.Type;
+import com.redhat.lightblue.util.Error;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.Path;
 
@@ -67,14 +68,20 @@ public abstract class TranslatorToJson<S> {
      * @return {@link JsonDoc}
      */
     public JsonDoc translate(S source){
-        FieldCursor cursor = entityMetadata.getFieldCursor();
+        Error.push("translating to json");
+        try{
+            FieldCursor cursor = entityMetadata.getFieldCursor();
 
-        if (cursor.firstChild()) {
-            ObjectNode node = factory.objectNode();
+            if (cursor.firstChild()) {
+                ObjectNode node = factory.objectNode();
 
-            iterateOverNodes(source, node, cursor);
+                iterateOverNodes(source, node, cursor);
 
-            return new JsonDoc(node);
+                return new JsonDoc(node);
+            }
+        }
+        finally{
+            Error.pop();
         }
 
         //TODO: What to do in case of a null value here?
@@ -92,28 +99,35 @@ public abstract class TranslatorToJson<S> {
         String fieldName = field.getName();
         Path path = fieldCursor.getCurrentPath();
 
-        JsonNode newJsonNode = null;
-        Object value = getValueFor(source, path);
+        Error.push(field.getFullPath().getLast());
 
-        if (field instanceof ObjectField) {
-            newJsonNode = translate(source, (ObjectField)field, fieldCursor);
-        }
-        else if(value != null){
-            if (field instanceof SimpleField) {
-                newJsonNode = translate((SimpleField)field, value);
-            }
-            else if (field instanceof ArrayField){
-                newJsonNode = translate((ArrayField)field, value, fieldCursor);
-            }
-            else if (field instanceof ReferenceField) {
-                newJsonNode = translate((ReferenceField)field, value);
-            }
-            else{
-                throw new UnsupportedOperationException("Unknown Field type: " + field.getClass().getName());
-            }
-        }
+        try{
+            JsonNode newJsonNode = null;
+            Object value = getValueFor(source, path);
 
-        targetNode.set(fieldName, newJsonNode);
+            if (field instanceof ObjectField) {
+                newJsonNode = translate(source, (ObjectField)field, fieldCursor);
+            }
+            else if(value != null){
+                if (field instanceof SimpleField) {
+                    newJsonNode = translate((SimpleField)field, value);
+                }
+                else if (field instanceof ArrayField){
+                    newJsonNode = translate((ArrayField)field, value, fieldCursor);
+                }
+                else if (field instanceof ReferenceField) {
+                    newJsonNode = translate((ReferenceField)field, value);
+                }
+                else{
+                    throw new UnsupportedOperationException("Unknown Field type: " + field.getClass().getName());
+                }
+            }
+
+            targetNode.set(fieldName, newJsonNode);
+        }
+        finally{
+            Error.pop();
+        }
     }
 
     protected JsonNode translate(S source, ObjectField field, FieldCursor fieldCursor){
