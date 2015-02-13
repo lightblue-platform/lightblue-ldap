@@ -50,8 +50,8 @@ public class EntryBuilder extends NonPersistedPredefinedFieldTranslatorFromJson<
 
     private final LdapFieldNameTranslator fieldNameTranslator;
 
-    public EntryBuilder(EntityMetadata md, LdapFieldNameTranslator fieldNameTranslator){
-        super(md);
+    public EntryBuilder(EntityMetadata entityMetadata, LdapFieldNameTranslator fieldNameTranslator){
+        super(entityMetadata);
         this.fieldNameTranslator = fieldNameTranslator;
     }
 

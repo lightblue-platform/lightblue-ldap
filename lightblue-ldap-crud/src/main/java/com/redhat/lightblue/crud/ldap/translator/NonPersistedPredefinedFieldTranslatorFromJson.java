@@ -29,8 +29,8 @@ import com.redhat.lightblue.util.Path;
 
 public abstract class NonPersistedPredefinedFieldTranslatorFromJson<T> extends TranslatorFromJson<T>{
 
-    public NonPersistedPredefinedFieldTranslatorFromJson(EntityMetadata md) {
-        super(md);
+    public NonPersistedPredefinedFieldTranslatorFromJson(EntityMetadata entityMetadata) {
+        super(entityMetadata);
     }
 
     @Override

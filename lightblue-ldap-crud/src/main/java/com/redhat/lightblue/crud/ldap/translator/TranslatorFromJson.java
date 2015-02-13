@@ -52,8 +52,8 @@ public abstract class TranslatorFromJson<T> {
 
     protected final EntityMetadata entityMetadata;
 
-    public TranslatorFromJson(EntityMetadata md){
-        this.entityMetadata = md;
+    public TranslatorFromJson(EntityMetadata entityMetadata){
+        this.entityMetadata = entityMetadata;
     }
 
     protected Object fromJson(Type type, JsonNode node){
