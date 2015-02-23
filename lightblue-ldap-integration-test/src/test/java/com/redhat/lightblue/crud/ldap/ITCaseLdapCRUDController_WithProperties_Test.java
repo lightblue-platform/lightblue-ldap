@@ -18,6 +18,8 @@
  */
 package com.redhat.lightblue.crud.ldap;
 
+import static com.redhat.lightblue.test.Assert.assertNoDataErrors;
+import static com.redhat.lightblue.test.Assert.assertNoErrors;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
