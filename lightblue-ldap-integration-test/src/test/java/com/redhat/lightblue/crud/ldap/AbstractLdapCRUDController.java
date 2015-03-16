@@ -18,35 +18,26 @@
  */
 package com.redhat.lightblue.crud.ldap;
 
-import static com.redhat.lightblue.util.JsonUtils.json;
-import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
-
-import java.io.IOException;
-
 import org.junit.ClassRule;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.redhat.lightblue.config.JsonTranslator;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource.InMemoryLdapServer;
+import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
+import com.redhat.lightblue.mongo.test.MongoServerExternalResource.InMemoryMongoServer;
+import com.redhat.lightblue.test.AbstractCRUDTestController;
 
+@InMemoryMongoServer
 @InMemoryLdapServer
-public abstract class AbstractLdapCRUDController extends AbstractCRUDController{
+public abstract class AbstractLdapCRUDController extends AbstractCRUDTestController {
+
+    @ClassRule
+    public static MongoServerExternalResource mongoServer = new MongoServerExternalResource();
 
     @ClassRule
     public static LdapServerExternalResource ldapServer = LdapServerExternalResource.createDefaultInstance();
 
-    protected <T> T createRequest_FromResource(Class<T> type, String jsonFile) throws IOException{
-        return createRequest(type, loadJsonNode(jsonFile));
-    }
-
-    protected <T> T createRequest_FromJsonString(Class<T> type, String jsonString) throws IOException{
-        return createRequest(type, json(jsonString));
-    }
-
-    protected <T> T createRequest(Class<T> type, JsonNode node) throws IOException{
-        JsonTranslator tx = lightblueFactory.getJsonTranslator();
-        return tx.parse(type, node);
+    public AbstractLdapCRUDController() throws Exception {
+        super();
     }
 
 }

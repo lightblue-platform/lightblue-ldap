@@ -20,6 +20,7 @@ package com.redhat.lightblue.crud.ldap;
 
 import static com.redhat.lightblue.test.Assert.assertNoDataErrors;
 import static com.redhat.lightblue.test.Assert.assertNoErrors;
+import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -43,13 +44,13 @@ import com.unboundid.ldap.sdk.Attribute;
  * @author dcrissman
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCRUDController{
+public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCRUDController {
 
     private static final String BASEDB_CUSTOMERS = "ou=Customers,dc=example,dc=com";
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        ldapServer.add(BASEDB_CUSTOMERS,  new Attribute[]{
+        ldapServer.add(BASEDB_CUSTOMERS, new Attribute[]{
                 new Attribute("objectClass", "top"),
                 new Attribute("objectClass", "organizationalUnit"),
                 new Attribute("ou", "Customers")});
@@ -62,12 +63,19 @@ public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCR
         System.setProperty("mongo.host", "localhost");
         System.setProperty("mongo.port", String.valueOf(MongoServerExternalResource.DEFAULT_PORT));
         System.setProperty("mongo.database", "lightblue");
+    }
 
-        initLightblueFactory("./datasources.json", "./metadata/customer-metadata.json");
+    public ITCaseLdapCRUDController_WithProperties_Test() throws Exception {
+        super();
+    }
+
+    @Override
+    protected JsonNode[] getMetadataJsonNodes() throws Exception {
+        return new JsonNode[]{loadJsonNode("./metadata/customer-metadata.json")};
     }
 
     @Test
-    public void test1CustomerInsertWithProperties() throws Exception{
+    public void test1CustomerInsertWithProperties() throws Exception {
         Response response = lightblueFactory.getMediator().insert(
                 createRequest_FromResource(InsertionRequest.class, "./crud/insert/customer-insert-single.json"));
 
@@ -84,7 +92,7 @@ public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCR
     }
 
     @Test
-    public void test2FindCustomerWithProperties() throws Exception{
+    public void test2FindCustomerWithProperties() throws Exception {
         Response response = lightblueFactory.getMediator().find(
                 createRequest_FromResource(FindRequest.class, "./crud/find/customer-find-single.json"));
 
@@ -103,7 +111,7 @@ public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCR
                         + "\"cn\":\"Frodo Baggins\","
                         + "\"interfaces#\":4,"
                         + "\"interfaces\":[\"top\",\"person\",\"organizationalPerson\",\"inetOrgPerson\"]}]",
-                        entityData.toString(), true);
+                entityData.toString(), true);
     }
 
 }

@@ -20,6 +20,7 @@ package com.redhat.lightblue.crud.ldap;
 
 import static com.redhat.lightblue.test.Assert.assertNoDataErrors;
 import static com.redhat.lightblue.test.Assert.assertNoErrors;
+import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -38,13 +39,13 @@ import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
 import com.unboundid.ldap.sdk.Attribute;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class ITCaseLdapCRUDController_Objects_Test extends AbstractLdapCRUDController{
+public class ITCaseLdapCRUDController_Objects_Test extends AbstractLdapCRUDController {
 
     private static final String BASEDB_USERS = "ou=Users,dc=example,dc=com";
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        ldapServer.add(BASEDB_USERS,  new Attribute[]{
+        ldapServer.add(BASEDB_USERS, new Attribute[]{
                 new Attribute("objectClass", "top"),
                 new Attribute("objectClass", "organizationalUnit"),
                 new Attribute("ou", "Users")});
@@ -57,12 +58,19 @@ public class ITCaseLdapCRUDController_Objects_Test extends AbstractLdapCRUDContr
         System.setProperty("mongo.host", "localhost");
         System.setProperty("mongo.port", String.valueOf(MongoServerExternalResource.DEFAULT_PORT));
         System.setProperty("mongo.database", "lightblue");
+    }
 
-        initLightblueFactory("./datasources.json", "./metadata/person-with-address-metadata.json");
+    public ITCaseLdapCRUDController_Objects_Test() throws Exception {
+        super();
+    }
+
+    @Override
+    protected JsonNode[] getMetadataJsonNodes() throws Exception {
+        return new JsonNode[]{loadJsonNode("./metadata/person-with-address-metadata.json")};
     }
 
     @Test
-    public void test1PersonWithAddress_Insert() throws Exception{
+    public void test1PersonWithAddress_Insert() throws Exception {
         Response response = lightblueFactory.getMediator().insert(
                 createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-with-address-insert-single.json"));
 
@@ -79,7 +87,7 @@ public class ITCaseLdapCRUDController_Objects_Test extends AbstractLdapCRUDContr
     }
 
     @Test
-    public void test2PersonWithAddress_Find() throws Exception{
+    public void test2PersonWithAddress_Find() throws Exception {
         Response response = lightblueFactory.getMediator().find(
                 createRequest_FromResource(FindRequest.class, "./crud/find/person-with-address-find-single.json"));
 

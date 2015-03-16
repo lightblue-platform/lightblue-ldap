@@ -20,10 +20,12 @@ package com.redhat.lightblue.crud.ldap;
 
 import static com.redhat.lightblue.test.Assert.assertNoDataErrors;
 import static com.redhat.lightblue.test.Assert.assertNoErrors;
+import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
 import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadResource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -46,18 +48,18 @@ import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
 
 @RunWith(value = Parameterized.class)
-public class ITCaseLdapCRUDController_DataType_Test extends AbstractLdapCRUDController{
+public class ITCaseLdapCRUDController_DataType_Test extends AbstractLdapCRUDController {
 
-    @Parameters(name= "{index}: {0}")
+    @Parameters(name = "{index}: {0}")
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
+        return Arrays.asList(new Object[][]{
                 {"date", "testdate", DateType.getDateFormat().format(new Date())},
                 {"binary", "testbinary", DatatypeConverter.printBase64Binary("test binary data".getBytes())}
         });
     }
 
     @BeforeClass
-    public static void beforeClass() throws Exception{
+    public static void beforeClass() throws Exception {
         System.setProperty("ldap.host", "localhost");
         System.setProperty("ldap.port", String.valueOf(LdapServerExternalResource.DEFAULT_PORT));
         System.setProperty("ldap.database", "test");
@@ -66,22 +68,26 @@ public class ITCaseLdapCRUDController_DataType_Test extends AbstractLdapCRUDCont
         System.setProperty("mongo.host", "localhost");
         System.setProperty("mongo.port", String.valueOf(MongoServerExternalResource.DEFAULT_PORT));
         System.setProperty("mongo.database", "lightblue");
-
-        initLightblueFactory("./datasources.json", "./metadata/datatype-metadata.json");
     }
 
     private final String cn;
     private final String fieldName;
     private final String data;
 
-    public ITCaseLdapCRUDController_DataType_Test(String cn, String fieldName, String data){
+    public ITCaseLdapCRUDController_DataType_Test(String cn, String fieldName, String data) throws Exception {
+        super();
         this.cn = cn;
         this.fieldName = fieldName;
         this.data = data;
     }
 
+    @Override
+    protected JsonNode[] getMetadataJsonNodes() throws Exception {
+        return new JsonNode[]{loadJsonNode("./metadata/datatype-metadata.json")};
+    }
+
     @Test
-    public void testInsertThenFindField() throws Exception{
+    public void testInsertThenFindField() throws Exception {
         String insert = loadResource("./crud/insert/datatype-insert-template.json")
                 .replaceFirst("#cn", cn)
                 .replaceFirst("#field", fieldName)
