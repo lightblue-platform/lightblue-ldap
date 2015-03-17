@@ -20,6 +20,7 @@ package com.redhat.lightblue.crud.ldap;
 
 import static com.redhat.lightblue.test.Assert.assertNoDataErrors;
 import static com.redhat.lightblue.test.Assert.assertNoErrors;
+import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
 import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadResource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -50,18 +51,18 @@ import com.unboundid.ldap.sdk.Attribute;
  * @author dcrissman
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController{
+public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController {
 
     private static final String BASEDB_USERS = "ou=Users,dc=example,dc=com";
     private static final String BASEDB_DEPARTMENTS = "ou=Departments,dc=example,dc=com";
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        ldapServer.add(BASEDB_USERS,  new Attribute[]{
+        ldapServer.add(BASEDB_USERS, new Attribute[]{
                 new Attribute("objectClass", "top"),
                 new Attribute("objectClass", "organizationalUnit"),
                 new Attribute("ou", "Users")});
-        ldapServer.add(BASEDB_DEPARTMENTS,  new Attribute[]{
+        ldapServer.add(BASEDB_DEPARTMENTS, new Attribute[]{
                 new Attribute("objectClass", "top"),
                 new Attribute("objectClass", "organizationalUnit"),
                 new Attribute("ou", "Departments")});
@@ -75,12 +76,21 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController{
         System.setProperty("mongo.host", "localhost");
         System.setProperty("mongo.port", String.valueOf(MongoServerExternalResource.DEFAULT_PORT));
         System.setProperty("mongo.database", "lightblue");
+    }
 
-        initLightblueFactory("./datasources.json", "./metadata/person-metadata.json", "./metadata/department-metadata.json");
+    public ITCaseLdapCRUDControllerTest() throws Exception {
+        super();
+    }
+
+    @Override
+    protected JsonNode[] getMetadataJsonNodes() throws Exception {
+        return new JsonNode[]{
+                loadJsonNode("./metadata/person-metadata.json"),
+                loadJsonNode("./metadata/department-metadata.json")};
     }
 
     @Test
-    public void series1_phase1_Person_Insert() throws Exception{
+    public void series1_phase1_Person_Insert() throws Exception {
         Response response = lightblueFactory.getMediator().insert(
                 createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json"));
 
@@ -97,7 +107,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController{
     }
 
     @Test
-    public void series1_phase2_Person_FindSingle() throws Exception{
+    public void series1_phase2_Person_FindSingle() throws Exception {
         Response response = lightblueFactory.getMediator().find(
                 createRequest_FromResource(FindRequest.class, "./crud/find/person-find-single.json"));
 
@@ -114,7 +124,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController{
     }
 
     @Test
-    public void series1_phase2_Person_FindMany() throws Exception{
+    public void series1_phase2_Person_FindMany() throws Exception {
         Response response = lightblueFactory.getMediator().find(
                 createRequest_FromResource(FindRequest.class, "./crud/find/person-find-many.json"));
 
@@ -133,7 +143,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController{
     }
 
     @Test
-    public void series1_phase2_Person_FindMany_WithPagination() throws Exception{
+    public void series1_phase2_Person_FindMany_WithPagination() throws Exception {
         Response response = lightblueFactory.getMediator().find(
                 createRequest_FromResource(FindRequest.class, "./crud/find/person-find-many-paginated.json"));
 
@@ -151,7 +161,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController{
     }
 
     @Test
-    public void series2_phase1_Department_InsertWithRoles() throws Exception{
+    public void series2_phase1_Department_InsertWithRoles() throws Exception {
         String insert = loadResource("./crud/insert/department-insert-template.json")
                 .replaceFirst("#cn", "Marketing")
                 .replaceFirst("#description", "Department devoted to Marketing")
@@ -175,7 +185,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController{
     }
 
     @Test
-    public void series2_phase1_Department_InsertWithInvalidRoles() throws Exception{
+    public void series2_phase1_Department_InsertWithInvalidRoles() throws Exception {
         String insert = loadResource("./crud/insert/department-insert-template.json")
                 .replaceFirst("#cn", "HR")
                 .replaceFirst("#description", "Department devoted to HR")
@@ -198,7 +208,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController{
     }
 
     @Test
-    public void series2_phase2_Department_FindWithRoles() throws Exception{
+    public void series2_phase2_Department_FindWithRoles() throws Exception {
         FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find-single.json");
         findRequest.setClientId(new FakeClientIdentification("fakeUser", "admin"));
 
@@ -217,7 +227,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController{
     }
 
     @Test
-    public void series2_phase2_Department_FindWithInsufficientRoles() throws Exception{
+    public void series2_phase2_Department_FindWithInsufficientRoles() throws Exception {
         FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find-single.json");
         findRequest.setClientId(new FakeClientIdentification("fakeUser"));
 
