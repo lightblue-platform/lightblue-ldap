@@ -16,7 +16,7 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.redhat.lightblue.crud.ldap;
+package com.redhat.lightblue.crud.ldap.translator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,21 +45,15 @@ import com.redhat.lightblue.util.JsonNodeCursor;
  *
  * @author dcrissman
  *
- * @param <T> - A entity that the specific datastore knows how
+ * @param <T> - The target entity type that the specific datastore knows how
  * to interact with.
- *
- * @see #translate(JsonDoc, Object)
  */
 public abstract class TranslatorFromJson<T> {
 
-    private final EntityMetadata md;
+    protected final EntityMetadata entityMetadata;
 
-    public TranslatorFromJson(EntityMetadata md){
-        this.md = md;
-    }
-
-    public EntityMetadata getEntityMetadata(){
-        return md;
+    public TranslatorFromJson(EntityMetadata entityMetadata){
+        this.entityMetadata = entityMetadata;
     }
 
     protected Object fromJson(Type type, JsonNode node){
@@ -77,15 +71,21 @@ public abstract class TranslatorFromJson<T> {
      * @param target - T
      */
     public void translate(JsonDoc document, T target){
-        JsonNodeCursor cursor = document.cursor();
-        if (!cursor.firstChild()) {
-            //TODO throw exception?
-            return;
-        }
+        Error.push("translating from json");
+        try{
+            JsonNodeCursor cursor = document.cursor();
+            if (!cursor.firstChild()) {
+                //TODO throw exception?
+                return;
+            }
 
-        do {
-            translate(cursor, target);
-        } while (cursor.nextSibling());
+            do {
+                translate(cursor, target);
+            } while (cursor.nextSibling());
+        }
+        finally{
+            Error.pop();
+        }
     }
 
     /**
@@ -97,7 +97,7 @@ public abstract class TranslatorFromJson<T> {
      */
     protected void translate(JsonNodeCursor cursor, T target){
         JsonNode node = cursor.getCurrentNode();
-        FieldTreeNode fieldNode = md.resolve(cursor.getCurrentPath());
+        FieldTreeNode fieldNode = entityMetadata.resolve(cursor.getCurrentPath());
 
         Error.push(fieldNode.getFullPath().getLast());
 

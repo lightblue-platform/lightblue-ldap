@@ -32,7 +32,6 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.redhat.lightblue.crud.DocCtx;
 import com.redhat.lightblue.crud.ldap.model.TrivialLdapFieldNameTranslator;
 import com.redhat.lightblue.metadata.ArrayElement;
 import com.redhat.lightblue.metadata.ArrayField;
@@ -57,7 +56,7 @@ import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.Attribute;
 import com.unboundid.ldap.sdk.SearchResultEntry;
 
-public class ResultTranslatorTest {
+public class ResultTranslatorToJsonTest {
 
     private final JsonNodeFactory factory = JsonNodeFactory.withExactBigDecimals(true);
 
@@ -71,13 +70,13 @@ public class ResultTranslatorTest {
                 new SimpleField("uid", StringType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        JsonDoc document = new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"uid\":\"john.doe\",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                document.getOutputDocument().toString(),
+                document.toString(),
                 true);
     }
 
@@ -91,13 +90,13 @@ public class ResultTranslatorTest {
                 new SimpleField("key", IntegerType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        JsonDoc document = new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"key\":4,\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                document.getOutputDocument().toString(),
+                document.toString(),
                 true);
     }
 
@@ -111,13 +110,13 @@ public class ResultTranslatorTest {
                 new SimpleField("key", BooleanType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        JsonDoc document = new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"key\":true,\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                document.getOutputDocument().toString(),
+                document.toString(),
                 true);
     }
 
@@ -131,13 +130,13 @@ public class ResultTranslatorTest {
                 new SimpleField("key", BigDecimalType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        JsonDoc document = new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"key\":" + String.valueOf(Double.MAX_VALUE) + ",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                document.getOutputDocument().toString(),
+                document.toString(),
                 true);
     }
 
@@ -151,13 +150,13 @@ public class ResultTranslatorTest {
                 new SimpleField("key", BigIntegerType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        JsonDoc document = new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"key\":" + BigInteger.ZERO + ",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                document.getOutputDocument().toString(),
+                document.toString(),
                 true);
     }
 
@@ -171,13 +170,13 @@ public class ResultTranslatorTest {
                 new SimpleField("key", DoubleType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        JsonDoc document = new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"key\":" + String.valueOf(Double.MAX_VALUE) + ",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                document.getOutputDocument().toString(),
+                document.toString(),
                 true);
     }
 
@@ -193,13 +192,13 @@ public class ResultTranslatorTest {
                 new SimpleField("key", UIDType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        JsonDoc document = new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"key\":" + uuid + ",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                document.getOutputDocument().toString(),
+                document.toString(),
                 true);
     }
 
@@ -213,7 +212,7 @@ public class ResultTranslatorTest {
                 new SimpleField("uid", StringType.TYPE)
                 );
 
-        new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
     }
 
     @Test
@@ -228,10 +227,7 @@ public class ResultTranslatorTest {
                 new SimpleField("key", BinaryType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
-
-        assertNotNull(document);
-        JsonDoc jsonDocument = document.getOutputDocument();
+        JsonDoc jsonDocument = new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         JsonNode keyNode = jsonDocument.get(new Path("key"));
         assertEquals(bite, keyNode.binaryValue());
@@ -253,13 +249,13 @@ public class ResultTranslatorTest {
                 new SimpleField("key", DateType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        JsonDoc document = new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"key\":\"20150109T20:17:31.570+0000\",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                document.getOutputDocument().toString(),
+                document.toString(),
                 true);
     }
 
@@ -271,13 +267,13 @@ public class ResultTranslatorTest {
                 new SimpleField("objectType", StringType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        JsonDoc document = new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"objectType\":\"fakeMetadata\",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                document.getOutputDocument().toString(),
+                document.toString(),
                 true);
     }
 
@@ -289,13 +285,13 @@ public class ResultTranslatorTest {
                 new SimpleField("absentAttribute", StringType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        JsonDoc document = new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"absentAttribute\":null,\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                document.getOutputDocument().toString(),
+                document.toString(),
                 true);
     }
 
@@ -313,13 +309,13 @@ public class ResultTranslatorTest {
                 new ArrayField("objectClass", new SimpleArrayElement(StringType.TYPE))
                 );
 
-        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        JsonDoc document = new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"objectClass\":[\"top\",\"person\",\"organizationalPerson\",\"inetOrgPerson\"],\"objectClass#\":4,\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                document.getOutputDocument().toString(),
+                document.toString(),
                 true);
     }
 
@@ -339,13 +335,13 @@ public class ResultTranslatorTest {
                 new SimpleField("objectClass#", IntegerType.TYPE)
                 );
 
-        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        JsonDoc document = new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"objectClass\":[\"top\",\"person\",\"organizationalPerson\",\"inetOrgPerson\"],\"objectClass#\":4,\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
-                document.getOutputDocument().toString(),
+                document.toString(),
                 true);
     }
 
@@ -375,7 +371,7 @@ public class ResultTranslatorTest {
                     }
                 }));
 
-        new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
     }
 
     @Test
@@ -387,13 +383,13 @@ public class ResultTranslatorTest {
 
         EntityMetadata md = fakeEntityMetadata("fakeMetadata", objectField);
 
-        DocCtx document = new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        JsonDoc document = new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
 
         assertNotNull(document);
 
         JSONAssert.assertEquals(
                 "{\"dn\":\"uid=john.doe,dc=example,dc=com\",\"fakeObject\":{\"key\":\"value\"}}",
-                document.getOutputDocument().toString(),
+                document.toString(),
                 true);
     }
 
@@ -405,7 +401,7 @@ public class ResultTranslatorTest {
                 new ReferenceField("fake")
                 );
 
-        new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
     }
 
     @Test(expected = UnsupportedOperationException.class)
@@ -432,7 +428,7 @@ public class ResultTranslatorTest {
 
         });
 
-        new ResultTranslator(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
+        new ResultTranslatorToJson(factory, md, new TrivialLdapFieldNameTranslator()).translate(result);
     }
 
     protected EntityMetadata fakeEntityMetadata(String name, Field... fields){

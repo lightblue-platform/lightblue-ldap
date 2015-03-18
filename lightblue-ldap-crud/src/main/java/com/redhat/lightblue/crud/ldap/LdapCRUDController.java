@@ -43,7 +43,8 @@ import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.CrudConstants;
 import com.redhat.lightblue.crud.DocCtx;
-import com.redhat.lightblue.crud.ldap.translator.ResultTranslator;
+import com.redhat.lightblue.crud.ldap.translator.EntryTranslatorFromJson;
+import com.redhat.lightblue.crud.ldap.translator.ResultTranslatorToJson;
 import com.redhat.lightblue.crud.ldap.translator.SortTranslator;
 import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
 import com.redhat.lightblue.eval.Projector;
@@ -100,7 +101,7 @@ public class LdapCRUDController implements CRUDController{
         LdapFieldNameTranslator fieldNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
 
         FieldAccessRoleEvaluator roles = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
-        EntryBuilder entryBuilder = new EntryBuilder(md, fieldNameTranslator);
+        EntryTranslatorFromJson entryTranslatorFromJson = new EntryTranslatorFromJson(md, fieldNameTranslator);
 
         //Create Entry instances for each document.
         List<com.unboundid.ldap.sdk.Entry> entries = new ArrayList<com.unboundid.ldap.sdk.Entry>();
@@ -124,7 +125,7 @@ public class LdapCRUDController implements CRUDController{
             String dn = LdapCrudUtil.createDN(store, uniqueNode.asText());
             documentToDnMap.put(document, dn);
             try{
-                entries.add(entryBuilder.build(dn, document));
+                entries.add(entryTranslatorFromJson.translate(document, dn));
             }
             catch(Exception e){
                 document.addError(Error.get(e));
@@ -216,11 +217,11 @@ public class LdapCRUDController implements CRUDController{
             SearchResult result = connection.search(request);
 
             response.setSize(result.getEntryCount());
-            ResultTranslator resultTranslator = new ResultTranslator(ctx.getFactory().getNodeFactory(), md, fieldNameTranslator);
+            ResultTranslatorToJson resultTranslator = new ResultTranslatorToJson(ctx.getFactory().getNodeFactory(), md, fieldNameTranslator);
             List<DocCtx> translatedDocs = new ArrayList<DocCtx>();
             for(SearchResultEntry entry : result.getSearchEntries()){
                 try{
-                    translatedDocs.add(resultTranslator.translate(entry));
+                    translatedDocs.add(new DocCtx(resultTranslator.translate(entry)));
                 }
                 catch(Exception e){
                     ctx.addError(Error.get(e));
