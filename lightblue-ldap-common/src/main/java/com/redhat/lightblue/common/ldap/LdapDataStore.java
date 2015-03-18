@@ -20,18 +20,22 @@ package com.redhat.lightblue.common.ldap;
 
 import com.redhat.lightblue.metadata.DataStore;
 
+/**
+ * {@link DataStore} for LDAP.
+ *
+ * @author dcrissman
+ */
 public class LdapDataStore implements DataStore {
 
     private static final long serialVersionUID = 7599798419158041647L;
 
-    public static final String BACKEND = "ldap";
-
     private String database;
     private String baseDN;
-    private String uniqueField;
+    private String uniqueAttr;
 
+    @Override
     public String getBackend() {
-        return BACKEND;
+        return LdapConstant.BACKEND;
     }
 
     public String getDatabase() {
@@ -50,18 +54,20 @@ public class LdapDataStore implements DataStore {
         this.baseDN = baseDN;
     }
 
-    public String getUniqueField() {
-        return uniqueField;
+    public String getUniqueAttribute() {
+        return uniqueAttr;
     }
 
-    public void setUniqueField(String uniqueField) {
-        this.uniqueField = uniqueField;
+    public void setUniqueAttribute(String uniqueField) {
+        this.uniqueAttr = uniqueField;
     }
 
     public LdapDataStore(){}
 
-    public LdapDataStore(String database){
+    public LdapDataStore(String database, String baseDN, String uniqueAttr){
         this.database = database;
+        this.baseDN = baseDN;
+        this.uniqueAttr = uniqueAttr;
     }
 
     @Override
@@ -72,7 +78,7 @@ public class LdapDataStore implements DataStore {
         result = prime * result
                 + ((database == null) ? 0 : database.hashCode());
         result = prime * result
-                + ((uniqueField == null) ? 0 : uniqueField.hashCode());
+                + ((uniqueAttr == null) ? 0 : uniqueAttr.hashCode());
         return result;
     }
 
@@ -104,12 +110,12 @@ public class LdapDataStore implements DataStore {
         else if (!database.equals(other.database)) {
             return false;
         }
-        if (uniqueField == null) {
-            if (other.uniqueField != null) {
+        if (uniqueAttr == null) {
+            if (other.uniqueAttr != null) {
                 return false;
             }
         }
-        else if (!uniqueField.equals(other.uniqueField)) {
+        else if (!uniqueAttr.equals(other.uniqueAttr)) {
             return false;
         }
         return true;
@@ -118,7 +124,7 @@ public class LdapDataStore implements DataStore {
     @Override
     public String toString() {
         return "LdapDataStore [database=" + database + ", baseDN=" + baseDN
-                + ", uniqueField=" + uniqueField + "]";
+                + ", uniqueAttribute=" + uniqueAttr + "]";
     }
 
 }

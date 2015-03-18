@@ -18,6 +18,11 @@
  */
 package com.redhat.lightblue.config.ldap;
 
+/**
+ * LDAP Configuration Exception
+ *
+ * @author dcrissman
+ */
 public class LdapConfigException extends RuntimeException {
 
     private static final long serialVersionUID = -1592146043661826825L;

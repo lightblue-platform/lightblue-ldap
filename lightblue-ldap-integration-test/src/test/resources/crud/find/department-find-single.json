@@ -1,0 +1,15 @@
+{
+    "entity": "department",
+    "entityVersion": "1.0.0",
+    "projection": [
+        {"field": "cn"},
+        {"field": "member.*"},
+        {"field": "member#"},
+        {"field": "description"}
+    ],
+    "query": {
+        "field": "cn",
+        "op": "$eq",
+        "rvalue": "Marketing"
+    }
+}

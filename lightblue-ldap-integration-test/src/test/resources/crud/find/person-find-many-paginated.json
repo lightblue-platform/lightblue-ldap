@@ -1,0 +1,19 @@
+{
+    "entity": "person",
+    "entityVersion": "1.0.0",
+    "projection": [
+        {"field": "dn"}
+    ],
+    "query": {
+        "field": "sn",
+        "op": "$eq",
+        "rvalue": "Doe"
+    },
+    "range": [
+        2,
+        2
+    ],
+    "sort": {
+        "givenName": "$desc"
+    }
+ }

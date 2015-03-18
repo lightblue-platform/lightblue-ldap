@@ -1,0 +1,57 @@
+{
+    "entityInfo": {
+        "name": "customer",
+        "datastore": {
+            "backend":"ldap",
+            "database": "${ldap.database}",
+            "basedn": "${ldap.customer.basedn}",
+            "uniqueattr": "uid"
+        },
+        "ldap": {
+            "fieldsToAttributes": [
+                {
+                    "field": "id",
+                    "attribute": "dn"
+                },
+                {
+                    "field": "customerId",
+                    "attribute": "uid"
+                },
+                {
+                    "field": "firstName",
+                    "attribute": "givenName"
+                },
+                {
+                    "field": "lastName",
+                    "attribute": "sn"
+                },
+                {
+                    "field": "interfaces",
+                    "attribute": "objectClass"
+                }
+            ]
+        }
+    },
+    "schema": {
+        "name": "customer",
+        "version": {
+            "value": "1.0.0",
+            "changelog": "blahblah"
+        },
+        "status": {
+            "value": "active"
+        },
+        "access" : {
+             "insert": ["anyone"],
+             "update": ["anyone"],
+             "delete": ["anyone"],
+             "find": ["anyone"]
+        },
+        "fields": {
+            "customerId": {"type": "string"},
+            "firstName": {"type": "string"},
+            "lastName": {"type": "string"},
+            "cn": {"type": "string"}
+        }
+    }
+}

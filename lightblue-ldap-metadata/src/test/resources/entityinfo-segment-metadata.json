@@ -1,0 +1,11 @@
+{
+    "entityInfo": {
+        "name": "fakeEntity",
+        "datastore": {
+            "backend":"ldap",
+            "database": "${ldap.database}",
+            "basedn": "${ldap.basedn}",
+            "uniqueattr": "${ldap.uniqueattr}"
+        }
+    }
+}

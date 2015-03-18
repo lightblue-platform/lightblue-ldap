@@ -2,3 +2,5 @@
 .project
 .settings/
 **/target/
+rhc-port-forward-status
+etc/rhc-port-forward-status

@@ -32,8 +32,8 @@
   
     <dependencies>
         <dependency>
-            <groupId>com.redhat.lightblue.config</groupId>
-            <artifactId>core-config</artifactId>
+            <groupId>com.redhat.lightblue</groupId>
+            <artifactId>lightblue-core-config</artifactId>
         </dependency>
         <dependency>
             <groupId>com.redhat.lightblue.ldap</groupId>

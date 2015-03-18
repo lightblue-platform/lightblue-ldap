@@ -26,6 +26,11 @@ import com.redhat.lightblue.metadata.DataStore;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 
+/**
+ * {@link DBResolver} that contains the implementation.
+ *
+ * @author dcrissman
+ */
 public class LdapDBResolver implements DBResolver{
 
     private final Set<LdapDataSourceConfiguration> ldapDataSources;

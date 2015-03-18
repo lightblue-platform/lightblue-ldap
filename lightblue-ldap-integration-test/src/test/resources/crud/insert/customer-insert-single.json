@@ -1,0 +1,14 @@
+{
+    "entity": "customer",
+    "entityVersion": "1.0.0",
+    "projection": {
+        "field": "id"
+    },
+    "data": {
+        "interfaces": ["top", "person", "organizationalPerson", "inetOrgPerson"],
+        "customerId": "frodo.baggins",
+        "firstName": "Frodo",
+        "lastName": "Baggins",
+        "cn": "Frodo Baggins"
+    }
+}

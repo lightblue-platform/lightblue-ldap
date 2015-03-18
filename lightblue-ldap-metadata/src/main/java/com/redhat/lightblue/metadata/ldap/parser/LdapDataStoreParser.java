@@ -18,6 +18,7 @@
  */
 package com.redhat.lightblue.metadata.ldap.parser;
 
+import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapDataStore;
 import com.redhat.lightblue.metadata.DataStore;
 import com.redhat.lightblue.metadata.MetadataConstants;
@@ -25,25 +26,32 @@ import com.redhat.lightblue.metadata.parser.DataStoreParser;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.util.Error;
 
+/**
+ * {@link DataStoreParser} implementation for LDAP.
+ *
+ * @author dcrissman
+ */
 public class LdapDataStoreParser<T> implements DataStoreParser<T> {
 
     private final static String DATABASE = "database";
     private final static String BASEDN = "basedn";
     private final static String UNIQUE_FIELD = "uniqueattr";
 
-    public DataStore parse(String name, MetadataParser<T> p, T node) {
-        if (!LdapDataStore.BACKEND.equals(name)) {
+    @Override
+    public LdapDataStore parse(String name, MetadataParser<T> p, T node) {
+        if (!LdapConstant.BACKEND.equals(name)) {
             throw Error.get(MetadataConstants.ERR_ILL_FORMED_METADATA, name);
         }
 
         LdapDataStore dataStore = new LdapDataStore();
         dataStore.setDatabase(p.getRequiredStringProperty(node, DATABASE));
         dataStore.setBaseDN(p.getRequiredStringProperty(node, BASEDN));
-        dataStore.setUniqueField(p.getRequiredStringProperty(node, UNIQUE_FIELD));
+        dataStore.setUniqueAttribute(p.getRequiredStringProperty(node, UNIQUE_FIELD));
 
         return dataStore;
     }
 
+    @Override
     public void convert(MetadataParser<T> p, T emptyNode, DataStore store) {
         if(!(store instanceof LdapDataStore)){
             throw new IllegalArgumentException("DataStore of type " + store.getClass() + " is not supported.");
@@ -52,11 +60,12 @@ public class LdapDataStoreParser<T> implements DataStoreParser<T> {
         LdapDataStore ds = (LdapDataStore) store;
         p.putString(emptyNode, DATABASE, ds.getDatabase());
         p.putString(emptyNode, BASEDN, ds.getBaseDN());
-        p.putString(emptyNode, UNIQUE_FIELD, ds.getUniqueField());
+        p.putString(emptyNode, UNIQUE_FIELD, ds.getUniqueAttribute());
     }
 
+    @Override
     public String getDefaultName() {
-        return LdapDataStore.BACKEND;
+        return LdapConstant.BACKEND;
     }
 
 }
