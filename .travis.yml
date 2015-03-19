@@ -1,26 +1,26 @@
 language: java
 jdk:
-    - openjdk7
-    - oraclejdk8
+- openjdk7
+- oraclejdk8
 before_install:
-    - cp ./etc/settings.xml ~/.m2/
-    - cp ./etc/onFailure.sh  ~/
-    - cp ./etc/onSuccess.sh  ~/
-    - chmod 777 ~/onFailure.sh
-    - chmod 777 ~/onSuccess.sh
+- cp ./etc/settings.xml ~/.m2/
+- cp ./etc/onFailure.sh  ~/
+- cp ./etc/onSuccess.sh  ~/
+- chmod 777 ~/onFailure.sh
+- chmod 777 ~/onSuccess.sh
 script:
-    - mvn -B clean verify
-after_failure: ~/onFailure.sh
-after_success: ~/onSuccess.sh
+- mvn -B clean verify
+after_failure: "~/onFailure.sh"
+after_success: "~/onSuccess.sh"
 after_script:
-    - mvn -B cobertura:cobertura coveralls:report
+- mvn -B cobertura:cobertura coveralls:report
 notifications:
-    email: false
-    irc:
-        channels:
-            - chat.freenode.net#lightblue
-    on_success: always
+  email: false
+  irc:
+    channels:
+    - chat.freenode.net#lightblue
+  on_success: always
 env:
-    global:
-        - secure: KUsWgSyKeNX8dIs/lKdxsgsXub98d1pqSqEFuEGMEvrxGoFaB63B1zoIwYI5uzv67Ir36N0H7GVgeqYsELKaU8mMcRevd/FXkALuGyUdS8/pbiXVEYtDDdWZP1VYF/p4cm3+ZzvEIhqj8ZgLWeIlXpIRYm4WAsnDzrTEG93INgk=
-        - secure: q/2hWviyGa/Kr7zWes9f6gIW3rJ7xf7lh5tMFrtvNuhfEO4XRra+ZYG5yBHgvvLu+J/AaksmU4SBDmEY85GuLn5uh25s6OM9vwhnpJ9lz7FQ6jK6Jnm7IwMuHYIuTTXf5m702APingF73dkYijxgMnyOK9EEHE5/cWEgznOizY4=
+  global:
+  - secure: Sx4u/bmskRzPaN5wqcqyme2MJrALt7xTjvJnDJgAq3uQB4QCwIIn5JBvKMSlhFGcM1TiC/O4L6ARAFrcXH4Cn9p21HXk2wKYam51TkItqjg1nRPVXAnx6vFdriY5Ye/Lz/epp21BLV3tpV3wcfl2Dahx8pVeVNFz5iY0v/hZ0+8=
+  - secure: boGMkyRGpGaVkhct40XfrdKdmd7DpOgVI1dnpnkHcbGwe6n3ZZbjLIn9owXz6jYOY38tOYB6Bb8giEzehazzjgW51qfW7iPVsYiAwLrpiOl102bjIVc04BZe3jPIEUHD8uCZzB/1jlelHeHRJJJedpWbNqjzxJLBpj62ox9KniI=
