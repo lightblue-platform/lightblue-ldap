@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.Response;
 import com.redhat.lightblue.crud.FindRequest;
 import com.redhat.lightblue.crud.InsertionRequest;
+import com.redhat.lightblue.ldap.test.AbstractLdapCRUDController;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
 import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
 import com.redhat.lightblue.test.FakeClientIdentification;
