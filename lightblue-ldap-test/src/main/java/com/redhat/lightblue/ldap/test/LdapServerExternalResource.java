@@ -52,17 +52,19 @@ public class LdapServerExternalResource extends ExternalResource {
      * @return simple instance of {@link LdapServerExternalResource}.
      */
     @SuppressWarnings("serial")
-    public static LdapServerExternalResource createDefaultInstance(){
-        return new LdapServerExternalResource(null, new LinkedHashMap<String, Attribute[]>(){{
-            put("dc=com", new Attribute[]{
-                    new Attribute("objectClass", "top"),
-                    new Attribute("objectClass", "domain"),
-                    new Attribute("dc", "com")});
-            put("dc=example,dc=com", new Attribute[]{
-                    new Attribute("objectClass", "top"),
-                    new Attribute("objectClass", "domain"),
-                    new Attribute("dc", "example")});
-        }});
+    public static LdapServerExternalResource createDefaultInstance() {
+        return new LdapServerExternalResource(null, new LinkedHashMap<String, Attribute[]>() {
+            {
+                put("dc=com", new Attribute[]{
+                        new Attribute("objectClass", "top"),
+                        new Attribute("objectClass", "domain"),
+                        new Attribute("dc", "com")});
+                put("dc=example,dc=com", new Attribute[]{
+                        new Attribute("objectClass", "top"),
+                        new Attribute("objectClass", "domain"),
+                        new Attribute("dc", "example")});
+            }
+        });
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -71,8 +73,11 @@ public class LdapServerExternalResource extends ExternalResource {
     @Documented
     public @interface InMemoryLdapServer {
         String[] baseDns() default {DEFAULT_BASE_DN};
+
         BindCriteria[] bindCriteria() default {@BindCriteria()};
+
         String name() default "test";
+
         int port() default DEFAULT_PORT;
     }
 
@@ -81,6 +86,7 @@ public class LdapServerExternalResource extends ExternalResource {
     @Documented
     public @interface BindCriteria {
         String bindableDn() default DEFAULT_BINDABLE_DN;
+
         String password() default DEFAULT_PASSWORD;
     }
 
@@ -89,23 +95,23 @@ public class LdapServerExternalResource extends ExternalResource {
     private final LinkedHashMap<String, Attribute[]> preloadDnData;
     private final Schema schema;
 
-    public LdapServerExternalResource(){
+    public LdapServerExternalResource() {
         this(null, null);
     }
 
-    public LdapServerExternalResource(Schema schema, LinkedHashMap<String, Attribute[]> preload){
+    public LdapServerExternalResource(Schema schema, LinkedHashMap<String, Attribute[]> preload) {
         this.schema = schema;
         this.preloadDnData = preload;
     }
 
     @Override
-    public Statement apply(Statement base, Description description){
+    public Statement apply(Statement base, Description description) {
         imlsAnnotation = description.getAnnotation(InMemoryLdapServer.class);
-        if((imlsAnnotation == null) && description.isTest()){
+        if ((imlsAnnotation == null) && description.isTest()) {
             imlsAnnotation = description.getTestClass().getAnnotation(InMemoryLdapServer.class);
         }
 
-        if(imlsAnnotation == null){
+        if (imlsAnnotation == null) {
             throw new IllegalStateException("@InMemoryLdapServer must be set on suite or test level.");
         }
 
@@ -116,7 +122,7 @@ public class LdapServerExternalResource extends ExternalResource {
     protected void before() throws Throwable {
         InMemoryDirectoryServerConfig config = new InMemoryDirectoryServerConfig(imlsAnnotation.baseDns());
 
-        for(BindCriteria bindCriteria : imlsAnnotation.bindCriteria()){
+        for (BindCriteria bindCriteria : imlsAnnotation.bindCriteria()) {
             config.addAdditionalBindCredentials(bindCriteria.bindableDn(), bindCriteria.password());
         }
 
@@ -128,8 +134,8 @@ public class LdapServerExternalResource extends ExternalResource {
         server = new InMemoryDirectoryServer(config);
         server.startListening();
 
-        if(preloadDnData != null){
-            for(Entry<String, Attribute[]> entry : preloadDnData.entrySet()){
+        if (preloadDnData != null) {
+            for (Entry<String, Attribute[]> entry : preloadDnData.entrySet()) {
                 add(entry.getKey(), entry.getValue());
             }
         }
@@ -137,14 +143,35 @@ public class LdapServerExternalResource extends ExternalResource {
 
     @Override
     protected void after() {
-        if(server != null){
+        if (server != null) {
             server.shutDown(true);
             server = null;
         }
     }
 
-    public void add(String dn, Attribute... attributes) throws LDIFException, LDAPException{
+    public void add(String dn, Attribute... attributes) throws LDIFException, LDAPException {
         server.add(dn, attributes);
+    }
+
+    /**
+     * @return the actual name used by the ldap server.
+     */
+    public String getName() {
+        return imlsAnnotation.name();
+    }
+
+    /**
+     * @return the actual port used by the ldap server.
+     */
+    public int getPort() {
+        return imlsAnnotation.port();
+    }
+
+    /**
+     * @return the actual basedns used by the ldap server.
+     */
+    public String[] getBaseDNs() {
+        return imlsAnnotation.baseDns();
     }
 
 }
