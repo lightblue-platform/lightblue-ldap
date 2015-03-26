@@ -19,7 +19,6 @@
 package com.redhat.lightblue.crud.ldap;
 
 import static com.redhat.lightblue.util.JsonUtils.json;
-import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadResource;
 
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -31,6 +30,7 @@ import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.Metadata;
 import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
+import com.redhat.lightblue.util.test.AbstractJsonNodeTest;
 import com.unboundid.ldap.sdk.Attribute;
 
 public class ITCaseLdapCRUDController_InvalidMetadata_Test extends AbstractLdapCRUDController {
@@ -72,7 +72,7 @@ public class ITCaseLdapCRUDController_InvalidMetadata_Test extends AbstractLdapC
         expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"createNewMetadata(person)\",\"errorCode\":\"ldap:UndefinedUniqueAttribute\",\"msg\":\"uid\"}");
 
         //Remove the uid field from the fields definition
-        String metadataWithoutUniqueField = loadResource("./metadata/person-metadata.json").replaceFirst("\"uid\": \\{\"type\": \"string\"\\},", "");
+        String metadataWithoutUniqueField = AbstractJsonNodeTest.loadResource("./metadata/person-metadata.json").replaceFirst("\"uid\": \\{\"type\": \"string\"\\},", "");
         JsonNode nodeWithoutUniqueField = json(metadataWithoutUniqueField);
 
         Metadata metadata = lightblueFactory.getMetadata();
