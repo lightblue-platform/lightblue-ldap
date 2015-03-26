@@ -75,8 +75,8 @@ public class ITCaseLdapCRUDController_InvalidMetadata_Test extends AbstractLdapC
         String metadataWithoutUniqueField = loadResource("./metadata/person-metadata.json").replaceFirst("\"uid\": \\{\"type\": \"string\"\\},", "");
         JsonNode nodeWithoutUniqueField = json(metadataWithoutUniqueField);
 
-        Metadata metadata = lightblueFactory.getMetadata();
-        metadata.createNewMetadata(lightblueFactory.getJsonTranslator().parse(EntityMetadata.class, nodeWithoutUniqueField));
+        Metadata metadata = getLightblueFactory().getMetadata();
+        metadata.createNewMetadata(getLightblueFactory().getJsonTranslator().parse(EntityMetadata.class, nodeWithoutUniqueField));
     }
 
 }

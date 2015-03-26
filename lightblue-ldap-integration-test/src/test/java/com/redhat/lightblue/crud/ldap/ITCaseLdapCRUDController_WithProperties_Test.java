@@ -76,7 +76,7 @@ public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCR
 
     @Test
     public void test1CustomerInsertWithProperties() throws Exception {
-        Response response = lightblueFactory.getMediator().insert(
+        Response response = getLightblueFactory().getMediator().insert(
                 createRequest_FromResource(InsertionRequest.class, "./crud/insert/customer-insert-single.json"));
 
         assertNotNull(response);
@@ -93,7 +93,7 @@ public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCR
 
     @Test
     public void test2FindCustomerWithProperties() throws Exception {
-        Response response = lightblueFactory.getMediator().find(
+        Response response = getLightblueFactory().getMediator().find(
                 createRequest_FromResource(FindRequest.class, "./crud/find/customer-find-single.json"));
 
         assertNotNull(response);

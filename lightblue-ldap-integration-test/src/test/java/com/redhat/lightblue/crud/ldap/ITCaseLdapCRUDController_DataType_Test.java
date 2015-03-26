@@ -25,7 +25,6 @@ import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadResource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -93,7 +92,7 @@ public class ITCaseLdapCRUDController_DataType_Test extends AbstractLdapCRUDCont
                 .replaceFirst("#field", fieldName)
                 .replaceFirst("#fielddata", data);
 
-        Response insertResponse = lightblueFactory.getMediator().insert(
+        Response insertResponse = getLightblueFactory().getMediator().insert(
                 createRequest_FromJsonString(InsertionRequest.class, insert));
 
         assertNotNull(insertResponse);
@@ -105,7 +104,7 @@ public class ITCaseLdapCRUDController_DataType_Test extends AbstractLdapCRUDCont
                 .replaceFirst("#cn", cn)
                 .replaceFirst("#field", fieldName);
 
-        Response findResponse = lightblueFactory.getMediator().find(
+        Response findResponse = getLightblueFactory().getMediator().find(
                 createRequest_FromJsonString(FindRequest.class, find));
 
         assertNotNull(findResponse);
