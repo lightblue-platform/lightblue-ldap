@@ -21,11 +21,9 @@ package com.redhat.lightblue.crud.ldap;
 import static com.redhat.lightblue.test.Assert.assertNoDataErrors;
 import static com.redhat.lightblue.test.Assert.assertNoErrors;
 import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadJsonNode;
-import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadResource;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -46,6 +44,7 @@ import com.redhat.lightblue.crud.InsertionRequest;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
 import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
+import com.redhat.lightblue.util.test.AbstractJsonNodeTest;
 
 @RunWith(value = Parameterized.class)
 public class ITCaseLdapCRUDController_DataType_Test extends AbstractLdapCRUDController {
@@ -88,7 +87,7 @@ public class ITCaseLdapCRUDController_DataType_Test extends AbstractLdapCRUDCont
 
     @Test
     public void testInsertThenFindField() throws Exception {
-        String insert = loadResource("./crud/insert/datatype-insert-template.json")
+        String insert = AbstractJsonNodeTest.loadResource("./crud/insert/datatype-insert-template.json")
                 .replaceFirst("#cn", cn)
                 .replaceFirst("#field", fieldName)
                 .replaceFirst("#fielddata", data);
@@ -101,7 +100,7 @@ public class ITCaseLdapCRUDController_DataType_Test extends AbstractLdapCRUDCont
         assertNoDataErrors(insertResponse);
         assertEquals(1, insertResponse.getModifiedCount());
 
-        String find = loadResource("./crud/find/datatype-find-template.json")
+        String find = AbstractJsonNodeTest.loadResource("./crud/find/datatype-find-template.json")
                 .replaceFirst("#cn", cn)
                 .replaceFirst("#field", fieldName);
 
