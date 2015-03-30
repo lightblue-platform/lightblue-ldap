@@ -8,6 +8,6 @@
         "objectClass": ["top", "groupofNames"],
         "cn": "#cn",
         "description": "#description",
-        "member": ["#members"]
+        "member": [#members]
     }
 }
