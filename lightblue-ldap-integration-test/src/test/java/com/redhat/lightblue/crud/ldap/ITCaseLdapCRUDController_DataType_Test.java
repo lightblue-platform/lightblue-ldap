@@ -92,7 +92,7 @@ public class ITCaseLdapCRUDController_DataType_Test extends AbstractLdapCRUDCont
                 .replaceFirst("#field", fieldName)
                 .replaceFirst("#fielddata", data);
 
-        Response insertResponse = lightblueFactory.getMediator().insert(
+        Response insertResponse = getLightblueFactory().getMediator().insert(
                 createRequest_FromJsonString(InsertionRequest.class, insert));
 
         assertNotNull(insertResponse);
@@ -104,7 +104,7 @@ public class ITCaseLdapCRUDController_DataType_Test extends AbstractLdapCRUDCont
                 .replaceFirst("#cn", cn)
                 .replaceFirst("#field", fieldName);
 
-        Response findResponse = lightblueFactory.getMediator().find(
+        Response findResponse = getLightblueFactory().getMediator().find(
                 createRequest_FromJsonString(FindRequest.class, find));
 
         assertNotNull(findResponse);

@@ -43,6 +43,7 @@ import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
 import com.redhat.lightblue.test.FakeClientIdentification;
 import com.redhat.lightblue.util.test.AbstractJsonNodeTest;
 import com.unboundid.ldap.sdk.Attribute;
+import java.io.IOException;
 
 /**
  * <b>NOTE:</b> This test suite is intended to be run in a certain order. Selectively running unit tests
@@ -83,7 +84,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController {
     }
 
     @Override
-    protected JsonNode[] getMetadataJsonNodes() throws Exception {
+    protected JsonNode[] getMetadataJsonNodes() throws IOException {
         return new JsonNode[]{
                 loadJsonNode("./metadata/person-metadata.json"),
                 loadJsonNode("./metadata/department-metadata.json")};
@@ -91,7 +92,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController {
 
     @Test
     public void series1_phase1_Person_Insert() throws Exception {
-        Response response = lightblueFactory.getMediator().insert(
+        Response response = getLightblueFactory().getMediator().insert(
                 createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json"));
 
         assertNotNull(response);
@@ -108,7 +109,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController {
 
     @Test
     public void series1_phase2_Person_FindSingle() throws Exception {
-        Response response = lightblueFactory.getMediator().find(
+        Response response = getLightblueFactory().getMediator().find(
                 createRequest_FromResource(FindRequest.class, "./crud/find/person-find-single.json"));
 
         assertNotNull(response);
@@ -125,7 +126,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController {
 
     @Test
     public void series1_phase2_Person_FindMany() throws Exception {
-        Response response = lightblueFactory.getMediator().find(
+        Response response = getLightblueFactory().getMediator().find(
                 createRequest_FromResource(FindRequest.class, "./crud/find/person-find-many.json"));
 
         assertNotNull(response);
@@ -144,7 +145,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController {
 
     @Test
     public void series1_phase2_Person_FindMany_WithPagination() throws Exception {
-        Response response = lightblueFactory.getMediator().find(
+        Response response = getLightblueFactory().getMediator().find(
                 createRequest_FromResource(FindRequest.class, "./crud/find/person-find-many-paginated.json"));
 
         assertNotNull(response);
@@ -170,7 +171,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController {
         InsertionRequest insertRequest = createRequest_FromJsonString(InsertionRequest.class, insert);
         insertRequest.setClientId(new FakeClientIdentification("fakeUser", "admin"));
 
-        Response response = lightblueFactory.getMediator().insert(insertRequest);
+        Response response = getLightblueFactory().getMediator().insert(insertRequest);
 
         assertNotNull(response);
         assertNoErrors(response);
@@ -194,7 +195,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController {
         InsertionRequest insertRequest = createRequest_FromJsonString(InsertionRequest.class, insert);
         insertRequest.setClientId(new FakeClientIdentification("fakeUser"));
 
-        Response response = lightblueFactory.getMediator().insert(insertRequest);
+        Response response = getLightblueFactory().getMediator().insert(insertRequest);
 
         assertNotNull(response);
         assertEquals(0, response.getModifiedCount());
@@ -212,7 +213,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController {
         FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find-single.json");
         findRequest.setClientId(new FakeClientIdentification("fakeUser", "admin"));
 
-        Response response = lightblueFactory.getMediator().find(findRequest);
+        Response response = getLightblueFactory().getMediator().find(findRequest);
 
         assertNotNull(response);
         assertNoErrors(response);
@@ -231,7 +232,7 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController {
         FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find-single.json");
         findRequest.setClientId(new FakeClientIdentification("fakeUser"));
 
-        Response response = lightblueFactory.getMediator().find(findRequest);
+        Response response = getLightblueFactory().getMediator().find(findRequest);
 
         assertNotNull(response);
         assertEquals(1, response.getMatchCount());
