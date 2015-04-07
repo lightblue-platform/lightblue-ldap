@@ -44,6 +44,11 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+           <groupId>com.redhat.lightblue</groupId>
+           <artifactId>lightblue-core-test</artifactId>
+           <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>com.redhat.lightblue.mongo</groupId>
             <artifactId>lightblue-mongo-test</artifactId>
             <scope>compile</scope>
