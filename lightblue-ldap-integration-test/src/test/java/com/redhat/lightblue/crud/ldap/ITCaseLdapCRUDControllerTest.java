@@ -25,6 +25,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
@@ -39,12 +40,9 @@ import com.redhat.lightblue.Response;
 import com.redhat.lightblue.crud.FindRequest;
 import com.redhat.lightblue.crud.InsertionRequest;
 import com.redhat.lightblue.ldap.test.AbstractLdapCRUDController;
-import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
-import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
 import com.redhat.lightblue.test.FakeClientIdentification;
 import com.redhat.lightblue.util.test.AbstractJsonNodeTest;
 import com.unboundid.ldap.sdk.Attribute;
-import java.io.IOException;
 
 /**
  * <b>NOTE:</b> This test suite is intended to be run in a certain order. Selectively running unit tests
@@ -69,15 +67,8 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController {
                 new Attribute("objectClass", "organizationalUnit"),
                 new Attribute("ou", "Departments")});
 
-        System.setProperty("ldap.host", "localhost");
-        System.setProperty("ldap.port", String.valueOf(LdapServerExternalResource.DEFAULT_PORT));
-        System.setProperty("ldap.database", "test");
         System.setProperty("ldap.person.basedn", BASEDB_USERS);
         System.setProperty("ldap.department.basedn", BASEDB_DEPARTMENTS);
-
-        System.setProperty("mongo.host", "localhost");
-        System.setProperty("mongo.port", String.valueOf(MongoServerExternalResource.DEFAULT_PORT));
-        System.setProperty("mongo.database", "lightblue");
     }
 
     public ITCaseLdapCRUDControllerTest() throws Exception {

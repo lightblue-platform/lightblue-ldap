@@ -35,8 +35,6 @@ import com.redhat.lightblue.Response;
 import com.redhat.lightblue.crud.FindRequest;
 import com.redhat.lightblue.crud.InsertionRequest;
 import com.redhat.lightblue.ldap.test.AbstractLdapCRUDController;
-import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
-import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
 import com.unboundid.ldap.sdk.Attribute;
 
 /**
@@ -56,14 +54,7 @@ public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCR
                 new Attribute("objectClass", "organizationalUnit"),
                 new Attribute("ou", "Customers")});
 
-        System.setProperty("ldap.host", "localhost");
-        System.setProperty("ldap.port", String.valueOf(LdapServerExternalResource.DEFAULT_PORT));
-        System.setProperty("ldap.database", "test");
         System.setProperty("ldap.customer.basedn", BASEDB_CUSTOMERS);
-
-        System.setProperty("mongo.host", "localhost");
-        System.setProperty("mongo.port", String.valueOf(MongoServerExternalResource.DEFAULT_PORT));
-        System.setProperty("mongo.database", "lightblue");
     }
 
     public ITCaseLdapCRUDController_WithProperties_Test() throws Exception {
