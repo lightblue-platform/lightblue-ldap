@@ -18,9 +18,14 @@
  */
 package com.redhat.lightblue.ldap.test;
 
+import static com.redhat.lightblue.util.JsonUtils.json;
+
+import java.io.IOException;
+
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource.InMemoryLdapServer;
 import com.redhat.lightblue.mongo.test.AbstractMongoCRUDTestController;
 
@@ -32,6 +37,9 @@ public abstract class AbstractLdapCRUDController extends AbstractMongoCRUDTestCo
 
     @BeforeClass
     public static void prepareLdapDatasources() {
+        if (System.getProperty("ldap.datasource") == null) {
+            System.setProperty("ldap.datasource", "myldapdatasource");
+        }
         if (System.getProperty("ldap.host") == null) {
             System.setProperty("ldap.host", "localhost");
         }
@@ -39,12 +47,35 @@ public abstract class AbstractLdapCRUDController extends AbstractMongoCRUDTestCo
             System.setProperty("ldap.port", String.valueOf(ldapServer.getPort()));
         }
         if (System.getProperty("ldap.database") == null) {
-            System.setProperty("ldap.database", "lightblue");
+            System.setProperty("ldap.database", "test");
         }
     }
 
     public AbstractLdapCRUDController() throws Exception {
         super();
+    }
+
+    @Override
+    protected JsonNode getLightblueCrudJson() throws Exception {
+        return json(loadResource("/ldap-lightblue-crud.json", true));
+    }
+
+    @Override
+    protected JsonNode getLightblueMetadataJson() throws Exception {
+        return json(loadResource("/ldap-lightblue-metadata.json", true));
+    }
+
+    @Override
+    protected JsonNode getDatasourcesJson() {
+        try {
+            if (getDatasourcesResourceName() == null) {
+                return json(loadResource("/ldap-datasources.json", true));
+            } else {
+                return json(loadResource(getDatasourcesResourceName(), false));
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load resource '" + getDatasourcesResourceName() + "'", e);
+        }
     }
 
 }

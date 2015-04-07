@@ -1,5 +1,5 @@
 {
-    "myldapserver": {
+    "${ldap.datasource}": {
         "type" : "com.redhat.lightblue.config.ldap.LdapDataSourceConfiguration",
         "database" : "${ldap.database}",
 
@@ -14,7 +14,7 @@
             }
         ]
     },
-    "mongo" : {
+    "${mongo.datasource}" : {
         "type" : "com.redhat.lightblue.mongo.config.MongoConfiguration",
         "metadataBackendParser" : "com.redhat.lightblue.metadata.mongo.MongoBackendParser",
         "ssl" : false,
