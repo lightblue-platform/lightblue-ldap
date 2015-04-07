@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.Response;
 import com.redhat.lightblue.crud.FindRequest;
 import com.redhat.lightblue.crud.InsertionRequest;
+import com.redhat.lightblue.ldap.test.AbstractLdapCRUDController;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
 import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
 import com.unboundid.ldap.sdk.Attribute;
@@ -111,7 +112,7 @@ public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCR
                         + "\"cn\":\"Frodo Baggins\","
                         + "\"interfaces#\":4,"
                         + "\"interfaces\":[\"top\",\"person\",\"organizationalPerson\",\"inetOrgPerson\"]}]",
-                entityData.toString(), true);
+                        entityData.toString(), true);
     }
 
 }

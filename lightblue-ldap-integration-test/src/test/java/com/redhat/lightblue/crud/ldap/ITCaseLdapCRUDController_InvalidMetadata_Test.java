@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.redhat.lightblue.ldap.test.AbstractLdapCRUDController;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.Metadata;

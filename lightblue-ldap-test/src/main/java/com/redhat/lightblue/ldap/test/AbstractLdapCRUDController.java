@@ -16,25 +16,32 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.redhat.lightblue.crud.ldap;
+package com.redhat.lightblue.ldap.test;
 
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
-import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource.InMemoryLdapServer;
-import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
-import com.redhat.lightblue.mongo.test.MongoServerExternalResource.InMemoryMongoServer;
-import com.redhat.lightblue.test.AbstractCRUDTestController;
+import com.redhat.lightblue.mongo.test.AbstractMongoCRUDTestController;
 
-@InMemoryMongoServer
 @InMemoryLdapServer
-public abstract class AbstractLdapCRUDController extends AbstractCRUDTestController {
-
-    @ClassRule
-    public static MongoServerExternalResource mongoServer = new MongoServerExternalResource();
+public abstract class AbstractLdapCRUDController extends AbstractMongoCRUDTestController {
 
     @ClassRule
     public static LdapServerExternalResource ldapServer = LdapServerExternalResource.createDefaultInstance();
+
+    @BeforeClass
+    public static void prepareLdapDatasources() {
+        if (System.getProperty("ldap.host") == null) {
+            System.setProperty("ldap.host", "localhost");
+        }
+        if (System.getProperty("ldap.port") == null) {
+            System.setProperty("ldap.port", String.valueOf(ldapServer.getPort()));
+        }
+        if (System.getProperty("ldap.database") == null) {
+            System.setProperty("ldap.database", "lightblue");
+        }
+    }
 
     public AbstractLdapCRUDController() throws Exception {
         super();
