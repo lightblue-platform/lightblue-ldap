@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    along with this program.  If not, see <http://www.gnu.org/licenses />.
 -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -25,13 +25,13 @@
         <groupId>org.sonatype.oss</groupId>
         <artifactId>oss-parent</artifactId>
         <version>7</version>
-        <relativePath></relativePath>
+        <relativePath />
     </parent>
      
     <groupId>com.redhat.lightblue.ldap</groupId>
     <artifactId>lightblue-ldap-pom</artifactId>
     <name>lightblue-ldap: ${project.groupId}|${project.artifactId}</name>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.9.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <description>Lightblue LDAP implementation</description>
     
@@ -118,17 +118,17 @@
             <dependency>
                 <groupId>com.redhat.lightblue</groupId>
                 <artifactId>lightblue-core-config</artifactId>
-                <version>1.3.0-SNAPSHOT</version>
+                <version>1.4.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.redhat.lightblue</groupId>
                 <artifactId>lightblue-core-crud</artifactId>
-                <version>1.3.0-SNAPSHOT</version>
+                <version>1.4.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.redhat.lightblue</groupId>
                 <artifactId>lightblue-core-metadata</artifactId>
-                <version>1.3.0-SNAPSHOT</version>
+                <version>1.4.0-SNAPSHOT</version>
             </dependency>
             
             <!-- Lightblue Ldap -->
@@ -167,8 +167,13 @@
             <!-- Lightblue Mongo -->
             <dependency>
                 <groupId>com.redhat.lightblue.mongo</groupId>
+                <artifactId>lightblue-mongo-config</artifactId>
+                <version>1.4.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.redhat.lightblue.mongo</groupId>
                 <artifactId>lightblue-mongo-test</artifactId>
-                <version>1.3.0-SNAPSHOT</version>
+                <version>1.4.0-SNAPSHOT</version>
                 <scope>test</scope>
             </dependency>
             
@@ -212,7 +217,7 @@
             <dependency>
                 <groupId>com.redhat.lightblue</groupId>
                 <artifactId>lightblue-core-test</artifactId>
-                <version>1.3.0-SNAPSHOT</version>
+                <version>1.4.0-SNAPSHOT</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
