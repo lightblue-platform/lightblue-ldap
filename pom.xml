@@ -164,6 +164,19 @@
                 <scope>test</scope>
             </dependency>
             
+            <!-- Lightblue Mongo -->
+            <dependency>
+                <groupId>com.redhat.lightblue.mongo</groupId>
+                <artifactId>lightblue-mongo-config</artifactId>
+                <version>1.4.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.redhat.lightblue.mongo</groupId>
+                <artifactId>lightblue-mongo-test</artifactId>
+                <version>1.4.0-SNAPSHOT</version>
+                <scope>test</scope>
+            </dependency>
+            
             <!-- 3rd Party -->
             <dependency>
                 <groupId>com.unboundid</groupId>

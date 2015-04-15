@@ -26,10 +26,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.redhat.lightblue.ldap.test.LdapServerExternalResource;
+import com.redhat.lightblue.ldap.test.AbstractLdapCRUDController;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.Metadata;
-import com.redhat.lightblue.mongo.test.MongoServerExternalResource;
 import com.redhat.lightblue.util.test.AbstractJsonNodeTest;
 import com.unboundid.ldap.sdk.Attribute;
 
@@ -47,14 +46,7 @@ public class ITCaseLdapCRUDController_InvalidMetadata_Test extends AbstractLdapC
                 new Attribute("objectClass", "organizationalUnit"),
                 new Attribute("ou", "Users")});
 
-        System.setProperty("ldap.host", "localhost");
-        System.setProperty("ldap.port", String.valueOf(LdapServerExternalResource.DEFAULT_PORT));
-        System.setProperty("ldap.database", "test");
         System.setProperty("ldap.person.basedn", BASEDB_USERS);
-
-        System.setProperty("mongo.host", "localhost");
-        System.setProperty("mongo.port", String.valueOf(MongoServerExternalResource.DEFAULT_PORT));
-        System.setProperty("mongo.database", "lightblue");
     }
 
     public ITCaseLdapCRUDController_InvalidMetadata_Test() throws Exception {

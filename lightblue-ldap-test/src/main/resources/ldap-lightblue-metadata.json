@@ -1,6 +1,6 @@
 {
     "type" : "com.redhat.lightblue.mongo.config.MongoMetadataConfiguration",
-    "dataSource" : "mongo",
+    "dataSource" : "${mongo.datasource}",
     "collection": "metadata",
     "backendParsers": [
         {
