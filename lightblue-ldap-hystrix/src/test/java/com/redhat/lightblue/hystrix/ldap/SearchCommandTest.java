@@ -64,19 +64,23 @@ public class SearchCommandTest {
     public void testExecute() throws LDAPException {
         LDAPConnection connection = ldapServer.getLDAPConnection();
 
-        insertData(connection);
+        try {
+            insertData(connection);
 
-        SearchRequest searchRequest = new SearchRequest("dc=example,dc=com", SearchScope.SUB, "uid=john.doe");
-        SearchCommand command = new SearchCommand(connection, searchRequest);
+            SearchRequest searchRequest = new SearchRequest("dc=example,dc=com", SearchScope.SUB, "uid=john.doe");
+            SearchCommand command = new SearchCommand(connection, searchRequest);
 
-        SearchResult result = command.execute();
+            SearchResult result = command.execute();
 
-        assertNotNull(result);
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
-        assertEquals(1, result.getEntryCount());
-        SearchResultEntry found = result.getSearchEntry("uid=john.doe,dc=example,dc=com");
-        assertNotNull(found);
-        assertEquals("John", found.getAttribute("givenName").getValue());
+            assertNotNull(result);
+            assertEquals(ResultCode.SUCCESS, result.getResultCode());
+            assertEquals(1, result.getEntryCount());
+            SearchResultEntry found = result.getSearchEntry("uid=john.doe,dc=example,dc=com");
+            assertNotNull(found);
+            assertEquals("John", found.getAttribute("givenName").getValue());
+        } finally {
+            connection.close();
+        }
     }
 
 }

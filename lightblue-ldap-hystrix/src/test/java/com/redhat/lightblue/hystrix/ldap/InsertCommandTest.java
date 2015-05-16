@@ -43,20 +43,24 @@ public class InsertCommandTest {
     public void testExecute() throws LDAPException {
         LDAPConnection connection = ldapServer.getLDAPConnection();
 
-        Entry entry = new Entry("uid=john.doe,dc=example,dc=com",
-                new Attribute("objectClass", "top", "person", "organizationalPerson", "inetOrgPerson"),
-                new Attribute("uid", "john.doe"),
-                new Attribute("givenName", "John"),
-                new Attribute("sn", "Doe"),
-                new Attribute("cn", "John Doe")
-                );
+        try {
+            Entry entry = new Entry("uid=john.doe,dc=example,dc=com",
+                    new Attribute("objectClass", "top", "person", "organizationalPerson", "inetOrgPerson"),
+                    new Attribute("uid", "john.doe"),
+                    new Attribute("givenName", "John"),
+                    new Attribute("sn", "Doe"),
+                    new Attribute("cn", "John Doe")
+                    );
 
-        InsertCommand command = new InsertCommand(connection, entry);
+            InsertCommand command = new InsertCommand(connection, entry);
 
-        LDAPResult result = command.execute();
+            LDAPResult result = command.execute();
 
-        assertNotNull(result);
-        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+            assertNotNull(result);
+            assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        } finally {
+            connection.close();
+        }
     }
 
 }
