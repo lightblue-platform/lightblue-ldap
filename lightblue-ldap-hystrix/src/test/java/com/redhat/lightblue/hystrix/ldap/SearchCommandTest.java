@@ -43,7 +43,7 @@ public class SearchCommandTest {
     @Rule
     public LdapServerExternalResource ldapServer = LdapServerExternalResource.createDefaultInstance();
 
-    private void insertData(LDAPConnection connection){
+    private void insertData(LDAPConnection connection) {
         Entry entry = new Entry("uid=john.doe,dc=example,dc=com",
                 new Attribute("objectClass", "top", "person", "organizationalPerson", "inetOrgPerson"),
                 new Attribute("uid", "john.doe"),
@@ -61,8 +61,8 @@ public class SearchCommandTest {
     }
 
     @Test
-    public void testExecute() throws LDAPException{
-        LDAPConnection connection = new LDAPConnection("localhost", LdapServerExternalResource.DEFAULT_PORT);
+    public void testExecute() throws LDAPException {
+        LDAPConnection connection = ldapServer.getLDAPConnection();
 
         insertData(connection);
 

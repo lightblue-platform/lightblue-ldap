@@ -40,8 +40,8 @@ public class InsertCommandTest {
     public LdapServerExternalResource ldapServer = LdapServerExternalResource.createDefaultInstance();
 
     @Test
-    public void testExecute() throws LDAPException{
-        LDAPConnection connection = new LDAPConnection("localhost", LdapServerExternalResource.DEFAULT_PORT);
+    public void testExecute() throws LDAPException {
+        LDAPConnection connection = ldapServer.getLDAPConnection();
 
         Entry entry = new Entry("uid=john.doe,dc=example,dc=com",
                 new Attribute("objectClass", "top", "person", "organizationalPerson", "inetOrgPerson"),
