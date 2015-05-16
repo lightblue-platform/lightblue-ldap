@@ -49,6 +49,7 @@ import com.redhat.lightblue.crud.ldap.translator.SortTranslator;
 import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
 import com.redhat.lightblue.eval.Projector;
 import com.redhat.lightblue.hystrix.ldap.InsertCommand;
+import com.redhat.lightblue.hystrix.ldap.SearchCommand;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.FieldCursor;
 import com.redhat.lightblue.metadata.MetadataConstants;
@@ -198,49 +199,44 @@ public class LdapCRUDController implements CRUDController {
 
         LdapFieldNameTranslator fieldNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
 
-        try {
-            //TODO: Support scopes other than SUB
-            SearchRequest request = new SearchRequest(
-                    store.getBaseDN(),
-                    SearchScope.SUB,
-                    new FilterBuilder(fieldNameTranslator).build(query),
-                    translateFieldNames(fieldNameTranslator, gatherRequiredFields(md, projection, query, sort)).toArray(new String[0]));
-            if (sort != null) {
-                request.addControl(new ServerSideSortRequestControl(false, new SortTranslator(fieldNameTranslator).translate(sort)));
-            }
-            if ((from != null) && (from > 0)) {
-                int endPos = to.intValue() - from.intValue();
-                request.addControl(new VirtualListViewRequestControl(from.intValue(), 0, endPos, 0, null, false));
-            }
+        //TODO: Support scopes other than SUB
+        SearchRequest request = new SearchRequest(
+                store.getBaseDN(),
+                SearchScope.SUB,
+                new FilterBuilder(fieldNameTranslator).build(query),
+                translateFieldNames(fieldNameTranslator, gatherRequiredFields(md, projection, query, sort)).toArray(new String[0]));
+        if (sort != null) {
+            request.addControl(new ServerSideSortRequestControl(false, new SortTranslator(fieldNameTranslator).translate(sort)));
+        }
+        if ((from != null) && (from > 0)) {
+            int endPos = to.intValue() - from.intValue();
+            request.addControl(new VirtualListViewRequestControl(from.intValue(), 0, endPos, 0, null, false));
+        }
 
-            SearchResult result = connection.search(request);
+        SearchResult result = new SearchCommand(connection, request).execute();
 
-            response.setSize(result.getEntryCount());
-            ResultTranslatorToJson resultTranslator = new ResultTranslatorToJson(ctx.getFactory().getNodeFactory(), md, fieldNameTranslator);
-            List<DocCtx> translatedDocs = new ArrayList<DocCtx>();
-            for (SearchResultEntry entry : result.getSearchEntries()) {
-                try {
-                    translatedDocs.add(new DocCtx(resultTranslator.translate(entry)));
-                } catch (Exception e) {
-                    ctx.addError(Error.get(e));
-                }
+        response.setSize(result.getEntryCount());
+        ResultTranslatorToJson resultTranslator = new ResultTranslatorToJson(ctx.getFactory().getNodeFactory(), md, fieldNameTranslator);
+        List<DocCtx> translatedDocs = new ArrayList<DocCtx>();
+        for (SearchResultEntry entry : result.getSearchEntries()) {
+            try {
+                translatedDocs.add(new DocCtx(resultTranslator.translate(entry)));
+            } catch (Exception e) {
+                ctx.addError(Error.get(e));
             }
-            ctx.setDocuments(translatedDocs);
+        }
+        ctx.setDocuments(translatedDocs);
 
-            Projector projector = Projector.getInstance(
-                    Projection.add(
-                            projection,
-                            new FieldAccessRoleEvaluator(
-                                    md,
-                                    ctx.getCallerRoles()).getExcludedFields(FieldAccessRoleEvaluator.Operation.find)
-                            ),
-                    md);
-            for (DocCtx document : ctx.getDocumentsWithoutErrors()) {
-                document.setOutputDocument(projector.project(document, ctx.getFactory().getNodeFactory()));
-            }
-        } catch (LDAPException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        Projector projector = Projector.getInstance(
+                Projection.add(
+                        projection,
+                        new FieldAccessRoleEvaluator(
+                                md,
+                                ctx.getCallerRoles()).getExcludedFields(FieldAccessRoleEvaluator.Operation.find)
+                        ),
+                md);
+        for (DocCtx document : ctx.getDocumentsWithoutErrors()) {
+            document.setOutputDocument(projector.project(document, ctx.getFactory().getNodeFactory()));
         }
 
         return response;
