@@ -1,25 +1,10 @@
-/*
- Copyright 2014 Red Hat, Inc. and/or its affiliates.
-
- This file is part of lightblue.
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 package com.redhat.lightblue.hystrix.ldap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,6 +16,8 @@ import com.unboundid.ldap.sdk.Entry;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.LDAPResult;
+import com.unboundid.ldap.sdk.Modification;
+import com.unboundid.ldap.sdk.ModificationType;
 import com.unboundid.ldap.sdk.ResultCode;
 import com.unboundid.ldap.sdk.SearchRequest;
 import com.unboundid.ldap.sdk.SearchResult;
@@ -38,7 +25,7 @@ import com.unboundid.ldap.sdk.SearchResultEntry;
 import com.unboundid.ldap.sdk.SearchScope;
 
 @InMemoryLdapServer
-public class SearchCommandTest {
+public class UpdateCommandTest {
 
     @Rule
     public LdapServerExternalResource ldapServer = LdapServerExternalResource.createDefaultInstance();
@@ -60,24 +47,47 @@ public class SearchCommandTest {
         assertEquals(ResultCode.SUCCESS, result.getResultCode());
     }
 
+    private SearchResult searchForData(LDAPConnection connection) throws LDAPException {
+        SearchRequest searchRequest = new SearchRequest("dc=example,dc=com", SearchScope.SUB, "uid=john.doe");
+        SearchCommand command = new SearchCommand(connection, searchRequest);
+
+        return command.execute();
+    }
+
+    private void ensureDataExists(LDAPConnection connection) throws LDAPException {
+        SearchResult result = searchForData(connection);
+
+        assertNotNull(result);
+        assertEquals(ResultCode.SUCCESS, result.getResultCode());
+        assertEquals(1, result.getEntryCount());
+        SearchResultEntry found = result.getSearchEntry("uid=john.doe,dc=example,dc=com");
+        assertNotNull(found);
+        assertEquals("John", found.getAttribute("givenName").getValue());
+    }
+
     @Test
     public void testExecute() throws LDAPException {
         LDAPConnection connection = ldapServer.getLDAPConnection();
 
         try {
             insertData(connection);
+            ensureDataExists(connection);
 
-            SearchRequest searchRequest = new SearchRequest("dc=example,dc=com", SearchScope.SUB, "uid=john.doe");
-            SearchCommand command = new SearchCommand(connection, searchRequest);
+            List<Modification> mods = Arrays.asList(new Modification(ModificationType.REPLACE, "givenName", "Sam"));
+            UpdateCommand command = new UpdateCommand(connection, "uid=john.doe,dc=example,dc=com", mods);
 
-            SearchResult result = command.execute();
-
+            LDAPResult result = command.execute();
             assertNotNull(result);
             assertEquals(ResultCode.SUCCESS, result.getResultCode());
-            assertEquals(1, result.getEntryCount());
-            SearchResultEntry found = result.getSearchEntry("uid=john.doe,dc=example,dc=com");
+
+            //Verify update
+            SearchResult postResult = searchForData(connection);
+            assertNotNull(postResult);
+            assertEquals(ResultCode.SUCCESS, postResult.getResultCode());
+            assertEquals(1, postResult.getEntryCount());
+            SearchResultEntry found = postResult.getSearchEntry("uid=john.doe,dc=example,dc=com");
             assertNotNull(found);
-            assertEquals("John", found.getAttribute("givenName").getValue());
+            assertEquals("Sam", found.getAttribute("givenName").getValue());
         } finally {
             connection.close();
         }

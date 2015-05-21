@@ -35,6 +35,7 @@ import com.unboundid.ldap.listener.InMemoryDirectoryServer;
 import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig;
 import com.unboundid.ldap.listener.InMemoryListenerConfig;
 import com.unboundid.ldap.sdk.Attribute;
+import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.schema.Schema;
 import com.unboundid.ldif.LDIFException;
@@ -172,6 +173,10 @@ public class LdapServerExternalResource extends ExternalResource {
      */
     public String[] getBaseDNs() {
         return imlsAnnotation.baseDns();
+    }
+
+    public LDAPConnection getLDAPConnection() throws LDAPException {
+        return new LDAPConnection("localhost", getPort());
     }
 
 }
