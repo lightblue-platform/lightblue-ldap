@@ -19,8 +19,7 @@
 package com.redhat.lightblue.ldap.test;
 
 import static com.redhat.lightblue.util.JsonUtils.json;
-
-import java.io.IOException;
+import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadResource;
 
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -57,25 +56,17 @@ public abstract class AbstractLdapCRUDController extends AbstractMongoCRUDTestCo
 
     @Override
     protected JsonNode getLightblueCrudJson() throws Exception {
-        return json(loadResource("/ldap-lightblue-crud.json", true));
+        return json(loadResource("/ldap-lightblue-crud.json", AbstractLdapCRUDController.class));
     }
 
     @Override
     protected JsonNode getLightblueMetadataJson() throws Exception {
-        return json(loadResource("/ldap-lightblue-metadata.json", true));
+        return json(loadResource("/ldap-lightblue-metadata.json", AbstractLdapCRUDController.class));
     }
 
     @Override
-    protected JsonNode getDatasourcesJson() {
-        try {
-            if (getDatasourcesResourceName() == null) {
-                return json(loadResource("/ldap-datasources.json", true));
-            } else {
-                return json(loadResource(getDatasourcesResourceName(), false));
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to load resource '" + getDatasourcesResourceName() + "'", e);
-        }
+    protected JsonNode getDatasourcesJson() throws Exception {
+        return json(loadResource("/ldap-datasources.json", AbstractLdapCRUDController.class));
     }
 
 }
