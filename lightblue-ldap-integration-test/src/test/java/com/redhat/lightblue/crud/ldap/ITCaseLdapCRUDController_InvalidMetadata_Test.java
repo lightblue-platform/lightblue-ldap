@@ -65,7 +65,7 @@ public class ITCaseLdapCRUDController_InvalidMetadata_Test extends AbstractLdapC
 
         //Remove the uid field from the fields definition
         String metadataWithoutUniqueField = AbstractJsonNodeTest.loadResource("./metadata/person-metadata.json").replaceFirst("\"uid\": \\{\"type\": \"string\"\\},", "");
-        JsonNode nodeWithoutUniqueField = json(metadataWithoutUniqueField);
+        JsonNode nodeWithoutUniqueField = json(metadataWithoutUniqueField, true);
 
         Metadata metadata = getLightblueFactory().getMetadata();
         metadata.createNewMetadata(getLightblueFactory().getJsonTranslator().parse(EntityMetadata.class, nodeWithoutUniqueField));
