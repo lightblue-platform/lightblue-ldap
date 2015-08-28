@@ -56,17 +56,17 @@ public abstract class AbstractLdapCRUDController extends AbstractMongoCRUDTestCo
 
     @Override
     protected JsonNode getLightblueCrudJson() throws Exception {
-        return json(loadResource("/ldap-lightblue-crud.json", AbstractLdapCRUDController.class));
+        return json(loadResource("/ldap-lightblue-crud.json", AbstractLdapCRUDController.class), true);
     }
 
     @Override
     protected JsonNode getLightblueMetadataJson() throws Exception {
-        return json(loadResource("/ldap-lightblue-metadata.json", AbstractLdapCRUDController.class));
+        return json(loadResource("/ldap-lightblue-metadata.json", AbstractLdapCRUDController.class), true);
     }
 
     @Override
     protected JsonNode getDatasourcesJson() throws Exception {
-        return json(loadResource("/ldap-datasources.json", AbstractLdapCRUDController.class));
+        return json(loadResource("/ldap-datasources.json", AbstractLdapCRUDController.class), true);
     }
 
 }

@@ -68,7 +68,7 @@ public class EntryTranslatorFromJsonTest {
                 .replaceFirst("#fieldname", fieldName)
                 .replaceFirst("#value", crudValue);
 
-        EntityMetadata md = MetadataUtil.createEntityMetadata(LdapConstant.BACKEND, json(metadata), null, null);
+        EntityMetadata md = MetadataUtil.createEntityMetadata(LdapConstant.BACKEND, json(metadata, true), null, null);
         EntryTranslatorFromJson builder = new EntryTranslatorFromJson(md, new TrivialLdapFieldNameTranslator());
 
         return builder.translate(new JsonDoc(json(crud).get("data")),
