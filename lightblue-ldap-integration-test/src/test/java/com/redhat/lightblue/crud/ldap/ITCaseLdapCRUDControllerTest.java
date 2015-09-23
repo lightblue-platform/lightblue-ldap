@@ -82,6 +82,11 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController {
                 loadJsonNode("./metadata/department-metadata.json")};
     }
 
+    @Override
+    public boolean isGrantAnyoneAccess() {
+        return false;
+    }
+
     @Test
     public void series1_phase1_Person_Insert() throws Exception {
         Response response = getLightblueFactory().getMediator().insert(
@@ -227,10 +232,9 @@ public class ITCaseLdapCRUDControllerTest extends AbstractLdapCRUDController {
         Response response = getLightblueFactory().getMediator().find(findRequest);
 
         assertNotNull(response);
-        assertEquals(1, response.getMatchCount());
-
         assertNoErrors(response);
         assertNoDataErrors(response);
+        assertEquals(1, response.getMatchCount());
 
         assertNotNull(response.getEntityData());
         JsonNode entityData = response.getEntityData();
