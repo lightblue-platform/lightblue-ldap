@@ -240,12 +240,15 @@ public class ResultTranslatorToJsonTest {
 
     @Test
     public void testTranslate_SimpleField_Date() throws JSONException{
+        Attribute keyAttribute = new Attribute("key", "20150109201731.570Z");
+
         //Note in and out data are formatted differently
         SearchResultEntry result = new SearchResultEntry(-1, "uid=john.doe,dc=example,dc=com", new Attribute[]{
-                new Attribute("key", "20150109201731.570Z")
+                keyAttribute
         });
 
-        EntityMetadata md = fakeEntityMetadata("fakeMetadata",
+        EntityMetadata md = fakeEntityMetadata(
+                "fakeMetadata",
                 new SimpleField("key", DateType.TYPE)
                 );
 
@@ -253,8 +256,9 @@ public class ResultTranslatorToJsonTest {
 
         assertNotNull(document);
 
+        String lbDate = DateType.getDateFormat().format(keyAttribute.getValueAsDate());
         JSONAssert.assertEquals(
-                "{\"key\":\"20150109T20:17:31.570+0000\",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
+                "{\"key\":\"" + lbDate + "\",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
                 document.toString(),
                 true);
     }
