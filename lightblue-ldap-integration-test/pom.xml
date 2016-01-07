@@ -44,7 +44,7 @@
         
         <dependency>
             <groupId>com.redhat.lightblue.mongo</groupId>
-            <artifactId>lightblue-mongo-config</artifactId>
+            <artifactId>lightblue-mongo</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
