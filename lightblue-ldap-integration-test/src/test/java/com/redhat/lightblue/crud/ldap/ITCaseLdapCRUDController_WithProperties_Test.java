@@ -34,7 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.Response;
 import com.redhat.lightblue.crud.FindRequest;
 import com.redhat.lightblue.crud.InsertionRequest;
-import com.redhat.lightblue.ldap.test.AbstractLdapCRUDController;
+import com.redhat.lightblue.ldap.test.LightblueLdapTestHarness;
 import com.unboundid.ldap.sdk.Attribute;
 
 /**
@@ -43,7 +43,7 @@ import com.unboundid.ldap.sdk.Attribute;
  * @author dcrissman
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class ITCaseLdapCRUDController_WithProperties_Test extends AbstractLdapCRUDController {
+public class ITCaseLdapCRUDController_WithProperties_Test extends LightblueLdapTestHarness {
 
     private static final String BASEDB_CUSTOMERS = "ou=Customers,dc=example,dc=com";
 
