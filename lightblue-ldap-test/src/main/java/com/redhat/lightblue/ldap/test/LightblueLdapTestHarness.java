@@ -26,10 +26,10 @@ import org.junit.ClassRule;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.ldap.test.LdapServerExternalResource.InMemoryLdapServer;
-import com.redhat.lightblue.mongo.test.AbstractMongoCRUDTestController;
+import com.redhat.lightblue.mongo.test.LightblueMongoTestHarness;
 
 @InMemoryLdapServer
-public abstract class AbstractLdapCRUDController extends AbstractMongoCRUDTestController {
+public abstract class LightblueLdapTestHarness extends LightblueMongoTestHarness {
 
     @ClassRule
     public static LdapServerExternalResource ldapServer = LdapServerExternalResource.createDefaultInstance();
@@ -50,23 +50,23 @@ public abstract class AbstractLdapCRUDController extends AbstractMongoCRUDTestCo
         }
     }
 
-    public AbstractLdapCRUDController() throws Exception {
+    public LightblueLdapTestHarness() throws Exception {
         super();
     }
 
     @Override
     protected JsonNode getLightblueCrudJson() throws Exception {
-        return json(loadResource("/ldap-lightblue-crud.json", AbstractLdapCRUDController.class), true);
+        return json(loadResource("/ldap-lightblue-crud.json", LightblueLdapTestHarness.class), true);
     }
 
     @Override
     protected JsonNode getLightblueMetadataJson() throws Exception {
-        return json(loadResource("/ldap-lightblue-metadata.json", AbstractLdapCRUDController.class), true);
+        return json(loadResource("/ldap-lightblue-metadata.json", LightblueLdapTestHarness.class), true);
     }
 
     @Override
     protected JsonNode getDatasourcesJson() throws Exception {
-        return json(loadResource("/ldap-datasources.json", AbstractLdapCRUDController.class), true);
+        return json(loadResource("/ldap-datasources.json", LightblueLdapTestHarness.class), true);
     }
 
 }

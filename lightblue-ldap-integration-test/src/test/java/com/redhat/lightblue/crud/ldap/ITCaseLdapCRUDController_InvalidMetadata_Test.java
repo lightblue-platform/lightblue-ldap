@@ -26,13 +26,13 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.redhat.lightblue.ldap.test.AbstractLdapCRUDController;
+import com.redhat.lightblue.ldap.test.LightblueLdapTestHarness;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.Metadata;
 import com.redhat.lightblue.util.test.AbstractJsonNodeTest;
 import com.unboundid.ldap.sdk.Attribute;
 
-public class ITCaseLdapCRUDController_InvalidMetadata_Test extends AbstractLdapCRUDController {
+public class ITCaseLdapCRUDController_InvalidMetadata_Test extends LightblueLdapTestHarness {
 
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
