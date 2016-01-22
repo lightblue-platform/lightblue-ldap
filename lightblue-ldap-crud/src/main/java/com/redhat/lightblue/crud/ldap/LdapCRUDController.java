@@ -109,7 +109,7 @@ public class LdapCRUDController implements CRUDController {
         Map<DocCtx, String> documentToDnMap = new HashMap<DocCtx, String>();
         boolean hasError = false;
         for (DocCtx document : documents) {
-            List<Path> paths = roles.getInaccessibleFields_Insert(document);
+            Set<Path> paths = roles.getInaccessibleFields_Insert(document);
             if ((paths != null) && !paths.isEmpty()) {
                 for (Path path : paths) {
                     document.addError(Error.get("insert", CrudConstants.ERR_NO_FIELD_INSERT_ACCESS, path.toString()));
