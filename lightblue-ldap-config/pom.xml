@@ -95,7 +95,7 @@
                                 </sources>
                                 <dependency>
                                   <includes>
-                                    <include>com.redhat.lightblue.ldap:*</include>
+                                    <include>${project.groupId}:*</include>
                                     <include>com.unboundid:unboundid-ldapsdk</include>
                                   </includes>
                                 </dependency>
