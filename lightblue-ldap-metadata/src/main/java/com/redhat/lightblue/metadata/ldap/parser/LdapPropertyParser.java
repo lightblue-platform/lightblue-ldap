@@ -18,7 +18,6 @@
  */
 package com.redhat.lightblue.metadata.ldap.parser;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -42,16 +41,20 @@ public class LdapPropertyParser <T> extends PropertyParser<T> {
     private static final String ATTRIBUTE = "attribute";
 
     @Override
-    public com.redhat.lightblue.metadata.ldap.model.LdapMetadata parse(String name, MetadataParser<T> p, T node) {
+    public LdapMetadata parseProperty(MetadataParser<T> p, T container, String name) {
         if (!LdapConstant.BACKEND.equals(name)) {
             throw Error.get(MetadataConstants.ERR_ILL_FORMED_METADATA, name);
         }
 
         LdapMetadata ldapMetadata = new LdapMetadata();
 
-        List<T> fieldsToAttributesNode = p.getObjectList(node, FIELDS_TO_ATTRIBUTES);
-        if(fieldsToAttributesNode != null){
-            for(T fieldToAttributeNode : fieldsToAttributesNode){
+        T ldapMetadataNode = p.getMapProperty(container, name);
+        
+        T fieldToAttributesNode = p.getMapProperty(ldapMetadataNode, FIELDS_TO_ATTRIBUTES);
+        if(fieldToAttributesNode != null){
+            int n = p.getListSize(fieldToAttributesNode);
+            for (int i = 0; i < n; i++) {
+                T fieldToAttributeNode = p.getListElement(fieldToAttributesNode, i);
                 ldapMetadata.addFieldToAttribute(
                         new Path(p.getRequiredStringProperty(fieldToAttributeNode, FIELD)),
                         p.getRequiredStringProperty(fieldToAttributeNode, ATTRIBUTE));
@@ -62,25 +65,32 @@ public class LdapPropertyParser <T> extends PropertyParser<T> {
     }
 
     @Override
-    public void convert(MetadataParser<T> p, T emptyNode, Object object) {
-        if(!(object instanceof LdapMetadata)){
-            throw new IllegalArgumentException("Source type " + object.getClass() + " is not supported.");
+    protected T convertProperty(MetadataParser<T> p, Object propertyValue) {
+        if(!(propertyValue instanceof LdapMetadata)){
+            throw new IllegalArgumentException("Source type " + propertyValue.getClass() + " is not supported.");
         }
 
-        LdapMetadata ldapMetadata = (LdapMetadata) object;
+        LdapMetadata ldapMetadata = (LdapMetadata) propertyValue;
+
+        T propertyObject = p.newMap();
 
         Map<Path, String> fieldsToAttributes = ldapMetadata.getFieldsToAttributes();
         if(!fieldsToAttributes.isEmpty()){
-            Object fieldsToAttributesNode = p.newArrayField(emptyNode, FIELDS_TO_ATTRIBUTES);
+            T fieldsToAttributesNode = p.newList();
 
             for(Entry<Path, String> entry : fieldsToAttributes.entrySet()){
-                T fieldToAttributeNode = p.newNode();
-                p.putString(fieldToAttributeNode, FIELD, entry.getKey().toString());
-                p.putString(fieldToAttributeNode, ATTRIBUTE, entry.getValue());
+                T fieldToAttributeNode = p.newMap();
 
-                p.addObjectToArray(fieldsToAttributesNode, fieldToAttributeNode);
+                p.setMapProperty(fieldToAttributeNode, FIELD, p.asRepresentation(entry.getKey().toString()));
+                p.setMapProperty(fieldToAttributeNode, ATTRIBUTE, p.asRepresentation(entry.getValue()));
+
+                p.addListElement(fieldsToAttributesNode, fieldToAttributeNode);
             }
+
+            p.setMapProperty(propertyObject, FIELDS_TO_ATTRIBUTES, fieldsToAttributesNode);
         }
+
+        return propertyObject;
     }
 
 }

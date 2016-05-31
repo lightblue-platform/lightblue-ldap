@@ -50,10 +50,10 @@ public class LdapPropertyParserTest {
 
     @Test
     public void testParse() throws IOException{
-        LdapMetadata ldapMetadata = new LdapPropertyParser<JsonNode>().parse(
-                LdapConstant.BACKEND,
+        LdapMetadata ldapMetadata = new LdapPropertyParser<JsonNode>().parseProperty(
                 MetadataUtil.createJSONMetadataParser(LdapConstant.BACKEND, null),
-                loadJsonNode("./ldap-segment-metadata.json").get("ldap"));
+                loadJsonNode("./ldap-segment-metadata.json"),
+                LdapConstant.BACKEND);
 
         assertNotNull(ldapMetadata);
 
@@ -72,10 +72,10 @@ public class LdapPropertyParserTest {
 
     @Test
     public void testParse_NoProperties() throws IOException{
-        LdapMetadata ldapMetadata = new LdapPropertyParser<JsonNode>().parse(
-                LdapConstant.BACKEND,
+        LdapMetadata ldapMetadata = new LdapPropertyParser<JsonNode>().parseProperty(
                 MetadataUtil.createJSONMetadataParser(LdapConstant.BACKEND, null),
-                json("{\"ldap\": {}}").get("ldap"));
+                json("{\"ldap\": {}}"),
+                LdapConstant.BACKEND);
 
         assertNotNull(ldapMetadata);
 
@@ -87,7 +87,7 @@ public class LdapPropertyParserTest {
         expectedEx.expect(com.redhat.lightblue.util.Error.class);
         expectedEx.expectMessage("{\"objectType\":\"error\",\"errorCode\":\"metadata:IllFormedMetadata\",\"msg\":\"fakebackend\"}");
 
-        new LdapPropertyParser<JsonNode>().parse("fakebackend", null, null);
+        new LdapPropertyParser<JsonNode>().parseProperty(null, null, "fakebackend");
     }
 
     @Test
@@ -98,12 +98,14 @@ public class LdapPropertyParserTest {
 
         JsonNode node = json("{}");
 
-        new LdapPropertyParser<JsonNode>().convert(
+        new LdapPropertyParser<JsonNode>().convertProperty(
                 MetadataUtil.createJSONMetadataParser(LdapConstant.BACKEND, null),
                 node,
+                LdapConstant.BACKEND,
                 ldapMetadata);
 
-        JSONAssert.assertEquals("{\"fieldsToAttributes\":[{\"field\":\"lastName\",\"attribute\":\"sn\"},{\"field\":\"firstName\",\"attribute\":\"givenName\"}]}",
+        JSONAssert.assertEquals(
+                "{\"ldap\":{\"fieldsToAttributes\":[{\"field\":\"lastName\",\"attribute\":\"sn\"},{\"field\":\"firstName\",\"attribute\":\"givenName\"}]}}",
                 node.toString(), false);
     }
 
@@ -113,18 +115,21 @@ public class LdapPropertyParserTest {
 
         JsonNode node = json("{}");
 
-        new LdapPropertyParser<JsonNode>().convert(
+        new LdapPropertyParser<JsonNode>().convertProperty(
                 MetadataUtil.createJSONMetadataParser(LdapConstant.BACKEND, null),
                 node,
+                LdapConstant.BACKEND,
                 ldapMetadata);
 
-        JSONAssert.assertEquals("{}",
+        JSONAssert.assertEquals("{\"ldap\":{}}",
                 node.toString(), true);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConvert_invalidObject(){
-        new LdapPropertyParser<JsonNode>().convert(null, null, new Object());
+        new LdapPropertyParser<JsonNode>().convertProperty(null, null,
+                LdapConstant.BACKEND,
+                new Object());
     }
 
 }
