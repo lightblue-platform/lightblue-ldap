@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.redhat.lightblue.common.ldap.DBResolver;
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapDataStore;
+import com.redhat.lightblue.common.ldap.LdapErrorCode;
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.crud.CRUDController;
@@ -48,8 +49,6 @@ import com.redhat.lightblue.crud.ldap.translator.ResultTranslatorToJson;
 import com.redhat.lightblue.crud.ldap.translator.SortTranslator;
 import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
 import com.redhat.lightblue.eval.Projector;
-import com.redhat.lightblue.hystrix.ldap.InsertCommand;
-import com.redhat.lightblue.hystrix.ldap.SearchCommand;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.FieldCursor;
 import com.redhat.lightblue.metadata.MetadataConstants;
@@ -65,6 +64,7 @@ import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.LDAPResult;
+import com.unboundid.ldap.sdk.LDAPSearchException;
 import com.unboundid.ldap.sdk.ResultCode;
 import com.unboundid.ldap.sdk.SearchRequest;
 import com.unboundid.ldap.sdk.SearchResult;
@@ -139,15 +139,17 @@ public class LdapCRUDController implements CRUDController {
         //Persist each Entry.
         LDAPConnection connection = getNewLdapConnection(store);
         for (com.unboundid.ldap.sdk.Entry entry : entries) {
-            InsertCommand command = new InsertCommand(connection, entry);
+            try {
+                LDAPResult result = connection.add(entry);
+                if (result.getResultCode() != ResultCode.SUCCESS) {
+                    //TODO: Do something to indicate unsuccessful status
+                    continue;
+                }
 
-            LDAPResult result = command.execute();
-            if (result.getResultCode() != ResultCode.SUCCESS) {
-                //TODO: Do something to indicate unsuccessful status
-                continue;
+                response.setNumInserted(response.getNumInserted() + 1);
+            } catch (LDAPException e) {
+                ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
             }
-
-            response.setNumInserted(response.getNumInserted() + 1);
         }
 
         projectChanges(projection, ctx, documentToDnMap);
@@ -213,30 +215,34 @@ public class LdapCRUDController implements CRUDController {
             request.addControl(new VirtualListViewRequestControl(from.intValue(), 0, endPos, 0, null, false));
         }
 
-        SearchResult result = new SearchCommand(connection, request).execute();
+        try{
+            SearchResult result = connection.search(request);
 
-        response.setSize(result.getEntryCount());
-        ResultTranslatorToJson resultTranslator = new ResultTranslatorToJson(ctx.getFactory().getNodeFactory(), md, fieldNameTranslator);
-        List<DocCtx> translatedDocs = new ArrayList<DocCtx>();
-        for (SearchResultEntry entry : result.getSearchEntries()) {
-            try {
-                translatedDocs.add(new DocCtx(resultTranslator.translate(entry)));
-            } catch (Exception e) {
-                ctx.addError(Error.get(e));
+            response.setSize(result.getEntryCount());
+            ResultTranslatorToJson resultTranslator = new ResultTranslatorToJson(ctx.getFactory().getNodeFactory(), md, fieldNameTranslator);
+            List<DocCtx> translatedDocs = new ArrayList<DocCtx>();
+            for (SearchResultEntry entry : result.getSearchEntries()) {
+                try {
+                    translatedDocs.add(new DocCtx(resultTranslator.translate(entry)));
+                } catch (Exception e) {
+                    ctx.addError(Error.get(e));
+                }
             }
-        }
-        ctx.setDocuments(translatedDocs);
+            ctx.setDocuments(translatedDocs);
 
-        Projector projector = Projector.getInstance(
-                Projection.add(
-                        projection,
-                        new FieldAccessRoleEvaluator(
-                                md,
-                                ctx.getCallerRoles()).getExcludedFields(FieldAccessRoleEvaluator.Operation.find)
-                        ),
-                md);
-        for (DocCtx document : ctx.getDocumentsWithoutErrors()) {
-            document.setOutputDocument(projector.project(document, ctx.getFactory().getNodeFactory()));
+            Projector projector = Projector.getInstance(
+                    Projection.add(
+                            projection,
+                            new FieldAccessRoleEvaluator(
+                                    md,
+                                    ctx.getCallerRoles()).getExcludedFields(FieldAccessRoleEvaluator.Operation.find)
+                            ),
+                    md);
+            for (DocCtx document : ctx.getDocumentsWithoutErrors()) {
+                document.setOutputDocument(projector.project(document, ctx.getFactory().getNodeFactory()));
+            }
+        } catch (LDAPSearchException e) {
+            ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
         }
 
         return response;
