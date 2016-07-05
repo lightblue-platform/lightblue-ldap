@@ -26,9 +26,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
-import java.util.Arrays;
 
-import org.apache.commons.lang.StringUtils;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -163,7 +161,8 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
         String insert = AbstractJsonNodeTest.loadResource("./crud/insert/department-insert-template.json")
                 .replaceFirst("#cn", "Marketing")
                 .replaceFirst("#description", "Department devoted to Marketing")
-                .replaceFirst("#members", StringUtils.join(Arrays.asList("cn=John Doe," + BASEDB_USERS, "cn=Jane Doe," + BASEDB_USERS), "\",\""));
+                .replaceFirst("#members",
+                        "cn=John Doe," + BASEDB_USERS + ",cn=Jane Doe," + BASEDB_USERS);
 
         InsertionRequest insertRequest = createRequest_FromJsonString(InsertionRequest.class, insert);
         insertRequest.setClientId(new FakeClientIdentification("fakeUser", "admin"));
