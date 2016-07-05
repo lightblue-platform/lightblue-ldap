@@ -31,7 +31,7 @@
     <groupId>com.redhat.lightblue.ldap</groupId>
     <artifactId>lightblue-ldap-pom</artifactId>
     <name>lightblue-ldap: ${project.groupId}|${project.artifactId}</name>
-    <version>1.9.0-SNAPSHOT</version>
+    <version>1.10.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <description>Lightblue LDAP implementation</description>
     
@@ -73,8 +73,8 @@
         <rpm.name>lightblue-ldap</rpm.name>
         <rpm.install.basedir>/usr/share/java/lightblue/lightblue-ldap</rpm.install.basedir>
 
-        <lightblue.core.version>2.0.1-SNAPSHOT</lightblue.core.version>
-        <lightblue.mongo.version>1.19.0-SNAPSHOT</lightblue.mongo.version>
+        <lightblue.core.version>2.2.0-SNAPSHOT</lightblue.core.version>
+        <lightblue.mongo.version>1.20.0-SNAPSHOT</lightblue.mongo.version>
     </properties>
     
     <modules>
