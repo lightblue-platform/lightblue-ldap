@@ -73,8 +73,8 @@
         <rpm.name>lightblue-ldap</rpm.name>
         <rpm.install.basedir>/usr/share/java/lightblue/lightblue-ldap</rpm.install.basedir>
 
-        <lightblue.core.version>2.0.0-SNAPSHOT</lightblue.core.version>
-        <lightblue.mongo.version>1.17.0-SNAPSHOT</lightblue.mongo.version>
+        <lightblue.core.version>2.0.1-SNAPSHOT</lightblue.core.version>
+        <lightblue.mongo.version>1.19.0-SNAPSHOT</lightblue.mongo.version>
     </properties>
     
     <modules>
