@@ -162,7 +162,7 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
                 .replaceFirst("#cn", "Marketing")
                 .replaceFirst("#description", "Department devoted to Marketing")
                 .replaceFirst("#members",
-                        "cn=John Doe," + BASEDB_USERS + ",cn=Jane Doe," + BASEDB_USERS);
+                        "cn=John Doe," + BASEDB_USERS + "\",\"cn=Jane Doe," + BASEDB_USERS);
 
         InsertionRequest insertRequest = createRequest_FromJsonString(InsertionRequest.class, insert);
         insertRequest.setClientId(new FakeClientIdentification("fakeUser", "admin"));
