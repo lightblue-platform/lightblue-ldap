@@ -34,6 +34,9 @@ public final class LdapErrorCode {
     /** The unique attribute (aka. entityInfo uniqueattr) was not also defined in the schema fields. */
     public static final String ERR_UNDEFINED_UNIQUE_ATTRIBUTE = "ldap:UndefinedUniqueAttribute";
 
+    /** The LDAP request failed. */
+    public static final String ERR_LDAP_REQUEST_FAILED = "ldap:RequestFailed";
+
     private LdapErrorCode(){}
 
 }
