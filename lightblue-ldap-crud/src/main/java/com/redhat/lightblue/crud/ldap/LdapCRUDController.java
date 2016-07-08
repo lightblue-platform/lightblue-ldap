@@ -175,8 +175,52 @@ public class LdapCRUDController implements CRUDController {
     @Override
     public CRUDDeleteResponse delete(CRUDOperationContext ctx,
             QueryExpression query) {
-        // TODO Auto-generated method stub
-        return null;
+
+        if (query == null) {
+            throw new IllegalArgumentException("No query was provided.");
+        }
+
+        EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
+        LdapDataStore store = LdapCrudUtil.getLdapDataStore(md);
+
+        CRUDDeleteResponse deleteResponse = new CRUDDeleteResponse();
+        deleteResponse.setNumDeleted(0);
+
+        LDAPConnection connection = getNewLdapConnection(store);
+
+        LdapFieldNameTranslator fieldNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
+
+        //TODO: Support scopes other than SUB
+        SearchRequest searchRequest = new SearchRequest(
+                store.getBaseDN(),
+                SearchScope.SUB,
+                new FilterBuilder(fieldNameTranslator).build(query),
+                SearchRequest.NO_ATTRIBUTES);
+
+        try {
+            SearchResult searchResult = connection.search(searchRequest);
+            if (ResultCode.SUCCESS.equals(searchResult.getResultCode())) {
+                for (SearchResultEntry entry : searchResult.getSearchEntries()) {
+                    //LDAP only supports performing 1 delete at a time.
+                    try {
+                        LDAPResult deleteResult = connection.delete(entry.getDN());
+                        if (ResultCode.SUCCESS.equals(deleteResult.getResultCode())) {
+                            deleteResponse.setNumDeleted(deleteResponse.getNumDeleted() + 1);
+                        } else {
+                            ctx.addError(Error.get("LDAP returned unsuccessful delete response: " + deleteResult.getResultCode()));
+                        }
+                    } catch (LDAPException e) {
+                        ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
+                    }
+                }
+            } else {
+                ctx.addError(Error.get("LDAP returned unsuccessful search response: " + searchResult.getResultCode()));
+            }
+        } catch (LDAPSearchException e) {
+            ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
+        }
+
+        return deleteResponse;
     }
 
     @Override
