@@ -131,7 +131,7 @@ public abstract class TranslatorFromJson<T> {
         ArrayElement arrayElement = field.getElement();
 
         if (arrayElement instanceof SimpleArrayElement) {
-            List<Object> items = new ArrayList<Object>();
+            List<Object> items = new ArrayList<>();
             do {
                 items.add(fromJson(arrayElement.getType(), cursor.getCurrentNode()));
             } while (cursor.nextSibling());

@@ -105,8 +105,8 @@ public class LdapCRUDController implements CRUDController {
         EntryTranslatorFromJson entryTranslatorFromJson = new EntryTranslatorFromJson(md, fieldNameTranslator);
 
         //Create Entry instances for each document.
-        List<com.unboundid.ldap.sdk.Entry> entries = new ArrayList<com.unboundid.ldap.sdk.Entry>();
-        Map<DocCtx, String> documentToDnMap = new HashMap<DocCtx, String>();
+        List<com.unboundid.ldap.sdk.Entry> entries = new ArrayList<>();
+        Map<DocCtx, String> documentToDnMap = new HashMap<>();
         boolean hasError = false;
         for (DocCtx document : documents) {
             Set<Path> paths = roles.getInaccessibleFields_Insert(document);
@@ -220,7 +220,7 @@ public class LdapCRUDController implements CRUDController {
 
             response.setSize(result.getEntryCount());
             ResultTranslatorToJson resultTranslator = new ResultTranslatorToJson(ctx.getFactory().getNodeFactory(), md, fieldNameTranslator);
-            List<DocCtx> translatedDocs = new ArrayList<DocCtx>();
+            List<DocCtx> translatedDocs = new ArrayList<>();
             for (SearchResultEntry entry : result.getSearchEntries()) {
                 try {
                     translatedDocs.add(new DocCtx(resultTranslator.translate(entry)));
@@ -269,7 +269,7 @@ public class LdapCRUDController implements CRUDController {
      */
     private Set<Path> gatherRequiredFields(EntityMetadata md,
             Projection projection, QueryExpression query, Sort sort) {
-        Set<Path> paths = new HashSet<Path>();
+        Set<Path> paths = new HashSet<>();
 
         FieldCursor cursor = md.getFieldCursor();
         while (cursor.next()) {
@@ -303,7 +303,7 @@ public class LdapCRUDController implements CRUDController {
      * @return <code>Set</code> of translated attributeNames.
      */
     private Set<String> translateFieldNames(LdapFieldNameTranslator property, Collection<Path> fieldNames) {
-        Set<String> attributes = new HashSet<String>();
+        Set<String> attributes = new HashSet<>();
         for (Path path : fieldNames) {
             attributes.add(property.translateFieldName(path));
         }

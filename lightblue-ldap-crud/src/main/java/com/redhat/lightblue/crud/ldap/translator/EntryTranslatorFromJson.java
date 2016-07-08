@@ -111,14 +111,14 @@ public class EntryTranslatorFromJson extends NonPersistedPredefinedFieldTranslat
         String attributeName = getFieldNameAsKnownByDatasource(field.getFullPath());
 
         if(arrayElementType instanceof BinaryType){
-            List<byte[]> bytes = new ArrayList<byte[]>();
+            List<byte[]> bytes = new ArrayList<>();
             for(Object item : items){
                 bytes.add((byte[])item);
             }
             target.addAttribute(attributeName, bytes.toArray(new byte[0][]));
         }
         else{
-            List<String> values = new ArrayList<String>();
+            List<String> values = new ArrayList<>();
             for(Object item : items){
                 values.add(item.toString());
             }

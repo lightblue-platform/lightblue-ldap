@@ -41,7 +41,7 @@ public class SortTranslator {
     }
 
     public com.unboundid.ldap.sdk.controls.SortKey[] translate(Sort sort){
-        List<com.unboundid.ldap.sdk.controls.SortKey> results = new ArrayList<com.unboundid.ldap.sdk.controls.SortKey>();
+        List<com.unboundid.ldap.sdk.controls.SortKey> results = new ArrayList<>();
         doTranslate(sort, results);
         return results.toArray(new com.unboundid.ldap.sdk.controls.SortKey[0]);
     }

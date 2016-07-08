@@ -61,7 +61,7 @@ public class FilterBuilder {
         protected Filter itrArrayContainsExpression(ArrayContainsExpression query, Path path){
             String attributeName = fieldNameTranslator.translateFieldName(query.getArray());
 
-            List<Filter> filters = new ArrayList<Filter>();
+            List<Filter> filters = new ArrayList<>();
             for(Value value : query.getValues()){
                 filters.add(Filter.createEqualityFilter(attributeName, value.getValue().toString()));
             }
@@ -92,7 +92,7 @@ public class FilterBuilder {
 
         @Override
         protected Filter itrNaryLogicalExpression(NaryLogicalExpression query, Path path){
-            List<Filter> filters = new ArrayList<Filter>();
+            List<Filter> filters = new ArrayList<>();
             for(QueryExpression subQuery : query.getQueries()){
                 filters.add(iterate(subQuery, path));
             }
@@ -109,7 +109,7 @@ public class FilterBuilder {
         @Override
         protected Filter itrNaryValueRelationalExpression(NaryValueRelationalExpression query, Path path){
             String attributeName = fieldNameTranslator.translateFieldName(query.getField());
-            List<Filter> filters = new ArrayList<Filter>();
+            List<Filter> filters = new ArrayList<>();
             for(Value value : query.getValues()){
                 filters.add(Filter.createEqualityFilter(attributeName, value.getValue().toString()));
             }
