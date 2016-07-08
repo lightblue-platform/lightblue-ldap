@@ -37,6 +37,9 @@ public final class LdapErrorCode {
     /** The LDAP request failed. */
     public static final String ERR_LDAP_REQUEST_FAILED = "ldap:RequestFailed";
 
+    /** LDAP returned an unsuccessful response code. */
+    public static final String ERR_LDAP_UNSUCCESSFUL_RESPONSE = "ldap:UnsuccessfulResponse";
+
     private LdapErrorCode(){}
 
 }
