@@ -27,10 +27,9 @@ import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.runners.MethodSorters;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -48,7 +47,6 @@ import com.unboundid.ldap.sdk.Attribute;
  *
  * @author dcrissman
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
 
     private static final String BASEDB_USERS = "ou=Users,dc=example,dc=com";
@@ -56,6 +54,13 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
+        System.setProperty("ldap.person.basedn", BASEDB_USERS);
+        System.setProperty("ldap.department.basedn", BASEDB_DEPARTMENTS);
+
+        init();
+    }
+
+    private static void init() throws Exception {
         ldapServer.add(BASEDB_USERS, new Attribute[]{
                 new Attribute("objectClass", "top"),
                 new Attribute("objectClass", "organizationalUnit"),
@@ -64,13 +69,17 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
                 new Attribute("objectClass", "top"),
                 new Attribute("objectClass", "organizationalUnit"),
                 new Attribute("ou", "Departments")});
+    }
 
-        System.setProperty("ldap.person.basedn", BASEDB_USERS);
-        System.setProperty("ldap.department.basedn", BASEDB_DEPARTMENTS);
+    @Override
+    @Before
+    public void loadLdapStatically() throws Exception {
+        super.loadLdapStatically();
+        init();
     }
 
     public ITCaseLdapCRUDControllerTest() throws Exception {
-        super();
+        super(false);
     }
 
     @Override
@@ -86,10 +95,12 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
     }
 
     @Test
-    public void series1_phase1_Person_Insert() throws Exception {
+    public void testInsertMany() throws Exception {
+        //Test
         Response response = getLightblueFactory().getMediator().insert(
                 createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json"));
 
+        //Asserts
         assertNotNull(response);
         assertNoErrors(response);
         assertNoDataErrors(response);
@@ -103,10 +114,16 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
     }
 
     @Test
-    public void series1_phase2_Person_FindSingle() throws Exception {
+    public void testFindSingle() throws Exception {
+        //Setup
+        getLightblueFactory().getMediator().insert(
+                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json"));
+
+        //Test
         Response response = getLightblueFactory().getMediator().find(
                 createRequest_FromResource(FindRequest.class, "./crud/find/person-find-single.json"));
 
+        //Asserts
         assertNotNull(response);
         assertNoErrors(response);
         assertNoDataErrors(response);
@@ -120,10 +137,16 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
     }
 
     @Test
-    public void series1_phase2_Person_FindMany() throws Exception {
+    public void testFindMany() throws Exception {
+        //Setup
+        getLightblueFactory().getMediator().insert(
+                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json"));
+
+        //Test
         Response response = getLightblueFactory().getMediator().find(
                 createRequest_FromResource(FindRequest.class, "./crud/find/person-find-many.json"));
 
+        //Asserts
         assertNotNull(response);
         assertNoErrors(response);
         assertNoDataErrors(response);
@@ -139,10 +162,16 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
     }
 
     @Test
-    public void series1_phase2_Person_FindMany_WithPagination() throws Exception {
+    public void testFindMany_WithPagination() throws Exception {
+        //Setup
+        getLightblueFactory().getMediator().insert(
+                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json"));
+
+        //Test
         Response response = getLightblueFactory().getMediator().find(
                 createRequest_FromResource(FindRequest.class, "./crud/find/person-find-many-paginated.json"));
 
+        //Asserts
         assertNotNull(response);
         assertNoErrors(response);
         assertNoDataErrors(response);
@@ -157,7 +186,8 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
     }
 
     @Test
-    public void series2_phase1_Department_InsertWithRoles() throws Exception {
+    public void testInsertWithRoles() throws Exception {
+        //Setup
         String insert = AbstractJsonNodeTest.loadResource("./crud/insert/department-insert-template.json")
                 .replaceFirst("#cn", "Marketing")
                 .replaceFirst("#description", "Department devoted to Marketing")
@@ -167,8 +197,10 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
         InsertionRequest insertRequest = createRequest_FromJsonString(InsertionRequest.class, insert);
         insertRequest.setClientId(new FakeClientIdentification("fakeUser", "admin"));
 
+        //Test
         Response response = getLightblueFactory().getMediator().insert(insertRequest);
 
+        //Asserts
         assertNotNull(response);
         assertNoErrors(response);
         assertNoDataErrors(response);
@@ -182,7 +214,8 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
     }
 
     @Test
-    public void series2_phase1_Department_InsertWithInvalidRoles() throws Exception {
+    public void testInsertWithInvalidRoles() throws Exception {
+        //Setup
         String insert = AbstractJsonNodeTest.loadResource("./crud/insert/department-insert-template.json")
                 .replaceFirst("#cn", "HR")
                 .replaceFirst("#description", "Department devoted to HR")
@@ -191,8 +224,10 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
         InsertionRequest insertRequest = createRequest_FromJsonString(InsertionRequest.class, insert);
         insertRequest.setClientId(new FakeClientIdentification("fakeUser"));
 
+        //Test
         Response response = getLightblueFactory().getMediator().insert(insertRequest);
 
+        //Asserts
         assertNotNull(response);
         assertEquals(0, response.getModifiedCount());
 
@@ -205,12 +240,26 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
     }
 
     @Test
-    public void series2_phase2_Department_FindWithRoles() throws Exception {
+    public void testFindWithRoles() throws Exception {
+        //Setup
+        String insert = AbstractJsonNodeTest.loadResource("./crud/insert/department-insert-template.json")
+                .replaceFirst("#cn", "Marketing")
+                .replaceFirst("#description", "Department devoted to Marketing")
+                .replaceFirst("#members",
+                        "cn=John Doe," + BASEDB_USERS + "\",\"cn=Jane Doe," + BASEDB_USERS);
+
+        InsertionRequest insertRequest = createRequest_FromJsonString(InsertionRequest.class, insert);
+        insertRequest.setClientId(new FakeClientIdentification("fakeUser", "admin"));
+
+        getLightblueFactory().getMediator().insert(insertRequest);
+
+        //Test
         FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find-single.json");
         findRequest.setClientId(new FakeClientIdentification("fakeUser", "admin"));
 
         Response response = getLightblueFactory().getMediator().find(findRequest);
 
+        //Asserts
         assertNotNull(response);
         assertNoErrors(response);
         assertNoDataErrors(response);
@@ -224,12 +273,26 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
     }
 
     @Test
-    public void series2_phase2_Department_FindWithInsufficientRoles() throws Exception {
+    public void testFindWithInsufficientRoles() throws Exception {
+        //Setup
+        String insert = AbstractJsonNodeTest.loadResource("./crud/insert/department-insert-template.json")
+                .replaceFirst("#cn", "Marketing")
+                .replaceFirst("#description", "Department devoted to Marketing")
+                .replaceFirst("#members",
+                        "cn=John Doe," + BASEDB_USERS + "\",\"cn=Jane Doe," + BASEDB_USERS);
+
+        InsertionRequest insertRequest = createRequest_FromJsonString(InsertionRequest.class, insert);
+        insertRequest.setClientId(new FakeClientIdentification("fakeUser", "admin"));
+
+        getLightblueFactory().getMediator().insert(insertRequest);
+
+        //Test
         FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find-single.json");
         findRequest.setClientId(new FakeClientIdentification("fakeUser"));
 
         Response response = getLightblueFactory().getMediator().find(findRequest);
 
+        //Asserts
         assertNotNull(response);
         assertNoErrors(response);
         assertNoDataErrors(response);

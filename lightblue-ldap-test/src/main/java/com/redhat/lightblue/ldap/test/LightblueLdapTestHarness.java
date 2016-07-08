@@ -21,6 +21,7 @@ package com.redhat.lightblue.ldap.test;
 import static com.redhat.lightblue.util.JsonUtils.json;
 import static com.redhat.lightblue.util.test.AbstractJsonNodeTest.loadResource;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
@@ -33,6 +34,8 @@ public abstract class LightblueLdapTestHarness extends LightblueMongoTestHarness
 
     @ClassRule
     public static LdapServerExternalResource ldapServer = LdapServerExternalResource.createDefaultInstance();
+
+    private final boolean loadLdapStatically;
 
     @BeforeClass
     public static void prepareLdapDatasources() {
@@ -51,7 +54,19 @@ public abstract class LightblueLdapTestHarness extends LightblueMongoTestHarness
     }
 
     public LightblueLdapTestHarness() throws Exception {
+        this(true);
+    }
+
+    public LightblueLdapTestHarness(boolean loadLdapStatically) throws Exception {
         super();
+        this.loadLdapStatically = loadLdapStatically;
+    }
+
+    @Before
+    public void loadLdapStatically() throws Exception {
+        if (!loadLdapStatically) {
+            ldapServer.clear();
+        }
     }
 
     @Override
