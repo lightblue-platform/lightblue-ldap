@@ -34,6 +34,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.Response;
+import com.redhat.lightblue.crud.DeleteRequest;
 import com.redhat.lightblue.crud.FindRequest;
 import com.redhat.lightblue.crud.InsertionRequest;
 import com.redhat.lightblue.ldap.test.LightblueLdapTestHarness;
@@ -134,6 +135,22 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
         JSONAssert.assertEquals(
                 "[{\"dn\":\"uid=john.doe," + BASEDB_USERS + "\",\"uid\":\"john.doe\",\"objectType\":\"person\",\"objectClass#\":4}]",
                 entityData.toString(), true);
+    }
+
+    public void testDelete() throws Exception {
+        //Setup
+        getLightblueFactory().getMediator().insert(
+                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json"));
+
+        //Test
+        Response response = getLightblueFactory().getMediator().delete(
+                createRequest_FromResource(DeleteRequest.class, "./crud/delete/person-delete-simple.json"));
+
+        //Asserts
+        assertNotNull(response);
+        assertNoErrors(response);
+        assertNoDataErrors(response);
+        assertEquals(1, response.getModifiedCount());
     }
 
     @Test
