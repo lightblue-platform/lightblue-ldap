@@ -140,13 +140,14 @@ public class LdapCRUDController implements CRUDController {
         LDAPConnection connection = getNewLdapConnection(store);
         for (com.unboundid.ldap.sdk.Entry entry : entries) {
             try {
-                LDAPResult result = connection.add(entry);
-                if (result.getResultCode() != ResultCode.SUCCESS) {
-                    //TODO: Do something to indicate unsuccessful status
-                    continue;
+                LDAPResult insertResult = connection.add(entry);
+                if (ResultCode.SUCCESS.equals(insertResult.getResultCode())) {
+                    response.setNumInserted(response.getNumInserted() + 1);
+                } else {
+                    ctx.addError(Error.get("ldap:insert",
+                            LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
+                            insertResult.getResultCode().toString()));
                 }
-
-                response.setNumInserted(response.getNumInserted() + 1);
             } catch (LDAPException e) {
                 ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
             }
@@ -260,30 +261,36 @@ public class LdapCRUDController implements CRUDController {
         }
 
         try{
-            SearchResult result = connection.search(request);
+            SearchResult searchResult = connection.search(request);
 
-            response.setSize(result.getEntryCount());
-            ResultTranslatorToJson resultTranslator = new ResultTranslatorToJson(ctx.getFactory().getNodeFactory(), md, fieldNameTranslator);
-            List<DocCtx> translatedDocs = new ArrayList<>();
-            for (SearchResultEntry entry : result.getSearchEntries()) {
-                try {
-                    translatedDocs.add(new DocCtx(resultTranslator.translate(entry)));
-                } catch (Exception e) {
-                    ctx.addError(Error.get(e));
+            if (ResultCode.SUCCESS.equals(searchResult.getResultCode())) {
+                response.setSize(searchResult.getEntryCount());
+                ResultTranslatorToJson resultTranslator = new ResultTranslatorToJson(ctx.getFactory().getNodeFactory(), md, fieldNameTranslator);
+                List<DocCtx> translatedDocs = new ArrayList<>();
+                for (SearchResultEntry entry : searchResult.getSearchEntries()) {
+                    try {
+                        translatedDocs.add(new DocCtx(resultTranslator.translate(entry)));
+                    } catch (Exception e) {
+                        ctx.addError(Error.get(e));
+                    }
                 }
-            }
-            ctx.setDocuments(translatedDocs);
+                ctx.setDocuments(translatedDocs);
 
-            Projector projector = Projector.getInstance(
-                    Projection.add(
-                            projection,
-                            new FieldAccessRoleEvaluator(
-                                    md,
-                                    ctx.getCallerRoles()).getExcludedFields(FieldAccessRoleEvaluator.Operation.find)
-                            ),
-                    md);
-            for (DocCtx document : ctx.getDocumentsWithoutErrors()) {
-                document.setOutputDocument(projector.project(document, ctx.getFactory().getNodeFactory()));
+                Projector projector = Projector.getInstance(
+                        Projection.add(
+                                projection,
+                                new FieldAccessRoleEvaluator(
+                                        md,
+                                        ctx.getCallerRoles()).getExcludedFields(FieldAccessRoleEvaluator.Operation.find)
+                                ),
+                        md);
+                for (DocCtx document : ctx.getDocumentsWithoutErrors()) {
+                    document.setOutputDocument(projector.project(document, ctx.getFactory().getNodeFactory()));
+                }
+            } else {
+                ctx.addError(Error.get("ldap:search",
+                        LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
+                        searchResult.getResultCode().toString()));
             }
         } catch (LDAPSearchException e) {
             ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
