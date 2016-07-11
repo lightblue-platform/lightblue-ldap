@@ -66,7 +66,7 @@ public class ITCaseLdapCRUDController_DataType_Test extends LightblueLdapTestHar
     private final String data;
 
     public ITCaseLdapCRUDController_DataType_Test(String cn, String fieldName, String data) throws Exception {
-        super();
+        super(false);
         this.cn = cn;
         this.fieldName = fieldName;
         this.data = data;

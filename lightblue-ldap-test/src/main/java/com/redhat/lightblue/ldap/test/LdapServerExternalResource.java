@@ -102,7 +102,7 @@ public class LdapServerExternalResource extends ExternalResource {
 
     public LdapServerExternalResource(Schema schema, LinkedHashMap<String, Attribute[]> preload) {
         this.schema = schema;
-        this.preloadDnData = preload;
+        preloadDnData = preload;
     }
 
     @Override
@@ -135,11 +135,7 @@ public class LdapServerExternalResource extends ExternalResource {
         server = new InMemoryDirectoryServer(config);
         server.startListening();
 
-        if (preloadDnData != null) {
-            for (Entry<String, Attribute[]> entry : preloadDnData.entrySet()) {
-                add(entry.getKey(), entry.getValue());
-            }
-        }
+        preloadData();
     }
 
     @Override
@@ -177,6 +173,19 @@ public class LdapServerExternalResource extends ExternalResource {
 
     public LDAPConnection getLDAPConnection() throws LDAPException {
         return new LDAPConnection("localhost", getPort());
+    }
+
+    public void clear() throws Exception {
+        server.clear();
+        preloadData();
+    }
+
+    private void preloadData() throws LDIFException, LDAPException {
+        if (preloadDnData != null) {
+            for (Entry<String, Attribute[]> entry : preloadDnData.entrySet()) {
+                add(entry.getKey(), entry.getValue());
+            }
+        }
     }
 
 }

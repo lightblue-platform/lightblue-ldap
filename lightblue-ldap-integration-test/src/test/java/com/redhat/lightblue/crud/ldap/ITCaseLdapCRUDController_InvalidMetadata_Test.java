@@ -50,7 +50,7 @@ public class ITCaseLdapCRUDController_InvalidMetadata_Test extends LightblueLdap
     }
 
     public ITCaseLdapCRUDController_InvalidMetadata_Test() throws Exception {
-        super();
+        super(false);
     }
 
     @Override
