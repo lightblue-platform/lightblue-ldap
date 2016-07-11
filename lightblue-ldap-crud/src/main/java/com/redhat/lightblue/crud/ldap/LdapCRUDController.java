@@ -209,7 +209,8 @@ public class LdapCRUDController implements CRUDController {
                             deleteResponse.setNumDeleted(deleteResponse.getNumDeleted() + 1);
                         } else {
                             ctx.addError(Error.get("ldap:delete",
-                                    "LDAP returned unsuccessful delete response: " + deleteResult.getResultCode()));
+                                    LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
+                                    deleteResult.getResultCode().toString()));
                         }
                     } catch (LDAPException e) {
                         ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
@@ -217,7 +218,8 @@ public class LdapCRUDController implements CRUDController {
                 }
             } else {
                 ctx.addError(Error.get("ldap:search",
-                        "LDAP returned unsuccessful search response: " + searchResult.getResultCode()));
+                        LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
+                        searchResult.getResultCode().toString()));
             }
         } catch (LDAPSearchException e) {
             ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
