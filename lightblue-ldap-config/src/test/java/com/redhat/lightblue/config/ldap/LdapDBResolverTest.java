@@ -37,6 +37,8 @@ public class LdapDBResolverTest {
     public void testGet_InvalidStoreType() throws LDAPException{
         new LdapDBResolver(new HashSet<LdapDataSourceConfiguration>()).get(new DataStore(){
 
+            private static final long serialVersionUID = 2555895658507870647L;
+
             @Override
             public String getBackend() {
                 throw new UnsupportedOperationException("Method should never be called.");
