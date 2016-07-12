@@ -42,7 +42,7 @@ import com.redhat.lightblue.Response;
 import com.redhat.lightblue.crud.FindRequest;
 import com.redhat.lightblue.crud.InsertionRequest;
 import com.redhat.lightblue.ldap.test.LightblueLdapTestHarness;
-import com.redhat.lightblue.metadata.types.DateType;
+import com.redhat.lightblue.util.Constants;
 import com.redhat.lightblue.util.test.AbstractJsonNodeTest;
 
 @RunWith(value = Parameterized.class)
@@ -51,7 +51,7 @@ public class ITCaseLdapCRUDController_DataType_Test extends LightblueLdapTestHar
     @Parameters(name = "{index}: {0}")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                {"date", "testdate", DateType.getDateFormat().format(new Date())},
+                {"date", "testdate", Constants.getDateFormat().format(new Date())},
                 {"binary", "testbinary", DatatypeConverter.printBase64Binary("test binary data".getBytes())}
         });
     }

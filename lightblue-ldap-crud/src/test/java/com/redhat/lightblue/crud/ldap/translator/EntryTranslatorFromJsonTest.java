@@ -49,8 +49,8 @@ import com.redhat.lightblue.crud.ldap.model.TrivialLdapFieldNameTranslator;
 import com.redhat.lightblue.crud.ldap.translator.EntryTranslatorFromJsonTest.ParameterizedTests;
 import com.redhat.lightblue.crud.ldap.translator.EntryTranslatorFromJsonTest.SpecializedTests;
 import com.redhat.lightblue.metadata.EntityMetadata;
-import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.test.MetadataUtil;
+import com.redhat.lightblue.util.Constants;
 import com.redhat.lightblue.util.Error;
 import com.redhat.lightblue.util.JsonDoc;
 import com.unboundid.ldap.sdk.Entry;
@@ -169,7 +169,7 @@ public class EntryTranslatorFromJsonTest {
                     {"{\"type\": \"biginteger\"}", BigInteger.ZERO.toString(), BigInteger.ZERO.toString()},
                     {"{\"type\": \"double\"}", String.valueOf(Double.MAX_VALUE), String.valueOf(Double.MAX_VALUE)},
                     {"{\"type\": \"uid\"}", quote("fake-uid"), "fake-uid"},
-                    {"{\"type\": \"date\"}", quote(DateType.getDateFormat().format(now)), StaticUtils.encodeGeneralizedTime(now)},
+                    {"{\"type\": \"date\"}", quote(Constants.getDateFormat().format(now)), StaticUtils.encodeGeneralizedTime(now)},
                     {"{\"type\": \"binary\"}", quote(DatatypeConverter.printBase64Binary("test binary data".getBytes())), "test binary data"},
                     {"{\"type\": \"array\", \"items\": {\"type\": \"string\"}}", "[\"hello\",\"world\"]", new String[]{"hello", "world"}},
                     {"{\"type\": \"array\", \"items\": {\"type\": \"binary\"}}",

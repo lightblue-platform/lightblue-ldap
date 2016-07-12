@@ -51,6 +51,7 @@ import com.redhat.lightblue.metadata.types.DoubleType;
 import com.redhat.lightblue.metadata.types.IntegerType;
 import com.redhat.lightblue.metadata.types.StringType;
 import com.redhat.lightblue.metadata.types.UIDType;
+import com.redhat.lightblue.util.Constants;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.Attribute;
@@ -256,7 +257,7 @@ public class ResultTranslatorToJsonTest {
 
         assertNotNull(document);
 
-        String lbDate = DateType.getDateFormat().format(keyAttribute.getValueAsDate());
+        String lbDate = Constants.getDateFormat().format(keyAttribute.getValueAsDate());
         JSONAssert.assertEquals(
                 "{\"key\":\"" + lbDate + "\",\"dn\":\"uid=john.doe,dc=example,dc=com\"}",
                 document.toString(),
