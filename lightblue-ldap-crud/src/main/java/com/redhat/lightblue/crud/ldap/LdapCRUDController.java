@@ -177,31 +177,11 @@ public class LdapCRUDController implements CRUDController {
     public CRUDDeleteResponse delete(CRUDOperationContext ctx,
             QueryExpression query) {
 
-        if (query == null) {
-            throw new IllegalArgumentException("No query was provided.");
-        }
-
-        EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
-        LdapDataStore store = LdapCrudUtil.getLdapDataStore(md);
-
         CRUDDeleteResponse deleteResponse = new CRUDDeleteResponse();
         deleteResponse.setNumDeleted(0);
 
-        LDAPConnection connection = getNewLdapConnection(store);
-
-        LdapFieldNameTranslator fieldNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
-
-        //TODO: Support scopes other than SUB
-        SearchRequest searchRequest = new SearchRequest(
-                store.getBaseDN(),
-                SearchScope.SUB,
-                new FilterBuilder(fieldNameTranslator).build(query),
-                SearchRequest.NO_ATTRIBUTES);
-
-        try {
-            SearchResult searchResult = connection.search(searchRequest);
-            if (ResultCode.SUCCESS.equals(searchResult.getResultCode())) {
-                for (SearchResultEntry entry : searchResult.getSearchEntries()) {
+        runSearch(ctx, query,
+                (SearchResultEntry entry, LDAPConnection connection) -> {
                     //LDAP only supports performing 1 delete at a time.
                     try {
                         LDAPResult deleteResult = connection.delete(entry.getDN());
@@ -215,15 +195,8 @@ public class LdapCRUDController implements CRUDController {
                     } catch (LDAPException e) {
                         ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
                     }
-                }
-            } else {
-                ctx.addError(Error.get("ldap:search",
-                        LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
-                        searchResult.getResultCode().toString()));
-            }
-        } catch (LDAPSearchException e) {
-            ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
-        }
+                },
+                SearchRequest.NO_ATTRIBUTES);
 
         return deleteResponse;
     }
@@ -427,6 +400,41 @@ public class LdapCRUDController implements CRUDController {
             throw new RuntimeException("Unable to establish connection to LDAP", e);
         }
         return connection;
+    }
+
+    private void runSearch(CRUDOperationContext ctx, QueryExpression query, SearchRunner searchRunner, String... attributes) {
+        if (query == null) {
+            throw new IllegalArgumentException("No query was provided.");
+        }
+
+        EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
+        LdapDataStore store = LdapCrudUtil.getLdapDataStore(md);
+        LDAPConnection connection = getNewLdapConnection(store);
+
+        SearchRequest searchRequest = new SearchRequest(
+                store.getBaseDN(),
+                SearchScope.SUB,
+                new FilterBuilder(LdapCrudUtil.getLdapFieldNameTranslator(md)).build(query),
+                attributes);
+
+        try {
+            SearchResult searchResult = connection.search(searchRequest);
+            if (ResultCode.SUCCESS.equals(searchResult.getResultCode())) {
+                for (SearchResultEntry entry : searchResult.getSearchEntries()) {
+                    searchRunner.run(entry, connection);
+                }
+            } else {
+                ctx.addError(Error.get("ldap:search",
+                        LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
+                        searchResult.getResultCode().toString()));
+            }
+        } catch (LDAPSearchException e) {
+            ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
+        }
+    }
+
+    private interface SearchRunner {
+        void run(SearchResultEntry searchResultEntry, LDAPConnection connection);
     }
 
 }
