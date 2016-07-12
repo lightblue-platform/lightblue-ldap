@@ -29,7 +29,6 @@
     </parent>
     
     <artifactId>lightblue-ldap-integration-test</artifactId>
-    <version>1.10.0-SNAPSHOT</version>
     
     <dependencies>
         <dependency>
