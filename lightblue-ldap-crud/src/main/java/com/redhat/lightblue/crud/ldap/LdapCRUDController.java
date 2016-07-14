@@ -107,33 +107,33 @@ public class LdapCRUDController implements CRUDController {
         //Create Entry instances for each document.
         List<com.unboundid.ldap.sdk.Entry> entries = new ArrayList<>();
         Map<DocCtx, String> documentToDnMap = new HashMap<>();
-        boolean hasError = false;
         for (DocCtx document : documents) {
             Set<Path> paths = roles.getInaccessibleFields_Insert(document);
             if ((paths != null) && !paths.isEmpty()) {
                 for (Path path : paths) {
-                    document.addError(Error.get("insert", CrudConstants.ERR_NO_FIELD_INSERT_ACCESS, path.toString()));
-                    continue;
+                    document.addError(Error.get(CrudConstants.ERR_NO_FIELD_INSERT_ACCESS, path.toString()));
                 }
             }
 
             Path uniqueFieldPath = fieldNameTranslator.translateAttributeName(store.getUniqueAttribute());
             JsonNode uniqueNode = document.get(uniqueFieldPath);
             if (uniqueNode == null) {
-                throw Error.get(MetadataConstants.ERR_PARSE_MISSING_ELEMENT, store.getUniqueAttribute());
+                document.addError(Error.get(MetadataConstants.ERR_PARSE_MISSING_ELEMENT, store.getUniqueAttribute()));
+            }
+
+            if (document.hasErrors()) {
+                continue;
             }
 
             String dn = LdapCrudUtil.createDN(store, uniqueNode.asText());
             documentToDnMap.put(document, dn);
             try {
                 entries.add(entryTranslatorFromJson.translate(document, dn));
+            } catch (Error e) {
+                document.addError(e);
             } catch (Exception e) {
                 document.addError(Error.get(e));
-                hasError = true;
             }
-        }
-        if (hasError) {
-            return response;
         }
 
         //Persist each Entry.

@@ -112,6 +112,15 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
         JSONAssert.assertEquals(
                 "[{\"dn\":\"uid=junior.doe," + BASEDB_USERS + "\"},{\"dn\":\"uid=john.doe," + BASEDB_USERS + "\"},{\"dn\":\"uid=jane.doe," + BASEDB_USERS + "\"},{\"dn\":\"uid=jack.buck," + BASEDB_USERS + "\"}]",
                 entityData.toString(), false);
+        
+        //Ensure entry was inserted
+        Response findResponse = getLightblueFactory().getMediator().find(
+                createRequest_FromResource(FindRequest.class, "./crud/find/person-find-many.json"));
+
+        assertNotNull(findResponse);
+        assertNoErrors(findResponse);
+        assertNoDataErrors(findResponse);
+        assertEquals(3, findResponse.getMatchCount());
     }
 
     @Test
@@ -239,6 +248,17 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
         JSONAssert.assertEquals(
                 "[{\"dn\":\"cn=Marketing," + BASEDB_DEPARTMENTS + "\"}]",
                 entityData.toString(), true);
+
+        //Ensure entry was inserted
+        FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find.json");
+        findRequest.setClientId(new FakeClientIdentification("admin"));
+
+        Response findResponse = getLightblueFactory().getMediator().find(findRequest);
+
+        assertNotNull(findResponse);
+        assertNoErrors(findResponse);
+        assertNoDataErrors(findResponse);
+        assertEquals(1, findResponse.getMatchCount());
     }
 
     @Test
@@ -265,6 +285,17 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
         assertEquals(1, response.getDataErrors().size());
         JSONAssert.assertEquals("{\"errors\":[{\"errorCode\":\"crud:insert:NoFieldAccess\",\"msg\":\"member\"}]}",
                 response.getDataErrors().get(0).toJson().toString(), false);
+
+        //Ensure entry was not inserted
+        FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find.json");
+        findRequest.setClientId(new FakeClientIdentification("admin"));
+
+        Response findResponse = getLightblueFactory().getMediator().find(findRequest);
+
+        assertNotNull(findResponse);
+        assertNoErrors(findResponse);
+        assertNoDataErrors(findResponse);
+        assertEquals(0, findResponse.getMatchCount());
     }
 
     @Test
@@ -282,7 +313,7 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
         getLightblueFactory().getMediator().insert(insertRequest);
 
         //Test
-        FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find-single.json");
+        FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find.json");
         findRequest.setClientId(new FakeClientIdentification("fakeUser", "admin"));
 
         Response response = getLightblueFactory().getMediator().find(findRequest);
@@ -315,7 +346,7 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
         getLightblueFactory().getMediator().insert(insertRequest);
 
         //Test
-        FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find-single.json");
+        FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find.json");
         findRequest.setClientId(new FakeClientIdentification("fakeUser"));
 
         Response response = getLightblueFactory().getMediator().find(findRequest);
