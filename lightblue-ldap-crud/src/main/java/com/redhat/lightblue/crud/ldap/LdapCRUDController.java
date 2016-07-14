@@ -92,49 +92,19 @@ public class LdapCRUDController implements CRUDController {
         CRUDInsertionResponse response = new CRUDInsertionResponse();
         response.setNumInserted(0);
 
-        List<DocCtx> documents = ctx.getDocumentsWithoutErrors();
-        if (documents == null || documents.isEmpty()) {
-            return response;
-        }
-
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
         LdapDataStore store = LdapCrudUtil.getLdapDataStore(md);
         LdapFieldNameTranslator fieldNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
 
-        FieldAccessRoleEvaluator roles = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
         EntryTranslatorFromJson entryTranslatorFromJson = new EntryTranslatorFromJson(md, fieldNameTranslator);
 
         //Create Entry instances for each document.
-        List<com.unboundid.ldap.sdk.Entry> entries = new ArrayList<>();
         Map<DocCtx, String> documentToDnMap = new HashMap<>();
-        for (DocCtx document : documents) {
-            Set<Path> paths = roles.getInaccessibleFields_Insert(document);
-            if ((paths != null) && !paths.isEmpty()) {
-                for (Path path : paths) {
-                    document.addError(Error.get(CrudConstants.ERR_NO_FIELD_INSERT_ACCESS, path.toString()));
-                }
-            }
-
-            Path uniqueFieldPath = fieldNameTranslator.translateAttributeName(store.getUniqueAttribute());
-            JsonNode uniqueNode = document.get(uniqueFieldPath);
-            if (uniqueNode == null) {
-                document.addError(Error.get(MetadataConstants.ERR_PARSE_MISSING_ELEMENT, store.getUniqueAttribute()));
-            }
-
-            if (document.hasErrors()) {
-                continue;
-            }
-
-            String dn = LdapCrudUtil.createDN(store, uniqueNode.asText());
+        List<com.unboundid.ldap.sdk.Entry> entries = parseDocuments(ctx, fieldNameTranslator, (DocCtx document, String dn) -> {
+            com.unboundid.ldap.sdk.Entry entry = entryTranslatorFromJson.translate(document, dn);
             documentToDnMap.put(document, dn);
-            try {
-                entries.add(entryTranslatorFromJson.translate(document, dn));
-            } catch (Error e) {
-                document.addError(e);
-            } catch (Exception e) {
-                document.addError(Error.get(e));
-            }
-        }
+            return entry;
+        });
 
         //Persist each Entry.
         LDAPConnection connection = getNewLdapConnection(store);
@@ -435,6 +405,54 @@ public class LdapCRUDController implements CRUDController {
 
     private interface SearchRunner {
         void run(SearchResultEntry searchResultEntry, LDAPConnection connection);
+    }
+
+    private <T> List<T> parseDocuments(CRUDOperationContext ctx, LdapFieldNameTranslator fieldNameTranslator, DocumentTransformer<T> transformer) {
+        List<DocCtx> documents = ctx.getDocumentsWithoutErrors();
+        if (documents == null || documents.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
+        LdapDataStore store = LdapCrudUtil.getLdapDataStore(md);
+        FieldAccessRoleEvaluator roles = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
+
+        List<T> items = new ArrayList<>();
+        for (DocCtx document : documents) {
+            Set<Path> paths = roles.getInaccessibleFields_Insert(document);
+            if ((paths != null) && !paths.isEmpty()) {
+                for (Path path : paths) {
+                    document.addError(Error.get(CrudConstants.ERR_NO_FIELD_INSERT_ACCESS, path.toString()));
+                }
+            }
+
+            Path uniqueFieldPath = fieldNameTranslator.translateAttributeName(store.getUniqueAttribute());
+            JsonNode uniqueNode = document.get(uniqueFieldPath);
+            if (uniqueNode == null) {
+                document.addError(Error.get(MetadataConstants.ERR_PARSE_MISSING_ELEMENT, store.getUniqueAttribute()));
+            }
+
+            if (document.hasErrors()) {
+                continue;
+            }
+
+            try {
+                T item = transformer.transform(document, LdapCrudUtil.createDN(store, uniqueNode.asText()));
+                if (item != null) {
+                    items.add(item);
+                }
+            } catch (Error e) {
+                document.addError(e);
+            } catch (Exception e) {
+                document.addError(Error.get(e));
+            }
+        }
+
+        return items;
+    }
+
+    private interface DocumentTransformer<T> {
+        T transform(DocCtx document, String dn);
     }
 
 }
