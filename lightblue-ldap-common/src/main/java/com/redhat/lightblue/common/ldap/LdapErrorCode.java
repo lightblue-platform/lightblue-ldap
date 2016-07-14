@@ -40,6 +40,8 @@ public final class LdapErrorCode {
     /** LDAP returned an unsuccessful response code. */
     public static final String ERR_LDAP_UNSUCCESSFUL_RESPONSE = "ldap:UnsuccessfulResponse";
 
+    public static final String ERR_LDAP_SAVE_ERROR_INS_WITH_NO_UPSERT = "ldap:SaveError:InsertionAttemptWithNoUpsert";
+
     private LdapErrorCode(){}
 
 }
