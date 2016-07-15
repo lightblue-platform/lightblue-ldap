@@ -58,25 +58,13 @@ public abstract class NonPersistedPredefinedFieldTranslatorFromJson<T> extends T
                     || LightblueUtil.isFieldAnArrayCount(datasourceFieldName, fields)){
                 /*
                  * Indicates the field is auto-generated for lightblue purposes. These fields
-                 * should not be inserted into LDAP.
+                 * should not be inserted into the data store.
                  */
                 return;
             }
         }
 
         super.translate(cursor, target);
-    }
-
-    /**
-     * The metadata field name may not always match the underlying datasource name
-     * for that same field. Overriding this method provides the opportunity for
-     * implementations to translate as appropriate. If not overridden, this method
-     * will simply return the last section of the {@link Path}.
-     * @param path - {@link Path} for the field in question.
-     * @return the name of the field as known by the datasource.
-     */
-    protected String getFieldNameAsKnownByDatasource(Path path){
-        return path.getLast();
     }
 
 }
