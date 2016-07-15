@@ -137,6 +137,7 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
                 entityData.toString(), true);
     }
 
+    @Test
     public void testDelete() throws Exception {
         //Setup
         getLightblueFactory().getMediator().insert(
@@ -151,6 +152,16 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
         assertNoErrors(response);
         assertNoDataErrors(response);
         assertEquals(1, response.getModifiedCount());
+        
+        //Ensure entry was inserted
+        Response findResponse = getLightblueFactory().getMediator().find(
+                createRequest_FromResource(FindRequest.class, "./crud/find/person-find-many.json"));
+
+        assertNotNull(findResponse);
+        assertNoErrors(findResponse);
+        assertNoDataErrors(findResponse);
+        //There were 3, now only 2
+        assertEquals(2, findResponse.getMatchCount());
     }
 
     @Test
