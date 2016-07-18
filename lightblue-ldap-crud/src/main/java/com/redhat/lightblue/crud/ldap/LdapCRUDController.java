@@ -65,7 +65,6 @@ import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.LDAPResult;
-import com.unboundid.ldap.sdk.LDAPSearchException;
 import com.unboundid.ldap.sdk.ModifyRequest;
 import com.unboundid.ldap.sdk.ResultCode;
 import com.unboundid.ldap.sdk.SearchRequest;
@@ -111,18 +110,7 @@ public class LdapCRUDController implements CRUDController {
         //Persist each Entry.
         LDAPConnection connection = getLdapConnection(store);
         for (com.unboundid.ldap.sdk.Entry entry : entries) {
-            try {
-                LDAPResult insertResult = connection.add(entry);
-                if (ResultCode.SUCCESS.equals(insertResult.getResultCode())) {
-                    response.setNumInserted(response.getNumInserted() + 1);
-                } else {
-                    ctx.addError(Error.get("ldap:insert",
-                            LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
-                            insertResult.getResultCode().toString()));
-                }
-            } catch (LDAPException e) {
-                ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
-            }
+            runInsert(connection, ctx, entry, (LDAPResult) -> response.setNumInserted(response.getNumInserted() + 1));
         }
 
         projectChanges(projection, ctx, documentToDnMap);
@@ -213,18 +201,18 @@ public class LdapCRUDController implements CRUDController {
         runSearch(connection, searchRequest, ctx,
                 (SearchResultEntry entry) -> {
                     //LDAP only supports performing 1 delete at a time.
-                    try {
-                        LDAPResult deleteResult = connection.delete(entry.getDN());
-                        if (ResultCode.SUCCESS.equals(deleteResult.getResultCode())) {
+                    execute(ctx, new ExecutionHandler() {
+
+                        @Override
+                        void onSuccess(LDAPResult deleteResult) {
                             deleteResponse.setNumDeleted(deleteResponse.getNumDeleted() + 1);
-                        } else {
-                            ctx.addError(Error.get("ldap:delete",
-                                    LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
-                                    deleteResult.getResultCode().toString()));
                         }
-                    } catch (LDAPException e) {
-                        ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
-                    }
+
+                        @Override
+                        LDAPResult execute() throws LDAPException {
+                            return connection.delete(entry.getDN());
+                        }
+                    });
                 });
 
         return deleteResponse;
@@ -425,27 +413,44 @@ public class LdapCRUDController implements CRUDController {
                 attributes);
     }
 
-    private int runSearch(LDAPConnection connection, SearchRequest searchRequest, CRUDOperationContext ctx, SearchResultProcessor searchRunner) {
-        try {
-            SearchResult searchResult = connection.search(searchRequest);
-            if (ResultCode.SUCCESS.equals(searchResult.getResultCode())) {
-                for (SearchResultEntry entry : searchResult.getSearchEntries()) {
+    private void runSearch(LDAPConnection connection, SearchRequest searchRequest, CRUDOperationContext ctx, SearchResultProcessor searchRunner) {
+        execute(ctx, new ExecutionHandler() {
+
+            @Override
+            void onSuccess(LDAPResult searchResult) {
+                for (SearchResultEntry entry : ((SearchResult) searchResult).getSearchEntries()) {
                     searchRunner.process(entry);
                 }
-            } else {
-                ctx.addError(Error.get("ldap:search",
-                        LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
-                        searchResult.getResultCode().toString()));
             }
-            return searchResult.getEntryCount();
-        } catch (LDAPSearchException e) {
-            ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
-        }
-        return 0;
+
+            @Override
+            SearchResult execute() throws LDAPException {
+                return connection.search(searchRequest);
+            }
+        });
     }
 
     private interface SearchResultProcessor {
         void process(SearchResultEntry searchResultEntry);
+    }
+
+    private void runInsert(LDAPConnection connection, CRUDOperationContext ctx, com.unboundid.ldap.sdk.Entry entry, InsertResultProcessor processor) {
+        execute(ctx, new ExecutionHandler() {
+
+            @Override
+            void onSuccess(LDAPResult insertResult) {
+                processor.process(insertResult);
+            }
+
+            @Override
+            LDAPResult execute() throws LDAPException {
+                return connection.add(entry);
+            }
+        });
+    }
+
+    private interface InsertResultProcessor {
+        void process(LDAPResult result);
     }
 
     private <T> List<T> parseDocuments(CRUDOperationContext ctx, LdapFieldNameTranslator fieldNameTranslator, DocumentProcessor<T> processor) {
@@ -494,6 +499,29 @@ public class LdapCRUDController implements CRUDController {
 
     private interface DocumentProcessor<T> {
         T process(DocCtx document, String dn) throws Exception;
+    }
+
+    private void execute(CRUDOperationContext ctx, ExecutionHandler handler){
+        try {
+            LDAPResult result = handler.execute();
+            if (ResultCode.SUCCESS.equals(result.getResultCode())) {
+                handler.onSuccess(result);
+            } else {
+                ctx.addError(Error.get(
+                        LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
+                        result.getResultCode().toString()));
+            }
+        } catch (LDAPException e) {
+            ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
+        }
+    }
+
+    private abstract class ExecutionHandler {
+
+        abstract LDAPResult execute() throws LDAPException;
+
+        abstract void onSuccess(LDAPResult result);
+
     }
 
 }
