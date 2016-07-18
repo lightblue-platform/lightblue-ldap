@@ -129,20 +129,23 @@ public class LdapCRUDController implements CRUDController {
         LdapFieldNameTranslator fieldNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
         LDAPConnection connection = getLdapConnection(store);
 
-        ModificationTranslatorFromJson transformer = new ModificationTranslatorFromJson(md, fieldNameTranslator);
+        ModificationTranslatorFromJson modificationTranslator = new ModificationTranslatorFromJson(md, fieldNameTranslator);
+        EntryTranslatorFromJson entryTranslator = new EntryTranslatorFromJson(md, fieldNameTranslator);
 
         //Create Entry instances for each document.
         Map<String, DocCtx> documentToDnMap = new HashMap<>();
+        List<com.unboundid.ldap.sdk.Entry> entries = new ArrayList<>();
         List<ModifyRequest> modifications = parseDocuments(ctx, fieldNameTranslator, (DocCtx document, String dn) -> {
             documentToDnMap.put(dn, document);
 
             SearchResultEntry entity = connection.getEntry(dn);
 
             if(entity != null){
-                return transformer.translate(document, dn);
+                return modificationTranslator.translate(document, dn);
             }
             else if(upsert){
-                //TODO: new document
+                //DNs that do not already exist, need to be created.
+                entries.add(entryTranslator.translate(document, dn));
             }
             else {
                 document.addError(Error.get(LdapErrorCode.ERR_LDAP_SAVE_ERROR_INS_WITH_NO_UPSERT, "New document, but upsert=false"));
@@ -151,19 +154,25 @@ public class LdapCRUDController implements CRUDController {
             return null;
         });
 
-        //Persist each Entry.
+        //Persist each change as either an insert or a modify.
         for (ModifyRequest modifyRequest : modifications) {
-            try {
-                LDAPResult saveResult = connection.modify(modifyRequest);
-                if (ResultCode.SUCCESS.equals(saveResult.getResultCode())) {
+            execute(ctx, new ExecutionHandler() {
+
+                @Override
+                void onSuccess(LDAPResult result) {
                     response.setNumSaved(response.getNumSaved() + 1);
-                } else {
-                    ctx.addError(Error.get("ldap:save",
-                            LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
-                            saveResult.getResultCode().toString()));
                 }
-            } catch (LDAPException e) {
-                ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
+
+                @Override
+                LDAPResult execute() throws LDAPException {
+                    return connection.modify(modifyRequest);
+                }
+            });
+        }
+
+        if (upsert && !entries.isEmpty()) {
+            for(com.unboundid.ldap.sdk.Entry entry : entries){
+                runInsert(connection, ctx, entry, (LDAPResult) -> response.setNumSaved(response.getNumSaved() + 1));
             }
         }
 
