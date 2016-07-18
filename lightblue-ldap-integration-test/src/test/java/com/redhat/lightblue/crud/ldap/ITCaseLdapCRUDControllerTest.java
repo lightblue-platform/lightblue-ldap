@@ -29,7 +29,6 @@ import java.io.IOException;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runners.model.MultipleFailureException;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -226,49 +225,6 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
 
         //Ensure optional value was changed
         assertPersonEntryValues(uid, cn, optionalValue);
-    }
-
-    @Test
-    @Ignore
-    public void testSave_SetValue_WithInsufficientRoles() throws Exception {
-        //Setup
-        /*        String insert = AbstractJsonNodeTest.loadResource("./crud/insert/department-insert-template.json")
-                .replaceFirst("#cn", "Marketing")
-                .replaceFirst("#description", "Department devoted to Marketing")
-                .replaceFirst("#members",
-                        "cn=John Doe," + BASEDB_USERS + "\",\"cn=Jane Doe," + BASEDB_USERS);
-
-        InsertionRequest insertRequest = createRequest_FromJsonString(InsertionRequest.class, insert);
-        insertRequest.setClientId(new FakeClientIdentification("fakeUser", "admin"));
-        Response response = getLightblueFactory().getMediator().insert(insertRequest);
-
-        //Test
-        String uid = "john.doe";
-        String cn = "John Doe";
-        String save = AbstractJsonNodeTest.loadResource("./crud/save/person-save-single-template.json")
-                .replaceFirst("#uid", uid)
-                .replaceFirst("#givenName", "John")
-                .replaceFirst("#sn", "Doe")
-                .replaceFirst("#cn", cn)
-                .replaceFirst("#upsert", "false")
-                .replaceFirst("#optional", ",\"optional\": \"" + optionalValue + "\"");
-        Response response = getLightblueFactory().getMediator().save(
-                createRequest_FromJsonString(SaveRequest.class, save));
-
-        //Asserts
-        assertNotNull(response);
-        assertNoErrors(response);
-        assertNoDataErrors(response);
-        assertEquals(1, response.getModifiedCount());
-
-        JsonNode entityData = response.getEntityData();
-        assertNotNull(entityData);
-        JSONAssert.assertEquals(
-                "[{" + generatePersonDnJson(uid) + "}]",
-                entityData.toString(), false);
-
-        //Ensure optional value was changed
-        assertPersonEntryValues(uid, cn, optionalValue);*/
     }
 
     /**
