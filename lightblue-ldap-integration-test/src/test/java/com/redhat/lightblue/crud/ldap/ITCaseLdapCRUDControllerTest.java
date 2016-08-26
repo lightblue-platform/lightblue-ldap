@@ -30,13 +30,16 @@ import java.io.IOException;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runners.model.MultipleFailureException;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.Response;
+import com.redhat.lightblue.crud.CrudConstants;
 import com.redhat.lightblue.crud.DeleteRequest;
 import com.redhat.lightblue.crud.FindRequest;
 import com.redhat.lightblue.crud.InsertionRequest;
+import com.redhat.lightblue.crud.SaveRequest;
 import com.redhat.lightblue.ldap.test.LightblueLdapTestHarness;
 import com.redhat.lightblue.test.FakeClientIdentification;
 import com.redhat.lightblue.util.test.AbstractJsonNodeTest;
@@ -95,89 +98,210 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
         return false;
     }
 
+    protected void assertValidResponse(Response response) throws MultipleFailureException {
+        assertNotNull(response);
+        assertNoErrors(response);
+        assertNoDataErrors(response);
+    }
+
+    protected String generatePersonDnJson(String uid) {
+        return "\"dn\":\"uid=" + uid + "," + BASEDB_USERS + "\"";
+    }
+
+    protected void assertPersonEntryValues(String uid, String cn, String optional) throws Exception {
+        Response findResponse = getLightblueFactory().getMediator().find(
+                createRequest_FromResource(FindRequest.class, "./crud/find/person-find-single.json"));
+
+        assertValidResponse(findResponse);
+        assertEquals(1, findResponse.getMatchCount());
+        JSONAssert.assertEquals(
+                "[{"
+                + generatePersonDnJson(uid) + ","
+                + "\"uid\":\"" + uid + "\","
+                + "\"cn\":\"" + cn + "\","
+                + "\"objectType\":\"person\","
+                + "\"objectClass#\":4,"
+                + "\"optional\":" + ((optional == null) ? "null" : "\"" + optional + "\"")
+                + "}]",
+                findResponse.getEntityData().toString(), true);
+    }
+
     @Test
     public void testInsertMany() throws Exception {
         //Test
         Response response = getLightblueFactory().getMediator().insert(
                 createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json"));
 
-        //Asserts
-        assertNotNull(response);
-        assertNoErrors(response);
-        assertNoDataErrors(response);
+        assertValidResponse(response);
         assertEquals(4, response.getModifiedCount());
 
         JsonNode entityData = response.getEntityData();
         assertNotNull(entityData);
         JSONAssert.assertEquals(
-                "[{\"dn\":\"uid=junior.doe," + BASEDB_USERS + "\"},{\"dn\":\"uid=john.doe," + BASEDB_USERS + "\"},{\"dn\":\"uid=jane.doe," + BASEDB_USERS + "\"},{\"dn\":\"uid=jack.buck," + BASEDB_USERS + "\"}]",
+                "["
+                    + "{" + generatePersonDnJson("junior.doe") + "},"
+                    + "{" + generatePersonDnJson("john.doe") + "},"
+                    + "{" + generatePersonDnJson("jane.doe") + "},"
+                    + "{" + generatePersonDnJson("jack.buck") + "}"
+                + "]",
                 entityData.toString(), false);
+
+        //Ensure entry was inserted
+        Response findResponse = getLightblueFactory().getMediator().find(
+                createRequest_FromResource(FindRequest.class, "./crud/find/person-find-many.json"));
+
+        assertValidResponse(findResponse);
+        assertEquals(3, findResponse.getMatchCount());
     }
 
     @Test
     public void testFindSingle() throws Exception {
         //Setup
-        getLightblueFactory().getMediator().insert(
-                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json"));
+        assertValidResponse(getLightblueFactory().getMediator().insert(
+                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json")));
 
         //Test
-        Response response = getLightblueFactory().getMediator().find(
-                createRequest_FromResource(FindRequest.class, "./crud/find/person-find-single.json"));
+        //Assert does the find as part of the test
 
         //Asserts
-        assertNotNull(response);
-        assertNoErrors(response);
-        assertNoDataErrors(response);
-        assertEquals(1, response.getMatchCount());
-
-        JsonNode entityData = response.getEntityData();
-        assertNotNull(entityData);
-        JSONAssert.assertEquals(
-                "[{\"dn\":\"uid=john.doe," + BASEDB_USERS + "\",\"uid\":\"john.doe\",\"objectType\":\"person\",\"objectClass#\":4}]",
-                entityData.toString(), true);
+        assertPersonEntryValues("john.doe", "John Doe", null);
     }
 
     @Test
     public void testDelete() throws Exception {
         //Setup
-        getLightblueFactory().getMediator().insert(
-                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json"));
+        assertValidResponse(getLightblueFactory().getMediator().insert(
+                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json")));
 
         //Test
         Response response = getLightblueFactory().getMediator().delete(
                 createRequest_FromResource(DeleteRequest.class, "./crud/delete/person-delete-simple.json"));
 
-        //Asserts
-        assertNotNull(response);
-        assertNoErrors(response);
-        assertNoDataErrors(response);
+        assertValidResponse(response);
         assertEquals(1, response.getModifiedCount());
-        
-        //Ensure entry was inserted
+
+        //Ensure entry was deleted
         Response findResponse = getLightblueFactory().getMediator().find(
                 createRequest_FromResource(FindRequest.class, "./crud/find/person-find-many.json"));
 
-        assertNotNull(findResponse);
-        assertNoErrors(findResponse);
-        assertNoDataErrors(findResponse);
+        assertValidResponse(findResponse);
         //There were 3, now only 2
         assertEquals(2, findResponse.getMatchCount());
+    }
+
+    /**
+     * optional does not exist on the original record, ensure that it has been added.
+     */
+    @Test
+    public void testSave_SetValue() throws Exception {
+        String optionalValue = "modified value";
+
+        //Setup
+        assertValidResponse(getLightblueFactory().getMediator().insert(
+                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-single.json")));
+
+        //Test
+        String uid = "john.doe";
+        String cn = "John Doe";
+        String save = AbstractJsonNodeTest.loadResource("./crud/save/person-save-single-template.json")
+                .replaceFirst("#uid", uid)
+                .replaceFirst("#givenName", "John")
+                .replaceFirst("#sn", "Doe")
+                .replaceFirst("#cn", cn)
+                .replaceFirst("#upsert", "false")
+                .replaceFirst("#optional", ",\"optional\": \"" + optionalValue + "\"");
+        Response response = getLightblueFactory().getMediator().save(
+                createRequest_FromJsonString(SaveRequest.class, save));
+
+        //Asserts
+        assertValidResponse(response);
+        assertEquals(1, response.getModifiedCount());
+
+        JsonNode entityData = response.getEntityData();
+        assertNotNull(entityData);
+        JSONAssert.assertEquals(
+                "[{" + generatePersonDnJson(uid) + "}]",
+                entityData.toString(), false);
+
+        //Ensure optional value was changed
+        assertPersonEntryValues(uid, cn, optionalValue);
+    }
+
+    /**
+     * required field cn is unset in the update, should not be allowed
+     */
+    @Test
+    public void testSave_UnsetRequiredField() throws Exception {
+        //Setup
+        assertValidResponse(getLightblueFactory().getMediator().insert(
+                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-single.json")));
+
+        //Test
+        String uid = "john.doe";
+        String save = AbstractJsonNodeTest.loadResource("./crud/save/person-save-single-template.json")
+                .replaceFirst("#uid", uid)
+                .replaceFirst("#givenName", "John")
+                .replaceFirst("#sn", "Doe")
+                .replaceFirst("\"cn\": \"#cn\",", "")
+                .replaceFirst("#upsert", "false")
+                .replaceFirst("#optional", "");
+        Response response = getLightblueFactory().getMediator().save(
+                createRequest_FromJsonString(SaveRequest.class, save));
+
+        //Asserts
+        assertNotNull(response);
+        assertNoErrors(response);
+        assertEquals(1, response.getDataErrors().size());
+        JSONAssert.assertEquals("{\"errors\":[{\"errorCode\":\"" + CrudConstants.ERR_REQUIRED + "\",\"msg\":\"cn\"}]}",
+                response.getDataErrors().get(0).toJson().toString(), false);
+        assertEquals(0, response.getModifiedCount());
+
+        //Ensure value were not changed
+        assertPersonEntryValues(uid, "John Doe", null);
+    }
+
+    /**
+     * entry is not inserted before upsert, make sure entry is created.
+     */
+    @Test
+    public void testSave_UpsertTrue() throws Exception {
+        String uid = "john.doe";
+        String cn = "John Doe";
+
+        //Test
+        String save = AbstractJsonNodeTest.loadResource("./crud/save/person-save-single-template.json")
+                .replaceFirst("#uid", uid)
+                .replaceFirst("#givenName", "John")
+                .replaceFirst("#sn", "Doe")
+                .replaceFirst("#cn", cn)
+                .replaceFirst("#upsert", "true")
+                .replaceFirst("#optional", "");
+        Response response = getLightblueFactory().getMediator().save(
+                createRequest_FromJsonString(SaveRequest.class, save));
+
+        assertValidResponse(response);
+        assertEquals(1, response.getModifiedCount());
+
+        JsonNode entityData = response.getEntityData();
+        JSONAssert.assertEquals(
+                "[{" + generatePersonDnJson(uid) + "}]",
+                entityData.toString(), false);
+
+        //Ensure optional value was changed
+        assertPersonEntryValues(uid, cn, null);
     }
 
     @Test
     public void testFindMany() throws Exception {
         //Setup
-        getLightblueFactory().getMediator().insert(
-                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json"));
+        assertValidResponse(getLightblueFactory().getMediator().insert(
+                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json")));
 
         //Test
         Response response = getLightblueFactory().getMediator().find(
                 createRequest_FromResource(FindRequest.class, "./crud/find/person-find-many.json"));
 
-        //Asserts
-        assertNotNull(response);
-        assertNoErrors(response);
-        assertNoDataErrors(response);
+        assertValidResponse(response);
         assertEquals(3, response.getMatchCount());
 
         JsonNode entityData = response.getEntityData();
@@ -185,31 +309,32 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
 
         //Search requests results in desc order, strict mode is enforced to assure this.
         JSONAssert.assertEquals(
-                "[{\"dn\":\"uid=junior.doe," + BASEDB_USERS + "\"},{\"dn\":\"uid=john.doe," + BASEDB_USERS + "\"},{\"dn\":\"uid=jane.doe," + BASEDB_USERS + "\"}]",
+                "["
+                    + "{" + generatePersonDnJson("junior.doe") + "},"
+                    + "{" + generatePersonDnJson("john.doe") + "},"
+                    + "{" + generatePersonDnJson("jane.doe") + "}"
+                + "]",
                 entityData.toString(), true);
     }
 
     @Test
     public void testFindMany_WithPagination() throws Exception {
         //Setup
-        getLightblueFactory().getMediator().insert(
-                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json"));
+        assertValidResponse(getLightblueFactory().getMediator().insert(
+                createRequest_FromResource(InsertionRequest.class, "./crud/insert/person-insert-many.json")));
 
         //Test
         Response response = getLightblueFactory().getMediator().find(
                 createRequest_FromResource(FindRequest.class, "./crud/find/person-find-many-paginated.json"));
 
-        //Asserts
-        assertNotNull(response);
-        assertNoErrors(response);
-        assertNoDataErrors(response);
+        assertValidResponse(response);
         assertEquals(1, response.getMatchCount());
 
         JsonNode entityData = response.getEntityData();
         assertNotNull(entityData);
 
         JSONAssert.assertEquals(
-                "[{\"dn\":\"uid=john.doe," + BASEDB_USERS + "\"}]",
+                "[{" + generatePersonDnJson("john.doe") + "}]",
                 entityData.toString(), true);
     }
 
@@ -228,10 +353,7 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
         //Test
         Response response = getLightblueFactory().getMediator().insert(insertRequest);
 
-        //Asserts
-        assertNotNull(response);
-        assertNoErrors(response);
-        assertNoDataErrors(response);
+        assertValidResponse(response);
         assertEquals(1, response.getModifiedCount());
 
         JsonNode entityData = response.getEntityData();
@@ -239,6 +361,15 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
         JSONAssert.assertEquals(
                 "[{\"dn\":\"cn=Marketing," + BASEDB_DEPARTMENTS + "\"}]",
                 entityData.toString(), true);
+
+        //Ensure entry was inserted
+        FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find.json");
+        findRequest.setClientId(new FakeClientIdentification("admin"));
+
+        Response findResponse = getLightblueFactory().getMediator().find(findRequest);
+
+        assertValidResponse(findResponse);
+        assertEquals(1, findResponse.getMatchCount());
     }
 
     @Test
@@ -263,8 +394,17 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
 
         assertNoErrors(response);
         assertEquals(1, response.getDataErrors().size());
-        JSONAssert.assertEquals("{\"errors\":[{\"errorCode\":\"crud:insert:NoFieldAccess\",\"msg\":\"member\"}]}",
+        JSONAssert.assertEquals("{\"errors\":[{\"errorCode\":\"" + CrudConstants.ERR_NO_FIELD_INSERT_ACCESS + "\",\"msg\":\"member\"}]}",
                 response.getDataErrors().get(0).toJson().toString(), false);
+
+        //Ensure entry was not inserted
+        FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find.json");
+        findRequest.setClientId(new FakeClientIdentification("admin"));
+
+        Response findResponse = getLightblueFactory().getMediator().find(findRequest);
+
+        assertValidResponse(findResponse);
+        assertEquals(0, findResponse.getMatchCount());
     }
 
     @Test
@@ -279,18 +419,15 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
         InsertionRequest insertRequest = createRequest_FromJsonString(InsertionRequest.class, insert);
         insertRequest.setClientId(new FakeClientIdentification("fakeUser", "admin"));
 
-        getLightblueFactory().getMediator().insert(insertRequest);
+        assertValidResponse(getLightblueFactory().getMediator().insert(insertRequest));
 
         //Test
-        FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find-single.json");
+        FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find.json");
         findRequest.setClientId(new FakeClientIdentification("fakeUser", "admin"));
 
         Response response = getLightblueFactory().getMediator().find(findRequest);
 
-        //Asserts
-        assertNotNull(response);
-        assertNoErrors(response);
-        assertNoDataErrors(response);
+        assertValidResponse(response);
         assertEquals(1, response.getMatchCount());
 
         JsonNode entityData = response.getEntityData();
@@ -312,18 +449,15 @@ public class ITCaseLdapCRUDControllerTest extends LightblueLdapTestHarness {
         InsertionRequest insertRequest = createRequest_FromJsonString(InsertionRequest.class, insert);
         insertRequest.setClientId(new FakeClientIdentification("fakeUser", "admin"));
 
-        getLightblueFactory().getMediator().insert(insertRequest);
+        assertValidResponse(getLightblueFactory().getMediator().insert(insertRequest));
 
         //Test
-        FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find-single.json");
+        FindRequest findRequest = createRequest_FromResource(FindRequest.class, "./crud/find/department-find.json");
         findRequest.setClientId(new FakeClientIdentification("fakeUser"));
 
         Response response = getLightblueFactory().getMediator().find(findRequest);
 
-        //Asserts
-        assertNotNull(response);
-        assertNoErrors(response);
-        assertNoDataErrors(response);
+        assertValidResponse(response);
         assertEquals(1, response.getMatchCount());
 
         assertNotNull(response.getEntityData());

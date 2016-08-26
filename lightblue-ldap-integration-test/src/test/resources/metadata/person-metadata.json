@@ -24,10 +24,31 @@
              "find": ["anyone"]
         },
         "fields": {
-            "uid": {"type": "string"},
-            "givenName": {"type": "string"},
-            "sn": {"type": "string"},
-            "cn": {"type": "string"}
+            "uid": {
+                "constraints": {
+                    "required": true
+                },
+                "type": "string"
+            },
+            "givenName": {
+                "constraints": {
+                    "required": true
+                },
+                "type": "string"
+            },
+            "sn": {
+                "constraints": {
+                    "required": true
+                },
+                "type": "string"
+            },
+            "cn": {
+                "constraints": {
+                    "required": true
+                },
+                "type": "string"
+            },
+            "optional": {"type": "string"}
         }
     }
 }

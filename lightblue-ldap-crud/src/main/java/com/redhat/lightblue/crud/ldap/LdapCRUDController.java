@@ -45,6 +45,7 @@ import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.CrudConstants;
 import com.redhat.lightblue.crud.DocCtx;
 import com.redhat.lightblue.crud.ldap.translator.EntryTranslatorFromJson;
+import com.redhat.lightblue.crud.ldap.translator.ModificationTranslatorFromJson;
 import com.redhat.lightblue.crud.ldap.translator.ResultTranslatorToJson;
 import com.redhat.lightblue.crud.ldap.translator.SortTranslator;
 import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
@@ -64,7 +65,7 @@ import com.redhat.lightblue.util.Path;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
 import com.unboundid.ldap.sdk.LDAPResult;
-import com.unboundid.ldap.sdk.LDAPSearchException;
+import com.unboundid.ldap.sdk.ModifyRequest;
 import com.unboundid.ldap.sdk.ResultCode;
 import com.unboundid.ldap.sdk.SearchRequest;
 import com.unboundid.ldap.sdk.SearchResult;
@@ -92,65 +93,24 @@ public class LdapCRUDController implements CRUDController {
         CRUDInsertionResponse response = new CRUDInsertionResponse();
         response.setNumInserted(0);
 
-        List<DocCtx> documents = ctx.getDocumentsWithoutErrors();
-        if (documents == null || documents.isEmpty()) {
-            return response;
-        }
-
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
         LdapDataStore store = LdapCrudUtil.getLdapDataStore(md);
         LdapFieldNameTranslator fieldNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
 
-        FieldAccessRoleEvaluator roles = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
         EntryTranslatorFromJson entryTranslatorFromJson = new EntryTranslatorFromJson(md, fieldNameTranslator);
 
         //Create Entry instances for each document.
-        List<com.unboundid.ldap.sdk.Entry> entries = new ArrayList<>();
-        Map<DocCtx, String> documentToDnMap = new HashMap<>();
-        boolean hasError = false;
-        for (DocCtx document : documents) {
-            Set<Path> paths = roles.getInaccessibleFields_Insert(document);
-            if ((paths != null) && !paths.isEmpty()) {
-                for (Path path : paths) {
-                    document.addError(Error.get("insert", CrudConstants.ERR_NO_FIELD_INSERT_ACCESS, path.toString()));
-                    continue;
-                }
-            }
-
-            Path uniqueFieldPath = fieldNameTranslator.translateAttributeName(store.getUniqueAttribute());
-            JsonNode uniqueNode = document.get(uniqueFieldPath);
-            if (uniqueNode == null) {
-                throw Error.get(MetadataConstants.ERR_PARSE_MISSING_ELEMENT, store.getUniqueAttribute());
-            }
-
-            String dn = LdapCrudUtil.createDN(store, uniqueNode.asText());
-            documentToDnMap.put(document, dn);
-            try {
-                entries.add(entryTranslatorFromJson.translate(document, dn));
-            } catch (Exception e) {
-                document.addError(Error.get(e));
-                hasError = true;
-            }
-        }
-        if (hasError) {
-            return response;
-        }
+        Map<String, DocCtx> documentToDnMap = new HashMap<>();
+        List<com.unboundid.ldap.sdk.Entry> entries = parseDocuments(ctx, fieldNameTranslator, (DocCtx document, String dn) -> {
+            com.unboundid.ldap.sdk.Entry entry = entryTranslatorFromJson.translate(document, dn);
+            documentToDnMap.put(dn, document);
+            return entry;
+        });
 
         //Persist each Entry.
-        LDAPConnection connection = getNewLdapConnection(store);
+        LDAPConnection connection = getLdapConnection(store);
         for (com.unboundid.ldap.sdk.Entry entry : entries) {
-            try {
-                LDAPResult insertResult = connection.add(entry);
-                if (ResultCode.SUCCESS.equals(insertResult.getResultCode())) {
-                    response.setNumInserted(response.getNumInserted() + 1);
-                } else {
-                    ctx.addError(Error.get("ldap:insert",
-                            LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
-                            insertResult.getResultCode().toString()));
-                }
-            } catch (LDAPException e) {
-                ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
-            }
+            runInsert(connection, ctx, entry, (LDAPResult) -> response.setNumInserted(response.getNumInserted() + 1));
         }
 
         projectChanges(projection, ctx, documentToDnMap);
@@ -161,8 +121,64 @@ public class LdapCRUDController implements CRUDController {
     @Override
     public CRUDSaveResponse save(CRUDOperationContext ctx, boolean upsert,
             Projection projection) {
-        // TODO Auto-generated method stub
-        return null;
+        CRUDSaveResponse response = new CRUDSaveResponse();
+        response.setNumSaved(0);
+
+        EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
+        LdapDataStore store = LdapCrudUtil.getLdapDataStore(md);
+        LdapFieldNameTranslator fieldNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
+        LDAPConnection connection = getLdapConnection(store);
+
+        ModificationTranslatorFromJson modificationTranslator = new ModificationTranslatorFromJson(md, fieldNameTranslator);
+        EntryTranslatorFromJson entryTranslator = new EntryTranslatorFromJson(md, fieldNameTranslator);
+
+        //Create Entry instances for each document.
+        Map<String, DocCtx> documentToDnMap = new HashMap<>();
+        List<com.unboundid.ldap.sdk.Entry> entries = new ArrayList<>();
+        List<ModifyRequest> modifications = parseDocuments(ctx, fieldNameTranslator, (DocCtx document, String dn) -> {
+            documentToDnMap.put(dn, document);
+
+            SearchResultEntry entity = connection.getEntry(dn);
+
+            if(entity != null){
+                return modificationTranslator.translate(document, dn);
+            }
+            else if(upsert){
+                //DNs that do not already exist, need to be created.
+                entries.add(entryTranslator.translate(document, dn));
+            }
+            else {
+                document.addError(Error.get(LdapErrorCode.ERR_LDAP_SAVE_ERROR_INS_WITH_NO_UPSERT, "New document, but upsert=false"));
+            }
+
+            return null;
+        });
+
+        //Persist each change as either an insert or a modify.
+        for (ModifyRequest modifyRequest : modifications) {
+            execute(ctx, new ExecutionHandler() {
+
+                @Override
+                void onSuccess(LDAPResult result) {
+                    response.setNumSaved(response.getNumSaved() + 1);
+                }
+
+                @Override
+                LDAPResult execute() throws LDAPException {
+                    return connection.modify(modifyRequest);
+                }
+            });
+        }
+
+        if (upsert && !entries.isEmpty()) {
+            for(com.unboundid.ldap.sdk.Entry entry : entries){
+                runInsert(connection, ctx, entry, (LDAPResult) -> response.setNumSaved(response.getNumSaved() + 1));
+            }
+        }
+
+        projectChanges(projection, ctx, documentToDnMap);
+
+        return response;
     }
 
     @Override
@@ -177,26 +193,36 @@ public class LdapCRUDController implements CRUDController {
     public CRUDDeleteResponse delete(CRUDOperationContext ctx,
             QueryExpression query) {
 
+        if (query == null) {
+            throw new IllegalArgumentException("No query was provided.");
+        }
+
         CRUDDeleteResponse deleteResponse = new CRUDDeleteResponse();
         deleteResponse.setNumDeleted(0);
 
-        runSearch(ctx, query,
-                (SearchResultEntry entry, LDAPConnection connection) -> {
+        EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
+        LdapDataStore store = LdapCrudUtil.getLdapDataStore(md);
+
+        SearchRequest searchRequest = buildSearchRequest(store.getBaseDN(), md, query, null, SearchRequest.NO_ATTRIBUTES);
+
+        LDAPConnection connection = getLdapConnection(store);
+
+        runSearch(connection, searchRequest, ctx,
+                (SearchResultEntry entry) -> {
                     //LDAP only supports performing 1 delete at a time.
-                    try {
-                        LDAPResult deleteResult = connection.delete(entry.getDN());
-                        if (ResultCode.SUCCESS.equals(deleteResult.getResultCode())) {
+                    execute(ctx, new ExecutionHandler() {
+
+                        @Override
+                        void onSuccess(LDAPResult deleteResult) {
                             deleteResponse.setNumDeleted(deleteResponse.getNumDeleted() + 1);
-                        } else {
-                            ctx.addError(Error.get("ldap:delete",
-                                    LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
-                                    deleteResult.getResultCode().toString()));
                         }
-                    } catch (LDAPException e) {
-                        ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
-                    }
-                },
-                SearchRequest.NO_ATTRIBUTES);
+
+                        @Override
+                        LDAPResult execute() throws LDAPException {
+                            return connection.delete(entry.getDN());
+                        }
+                    });
+                });
 
         return deleteResponse;
     }
@@ -219,58 +245,43 @@ public class LdapCRUDController implements CRUDController {
         CRUDFindResponse response = new CRUDFindResponse();
         response.setSize(0);
 
-        LDAPConnection connection = getNewLdapConnection(store);
+        LDAPConnection connection = getLdapConnection(store);
 
         LdapFieldNameTranslator fieldNameTranslator = LdapCrudUtil.getLdapFieldNameTranslator(md);
 
-        //TODO: Support scopes other than SUB
-        SearchRequest request = new SearchRequest(
+        SearchRequest searchRequest = buildSearchRequest(
                 store.getBaseDN(),
-                SearchScope.SUB,
-                new FilterBuilder(fieldNameTranslator).build(query),
+                md,
+                query,
                 translateFieldNames(fieldNameTranslator, gatherRequiredFields(md, projection, query, sort)).toArray(new String[0]));
         if (sort != null) {
-            request.addControl(new ServerSideSortRequestControl(false, new SortTranslator(fieldNameTranslator).translate(sort)));
+            searchRequest.addControl(new ServerSideSortRequestControl(false, new SortTranslator(fieldNameTranslator).translate(sort)));
         }
         if ((from != null) && (from > 0)) {
             int endPos = to.intValue() - from.intValue();
-            request.addControl(new VirtualListViewRequestControl(from.intValue(), 0, endPos, 0, null, false));
+            searchRequest.addControl(new VirtualListViewRequestControl(from.intValue(), 0, endPos, 0, null, false));
         }
 
-        try{
-            SearchResult searchResult = connection.search(request);
+        ResultTranslatorToJson resultTranslator = new ResultTranslatorToJson(ctx.getFactory().getNodeFactory(), md, fieldNameTranslator);
 
-            if (ResultCode.SUCCESS.equals(searchResult.getResultCode())) {
-                response.setSize(searchResult.getEntryCount());
-                ResultTranslatorToJson resultTranslator = new ResultTranslatorToJson(ctx.getFactory().getNodeFactory(), md, fieldNameTranslator);
-                List<DocCtx> translatedDocs = new ArrayList<>();
-                for (SearchResultEntry entry : searchResult.getSearchEntries()) {
-                    try {
-                        translatedDocs.add(new DocCtx(resultTranslator.translate(entry)));
-                    } catch (Exception e) {
-                        ctx.addError(Error.get(e));
-                    }
-                }
-                ctx.setDocuments(translatedDocs);
+        List<DocCtx> translatedDocs = new ArrayList<>();
+        runSearch(connection, searchRequest, ctx, (SearchResultEntry entry) -> {
+            translatedDocs.add(new DocCtx(resultTranslator.translate(entry)));
+            response.setSize(response.getSize() + 1);
+        });
 
-                Projector projector = Projector.getInstance(
-                        Projection.add(
-                                projection,
-                                new FieldAccessRoleEvaluator(
-                                        md,
-                                        ctx.getCallerRoles()).getExcludedFields(FieldAccessRoleEvaluator.Operation.find)
-                                ),
-                        md);
-                for (DocCtx document : ctx.getDocumentsWithoutErrors()) {
-                    document.setOutputDocument(projector.project(document, ctx.getFactory().getNodeFactory()));
-                }
-            } else {
-                ctx.addError(Error.get("ldap:search",
-                        LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
-                        searchResult.getResultCode().toString()));
-            }
-        } catch (LDAPSearchException e) {
-            ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
+        ctx.setDocuments(translatedDocs);
+
+        Projector projector = Projector.getInstance(
+                Projection.add(
+                        projection,
+                        new FieldAccessRoleEvaluator(
+                                md,
+                                ctx.getCallerRoles()).getExcludedFields(FieldAccessRoleEvaluator.Operation.find)
+                        ),
+                md);
+        for (DocCtx document : ctx.getDocumentsWithoutErrors()) {
+            document.setOutputDocument(projector.project(document, ctx.getFactory().getNodeFactory()));
         }
 
         return response;
@@ -346,7 +357,7 @@ public class LdapCRUDController implements CRUDController {
      * @param ctx - {@link CRUDOperationContext}
      * @param documentToDnMap - Map linking {@link DocCtx} to the DN that represents it.
      */
-    private void projectChanges(Projection projection, CRUDOperationContext ctx, Map<DocCtx, String> documentToDnMap) {
+    private void projectChanges(Projection projection, CRUDOperationContext ctx, Map<String, DocCtx> documentToDnMap) {
         if (projection == null) {
             return;
         }
@@ -367,9 +378,9 @@ public class LdapCRUDController implements CRUDController {
 
         Path dnFieldPath = fieldNameTranslator.translateAttributeName(LdapConstant.ATTRIBUTE_DN);
 
-        for (Entry<DocCtx, String> insertedDn : documentToDnMap.entrySet()) {
-            DocCtx document = insertedDn.getKey();
-            String dn = insertedDn.getValue();
+        for (Entry<String, DocCtx> insertedDn : documentToDnMap.entrySet()) {
+            String dn = insertedDn.getKey();
+            DocCtx document = insertedDn.getValue();
             DocCtx projectionResponseJson = null;
 
             // If only dn is in the projection, then no need to query LDAP.
@@ -386,12 +397,12 @@ public class LdapCRUDController implements CRUDController {
     }
 
     /**
-     * Returns a new connection to ldap.
+     * Returns a connection to ldap.
      * @param store - {@link LdapDataStore} to connect too.
-     * @return a new connection to ldap
+     * @return a connection to ldap
      * @throws RuntimeException when unable to connect to ldap.
      */
-    private LDAPConnection getNewLdapConnection(LdapDataStore store) {
+    private LDAPConnection getLdapConnection(LdapDataStore store) {
         LDAPConnection connection = null;
         try {
             connection = dbResolver.get(store);
@@ -402,39 +413,124 @@ public class LdapCRUDController implements CRUDController {
         return connection;
     }
 
-    private void runSearch(CRUDOperationContext ctx, QueryExpression query, SearchRunner searchRunner, String... attributes) {
-        if (query == null) {
-            throw new IllegalArgumentException("No query was provided.");
+    private static SearchRequest buildSearchRequest(String baseDn, EntityMetadata md, QueryExpression query, String... attributes) {
+        //TODO: Support scopes other than SUB
+        return new SearchRequest(
+                baseDn,
+                SearchScope.SUB,
+                new FilterBuilder(LdapCrudUtil.getLdapFieldNameTranslator(md)).build(query),
+                attributes);
+    }
+
+    private void runSearch(LDAPConnection connection, SearchRequest searchRequest, CRUDOperationContext ctx, SearchResultProcessor searchRunner) {
+        execute(ctx, new ExecutionHandler() {
+
+            @Override
+            void onSuccess(LDAPResult searchResult) {
+                for (SearchResultEntry entry : ((SearchResult) searchResult).getSearchEntries()) {
+                    searchRunner.process(entry);
+                }
+            }
+
+            @Override
+            SearchResult execute() throws LDAPException {
+                return connection.search(searchRequest);
+            }
+        });
+    }
+
+    private interface SearchResultProcessor {
+        void process(SearchResultEntry searchResultEntry);
+    }
+
+    private void runInsert(LDAPConnection connection, CRUDOperationContext ctx, com.unboundid.ldap.sdk.Entry entry, InsertResultProcessor processor) {
+        execute(ctx, new ExecutionHandler() {
+
+            @Override
+            void onSuccess(LDAPResult insertResult) {
+                processor.process(insertResult);
+            }
+
+            @Override
+            LDAPResult execute() throws LDAPException {
+                return connection.add(entry);
+            }
+        });
+    }
+
+    private interface InsertResultProcessor {
+        void process(LDAPResult result);
+    }
+
+    private <T> List<T> parseDocuments(CRUDOperationContext ctx, LdapFieldNameTranslator fieldNameTranslator, DocumentProcessor<T> processor) {
+        List<DocCtx> documents = ctx.getDocumentsWithoutErrors();
+        if (documents == null || documents.isEmpty()) {
+            return new ArrayList<>();
         }
 
         EntityMetadata md = ctx.getEntityMetadata(ctx.getEntityName());
         LdapDataStore store = LdapCrudUtil.getLdapDataStore(md);
-        LDAPConnection connection = getNewLdapConnection(store);
+        FieldAccessRoleEvaluator roles = new FieldAccessRoleEvaluator(md, ctx.getCallerRoles());
 
-        SearchRequest searchRequest = new SearchRequest(
-                store.getBaseDN(),
-                SearchScope.SUB,
-                new FilterBuilder(LdapCrudUtil.getLdapFieldNameTranslator(md)).build(query),
-                attributes);
-
-        try {
-            SearchResult searchResult = connection.search(searchRequest);
-            if (ResultCode.SUCCESS.equals(searchResult.getResultCode())) {
-                for (SearchResultEntry entry : searchResult.getSearchEntries()) {
-                    searchRunner.run(entry, connection);
+        List<T> items = new ArrayList<>();
+        for (DocCtx document : documents) {
+            Set<Path> paths = roles.getInaccessibleFields_Insert(document);
+            if ((paths != null) && !paths.isEmpty()) {
+                for (Path path : paths) {
+                    document.addError(Error.get(CrudConstants.ERR_NO_FIELD_INSERT_ACCESS, path.toString()));
                 }
-            } else {
-                ctx.addError(Error.get("ldap:search",
-                        LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
-                        searchResult.getResultCode().toString()));
             }
-        } catch (LDAPSearchException e) {
+
+            Path uniqueFieldPath = fieldNameTranslator.translateAttributeName(store.getUniqueAttribute());
+            JsonNode uniqueNode = document.get(uniqueFieldPath);
+            if (uniqueNode == null) {
+                document.addError(Error.get(MetadataConstants.ERR_PARSE_MISSING_ELEMENT, store.getUniqueAttribute()));
+            }
+
+            if (document.hasErrors()) {
+                continue;
+            }
+
+            try {
+                T item = processor.process(document, LdapCrudUtil.createDN(store, uniqueNode.asText()));
+                if (item != null) {
+                    items.add(item);
+                }
+            } catch (Error e) {
+                document.addError(e);
+            } catch (Exception e) {
+                document.addError(Error.get(e));
+            }
+        }
+
+        return items;
+    }
+
+    private interface DocumentProcessor<T> {
+        T process(DocCtx document, String dn) throws Exception;
+    }
+
+    private void execute(CRUDOperationContext ctx, ExecutionHandler handler){
+        try {
+            LDAPResult result = handler.execute();
+            if (ResultCode.SUCCESS.equals(result.getResultCode())) {
+                handler.onSuccess(result);
+            } else {
+                ctx.addError(Error.get(
+                        LdapErrorCode.ERR_LDAP_UNSUCCESSFUL_RESPONSE,
+                        result.getResultCode().toString()));
+            }
+        } catch (LDAPException e) {
             ctx.addError(Error.get(LdapErrorCode.ERR_LDAP_REQUEST_FAILED, e));
         }
     }
 
-    private interface SearchRunner {
-        void run(SearchResultEntry searchResultEntry, LDAPConnection connection);
+    private abstract class ExecutionHandler {
+
+        abstract LDAPResult execute() throws LDAPException;
+
+        abstract void onSuccess(LDAPResult result);
+
     }
 
 }

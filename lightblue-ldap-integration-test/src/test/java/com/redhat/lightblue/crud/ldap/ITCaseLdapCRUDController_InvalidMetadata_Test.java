@@ -64,7 +64,8 @@ public class ITCaseLdapCRUDController_InvalidMetadata_Test extends LightblueLdap
         expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"createNewMetadata(person)\",\"errorCode\":\"ldap:UndefinedUniqueAttribute\",\"msg\":\"uid\"}");
 
         //Remove the uid field from the fields definition
-        String metadataWithoutUniqueField = AbstractJsonNodeTest.loadResource("./metadata/person-metadata.json").replaceFirst("\"uid\": \\{\"type\": \"string\"\\},", "");
+        String metadataWithoutUniqueField = AbstractJsonNodeTest.loadResource("./metadata/person-metadata.json")
+                .replaceFirst("\"uid\":", "\"notuid\":");
         JsonNode nodeWithoutUniqueField = json(metadataWithoutUniqueField, true);
 
         Metadata metadata = getLightblueFactory().getMetadata();

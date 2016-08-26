@@ -4,8 +4,10 @@
     "projection": [
         {"field": "dn"},
         {"field": "uid"},
+        {"field": "cn"},
         {"field": "objectType"},
-        {"field": "objectClass#"}
+        {"field": "objectClass#"},
+        {"field": "optional"}
     ],
     "query": {
         "field": "uid",
