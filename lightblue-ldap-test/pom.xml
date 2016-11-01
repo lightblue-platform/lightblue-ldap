@@ -24,7 +24,7 @@
     <parent>
         <groupId>com.redhat.lightblue.ldap</groupId>
         <artifactId>lightblue-ldap-pom</artifactId>
-        <version>1.11.0-SNAPSHOT</version>
+        <version>1.11.0</version>
     </parent>
     
     <artifactId>lightblue-ldap-test</artifactId>
