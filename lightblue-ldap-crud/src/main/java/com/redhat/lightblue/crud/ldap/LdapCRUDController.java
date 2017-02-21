@@ -43,6 +43,7 @@ import com.redhat.lightblue.crud.CRUDOperationContext;
 import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.CrudConstants;
+import com.redhat.lightblue.crud.ListDocumentStream;
 import com.redhat.lightblue.crud.DocCtx;
 import com.redhat.lightblue.crud.ldap.translator.EntryTranslatorFromJson;
 import com.redhat.lightblue.crud.ldap.translator.ModificationTranslatorFromJson;
@@ -270,8 +271,6 @@ public class LdapCRUDController implements CRUDController {
             response.setSize(response.getSize() + 1);
         });
 
-        ctx.setDocuments(translatedDocs);
-
         Projector projector = Projector.getInstance(
                 Projection.add(
                         projection,
@@ -280,9 +279,11 @@ public class LdapCRUDController implements CRUDController {
                                 ctx.getCallerRoles()).getExcludedFields(FieldAccessRoleEvaluator.Operation.find)
                         ),
                 md);
-        for (DocCtx document : ctx.getDocumentsWithoutErrors()) {
+        for (DocCtx document : translatedDocs) {
             document.setOutputDocument(projector.project(document, ctx.getFactory().getNodeFactory()));
         }
+
+        ctx.setDocumentStream(new ListDocumentStream<DocCtx>(translatedDocs));
 
         return response;
     }
@@ -463,7 +464,7 @@ public class LdapCRUDController implements CRUDController {
     }
 
     private <T> List<T> parseDocuments(CRUDOperationContext ctx, LdapFieldNameTranslator fieldNameTranslator, DocumentProcessor<T> processor) {
-        List<DocCtx> documents = ctx.getDocumentsWithoutErrors();
+        List<DocCtx> documents = ctx.getInputDocumentsWithoutErrors();
         if (documents == null || documents.isEmpty()) {
             return new ArrayList<>();
         }
