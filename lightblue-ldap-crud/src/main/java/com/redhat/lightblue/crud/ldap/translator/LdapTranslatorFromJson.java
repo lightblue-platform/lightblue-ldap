@@ -4,6 +4,7 @@ import java.util.Date;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.common.ldap.LdapErrorCode;
+import com.redhat.lightblue.crud.NonPersistedPredefinedFieldTranslatorFromJson;
 import com.redhat.lightblue.metadata.ArrayField;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.Type;

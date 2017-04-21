@@ -26,9 +26,11 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
+import com.redhat.lightblue.crud.NonPersistedPredefinedFieldTranslatorToJson;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.FieldCursor;
 import com.redhat.lightblue.metadata.ReferenceField;
+import com.redhat.lightblue.metadata.SimpleArrayElement;
 import com.redhat.lightblue.metadata.SimpleField;
 import com.redhat.lightblue.metadata.Type;
 import com.redhat.lightblue.metadata.types.BinaryType;
@@ -116,14 +118,9 @@ public class ResultTranslatorToJson extends NonPersistedPredefinedFieldTranslato
     }
 
     @Override
-    protected List<String> getSimpleArrayValues(Object o) {
+    protected List<String> getSimpleArrayValues(Object o, SimpleArrayElement simpleArrayElement) {
         Attribute attr = (Attribute) o;
         return Arrays.asList(attr.getValues());
-    }
-
-    @Override
-    protected List<Object> getObjectArrayValues(Object o) {
-        throw new UnsupportedOperationException("Object ArrayField type is not currently supported.");
     }
 
     @Override

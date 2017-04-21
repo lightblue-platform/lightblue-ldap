@@ -44,11 +44,11 @@ import org.junit.runners.Suite.SuiteClasses;
 
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapErrorCode;
-import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.crud.ldap.model.TrivialLdapFieldNameTranslator;
 import com.redhat.lightblue.crud.ldap.translator.EntryTranslatorFromJsonTest.ParameterizedTests;
 import com.redhat.lightblue.crud.ldap.translator.EntryTranslatorFromJsonTest.SpecializedTests;
 import com.redhat.lightblue.metadata.EntityMetadata;
+import com.redhat.lightblue.metadata.PredefinedFields;
 import com.redhat.lightblue.test.MetadataUtil;
 import com.redhat.lightblue.util.Constants;
 import com.redhat.lightblue.util.Error;
@@ -91,10 +91,10 @@ public class EntryTranslatorFromJsonTest {
 
         @Test
         public void testFieldIsObjectType() throws Exception{
-            Entry entry = buildEntry(LightblueUtil.FIELD_OBJECT_TYPE, "{\"type\": \"string\"}", quote("someEntity"));
+            Entry entry = buildEntry(PredefinedFields.OBJECTTYPE_FIELD, "{\"type\": \"string\"}", quote("someEntity"));
 
             assertNotNull(entry);
-            assertNull(entry.getAttribute(LightblueUtil.FIELD_OBJECT_TYPE));
+            assertNull(entry.getAttribute(PredefinedFields.OBJECTTYPE_FIELD));
         }
 
         /**
@@ -104,7 +104,7 @@ public class EntryTranslatorFromJsonTest {
         @Test
         public void testFieldIsSimpleArrayField() throws Exception{
             String arrayFieldName = "someSimpleArray";
-            String arrayCountFieldName = LightblueUtil.createArrayCountFieldName(arrayFieldName);
+            String arrayCountFieldName = PredefinedFields.createArrayCountFieldName(arrayFieldName);
             Entry entry = buildEntry(
                     arrayCountFieldName,
                     "{\"type\": \"integer\"}, " + quote(arrayFieldName) + ": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}",
@@ -116,7 +116,7 @@ public class EntryTranslatorFromJsonTest {
 
         @Test
         public void testFieldIsArrayFieldWithoutMatchArray() throws Exception{
-            String arrayCountFieldName = LightblueUtil.createArrayCountFieldName("someArray");
+            String arrayCountFieldName = PredefinedFields.createArrayCountFieldName("someArray");
             Entry entry = buildEntry(arrayCountFieldName, "{\"type\": \"integer\"}", "2");
 
             assertNotNull(entry);
@@ -131,7 +131,7 @@ public class EntryTranslatorFromJsonTest {
         @Test
         public void testObjectArrayField_ThrowsException() throws Exception{
             String arrayFieldName = "someObjectArray";
-            String arrayCountFieldName = LightblueUtil.createArrayCountFieldName(arrayFieldName);
+            String arrayCountFieldName = PredefinedFields.createArrayCountFieldName(arrayFieldName);
 
             expectedEx.expect(com.redhat.lightblue.util.Error.class);
             expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"dn=uid=someuid,dc=example,dc=com/translating from json/" + arrayFieldName + "\",\"errorCode\":\"" + LdapErrorCode.ERR_UNSUPPORTED_FEATURE_OBJECT_ARRAY + "\",\"msg\":\"" + arrayFieldName + "\"}");
