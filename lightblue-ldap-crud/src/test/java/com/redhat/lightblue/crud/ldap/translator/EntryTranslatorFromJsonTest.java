@@ -134,7 +134,7 @@ public class EntryTranslatorFromJsonTest {
             String arrayCountFieldName = PredefinedFields.createArrayCountFieldName(arrayFieldName);
 
             expectedEx.expect(com.redhat.lightblue.util.Error.class);
-            expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"dn=uid=someuid,dc=example,dc=com/translating from json/" + arrayFieldName + "\",\"errorCode\":\"" + LdapErrorCode.ERR_UNSUPPORTED_FEATURE_OBJECT_ARRAY + "\",\"msg\":\"" + arrayFieldName + "\"}");
+            expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"dn=uid=someuid,dc=example,dc=com/translating from json/" + arrayFieldName + "\",\"errorCode\":\"" + LdapErrorCode.ERR_UNSUPPORTED_FEATURE + "\",\"msg\":\"" + arrayFieldName + ".*\"}");
 
             buildEntry(
                     arrayCountFieldName,

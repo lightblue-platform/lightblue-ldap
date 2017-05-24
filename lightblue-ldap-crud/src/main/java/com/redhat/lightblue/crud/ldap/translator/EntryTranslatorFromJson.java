@@ -67,7 +67,7 @@ public class EntryTranslatorFromJson extends LdapTranslatorFromJson<Entry>{
     }
 
     @Override
-    protected void translate(SimpleField field, JsonNode node, Entry target) {
+    protected void translate(SimpleField field, JsonNode node, Object target) {
         String attributeName = fieldNameTranslator.translateFieldName(field.getFullPath());
 
         if(LdapConstant.ATTRIBUTE_DN.equalsIgnoreCase(attributeName)){
@@ -78,15 +78,15 @@ public class EntryTranslatorFromJson extends LdapTranslatorFromJson<Entry>{
         Type type = field.getType();
         Object o = fromJson(type, node);
         if(type instanceof BinaryType) {
-            target.addAttribute(attributeName, (byte[])o);
+            ((Entry) target).addAttribute(attributeName, (byte[])o);
         }
         else{
-            target.addAttribute(attributeName, o.toString());
+            ((Entry) target).addAttribute(attributeName, o.toString());
         }
     }
 
     @Override
-    protected void translateSimpleArray(ArrayField field, List<Object> items, Entry target) {
+    protected void translate(ArrayField field, List<Object> items, Object target) {
         ArrayElement arrayElement = field.getElement();
         Type arrayElementType = arrayElement.getType();
         String attributeName = fieldNameTranslator.translateFieldName(field.getFullPath());
@@ -96,14 +96,14 @@ public class EntryTranslatorFromJson extends LdapTranslatorFromJson<Entry>{
             for(Object item : items){
                 bytes.add((byte[])item);
             }
-            target.addAttribute(attributeName, bytes.toArray(new byte[0][]));
+            ((Entry) target).addAttribute(attributeName, bytes.toArray(new byte[0][]));
         }
         else{
             List<String> values = new ArrayList<>();
             for(Object item : items){
                 values.add(item.toString());
             }
-            target.addAttribute(attributeName, values);
+            ((Entry) target).addAttribute(attributeName, values);
         }
     }
 

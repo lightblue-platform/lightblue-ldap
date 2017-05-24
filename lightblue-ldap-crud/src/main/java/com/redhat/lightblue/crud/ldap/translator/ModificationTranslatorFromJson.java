@@ -46,23 +46,25 @@ public class ModificationTranslatorFromJson extends LdapTranslatorFromJson<List<
         return modifications;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    protected void translate(SimpleField field, JsonNode node, List<Modification> target) {
+    protected void translate(SimpleField field, JsonNode node, Object target) {
         String attributeName = fieldNameTranslator.translateFieldName(field.getFullPath());
 
         Type type = field.getType();
         Object o = fromJson(type, node);
         if(type instanceof BinaryType) {
-            target.add(new Modification(ModificationType.REPLACE, attributeName, (byte[])o));
+            ((List<Modification>) target).add(new Modification(ModificationType.REPLACE, attributeName, (byte[])o));
         } else {
-            target.add(new Modification(ModificationType.REPLACE, attributeName, o.toString()));
+            ((List<Modification>) target).add(new Modification(ModificationType.REPLACE, attributeName, o.toString()));
         }
 
         modifiedPaths.add(field.getFullPath());
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    protected void translateSimpleArray(ArrayField field, List<Object> items, List<Modification> target) {
+    protected void translate(ArrayField field, List<Object> items, Object target) {
         ArrayElement arrayElement = field.getElement();
         Type arrayElementType = arrayElement.getType();
         String attributeName = fieldNameTranslator.translateFieldName(field.getFullPath());
@@ -72,16 +74,16 @@ public class ModificationTranslatorFromJson extends LdapTranslatorFromJson<List<
             for(Object item : items){
                 bytes.add((byte[])item);
             }
-            target.add(new Modification(ModificationType.REPLACE, attributeName, bytes.toArray(new byte[0][])));
+            ((List<Modification>) target).add(new Modification(ModificationType.REPLACE, attributeName, bytes.toArray(new byte[0][])));
         }
         else{
             List<String> values = new ArrayList<>();
             for(Object item : items){
                 values.add(item.toString());
             }
-            target.add(new Modification(ModificationType.REPLACE, attributeName, values.toArray(new String[0])));
+            ((List<Modification>) target).add(new Modification(ModificationType.REPLACE, attributeName, values.toArray(new String[0])));
         }
-        
+
         modifiedPaths.add(field.getFullPath());
     }
 
