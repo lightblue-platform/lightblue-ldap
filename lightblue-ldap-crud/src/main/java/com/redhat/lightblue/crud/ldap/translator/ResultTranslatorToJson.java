@@ -29,7 +29,6 @@ import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.crud.NonPersistedPredefinedFieldTranslatorToJson;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.FieldCursor;
-import com.redhat.lightblue.metadata.ReferenceField;
 import com.redhat.lightblue.metadata.SimpleArrayElement;
 import com.redhat.lightblue.metadata.SimpleField;
 import com.redhat.lightblue.metadata.Type;
@@ -81,11 +80,6 @@ public class ResultTranslatorToJson extends NonPersistedPredefinedFieldTranslato
         }
 
         super.appendToJsonNode(value, targetNode, cursor);
-    }
-
-    @Override
-    protected JsonNode translate(ReferenceField field, Object o) {
-        throw new UnsupportedOperationException("ReferenceField type not currently supported.");
     }
 
     @Override
