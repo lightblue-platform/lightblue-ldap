@@ -34,7 +34,6 @@ import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapDataStore;
 import com.redhat.lightblue.common.ldap.LdapErrorCode;
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
-import com.redhat.lightblue.common.ldap.LightblueUtil;
 import com.redhat.lightblue.crud.CRUDController;
 import com.redhat.lightblue.crud.CRUDDeleteResponse;
 import com.redhat.lightblue.crud.CRUDFindResponse;
@@ -43,8 +42,8 @@ import com.redhat.lightblue.crud.CRUDOperationContext;
 import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.CrudConstants;
-import com.redhat.lightblue.crud.ListDocumentStream;
 import com.redhat.lightblue.crud.DocCtx;
+import com.redhat.lightblue.crud.ListDocumentStream;
 import com.redhat.lightblue.crud.ldap.translator.EntryTranslatorFromJson;
 import com.redhat.lightblue.crud.ldap.translator.ModificationTranslatorFromJson;
 import com.redhat.lightblue.crud.ldap.translator.ResultTranslatorToJson;
@@ -55,6 +54,7 @@ import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.FieldCursor;
 import com.redhat.lightblue.metadata.MetadataConstants;
 import com.redhat.lightblue.metadata.MetadataListener;
+import com.redhat.lightblue.metadata.PredefinedFields;
 import com.redhat.lightblue.metadata.types.StringType;
 import com.redhat.lightblue.query.Projection;
 import com.redhat.lightblue.query.QueryExpression;
@@ -283,7 +283,7 @@ public class LdapCRUDController implements CRUDController {
             document.setOutputDocument(projector.project(document, ctx.getFactory().getNodeFactory()));
         }
 
-        ctx.setDocumentStream(new ListDocumentStream<DocCtx>(translatedDocs));
+        ctx.setDocumentStream(new ListDocumentStream<>(translatedDocs));
 
         return response;
     }
@@ -319,12 +319,12 @@ public class LdapCRUDController implements CRUDController {
             if (((projection != null) && projection.isFieldRequiredToEvaluateProjection(node))
                     || ((query != null) && query.isRequired(node))
                     || ((sort != null) && sort.isRequired(node))) {
-                if (LightblueUtil.isFieldAnArrayCount(fieldName, md.getFields())) {
+                if (PredefinedFields.isFieldAnArrayCount(fieldName, md.getFields())) {
                     /*
                      * Handles the case of an array count field, which will not actually exist in
                      * the ldap entity.
                      */
-                    paths.add(node.mutableCopy().setLast(LightblueUtil.createArrayFieldNameFromCountField(fieldName)).immutableCopy());
+                    paths.add(node.mutableCopy().setLast(PredefinedFields.createArrayFieldNameFromCountField(fieldName)).immutableCopy());
                 }
                 else {
                     paths.add(node);

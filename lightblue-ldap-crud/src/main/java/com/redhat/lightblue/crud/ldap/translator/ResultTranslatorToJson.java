@@ -22,15 +22,16 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.redhat.lightblue.common.ldap.LdapConstant;
 import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.FieldCursor;
-import com.redhat.lightblue.metadata.ReferenceField;
+import com.redhat.lightblue.metadata.SimpleArrayElement;
 import com.redhat.lightblue.metadata.SimpleField;
 import com.redhat.lightblue.metadata.Type;
+import com.redhat.lightblue.metadata.translator.NonPersistedPredefinedFieldTranslatorToJson;
 import com.redhat.lightblue.metadata.types.BinaryType;
 import com.redhat.lightblue.metadata.types.DateType;
 import com.redhat.lightblue.metadata.types.StringType;
@@ -70,20 +71,15 @@ public class ResultTranslatorToJson extends NonPersistedPredefinedFieldTranslato
     }
 
     @Override
-    protected void appendToJsonNode(SearchResultEntry source, ObjectNode targetNode, FieldCursor fieldCursor){
-        Path fieldPath = fieldCursor.getCurrentPath();
+    protected void appendToJsonNode(Object value, ContainerNode<?> targetNode, FieldCursor cursor) {
+        Path fieldPath = cursor.getCurrentPath();
 
         if(dnPath.equals(fieldPath)){
             //DN is not technically an attribute and can be skipped.
             return;
         }
 
-        super.appendToJsonNode(source, targetNode, fieldCursor);
-    }
-
-    @Override
-    protected JsonNode translate(ReferenceField field, Object o) {
-        throw new UnsupportedOperationException("ReferenceField type not currently supported.");
+        super.appendToJsonNode(value, targetNode, cursor);
     }
 
     @Override
@@ -110,20 +106,22 @@ public class ResultTranslatorToJson extends NonPersistedPredefinedFieldTranslato
     }
 
     @Override
-    protected Object getValueFor(SearchResultEntry source, Path path) {
+    protected Object getValueFor(Object value, Path path) {
+        if (value == null) {
+            return null;
+        }
+        if (!(value instanceof SearchResultEntry)) {
+            throw new IllegalArgumentException("Only SearchResultEntry objects are supported: " + value.getClass());
+        }
+
         String attributeName = fieldNameTranslator.translateFieldName(path);
-        return source.getAttribute(attributeName);
+        return ((SearchResultEntry) value).getAttribute(attributeName);
     }
 
     @Override
-    protected List<String> getSimpleArrayValues(Object o) {
+    protected List<String> getSimpleArrayValues(Object o, SimpleArrayElement simpleArrayElement) {
         Attribute attr = (Attribute) o;
         return Arrays.asList(attr.getValues());
-    }
-
-    @Override
-    protected List<Object> getObjectArrayValues(Object o) {
-        throw new UnsupportedOperationException("Object ArrayField type is not currently supported.");
     }
 
     @Override
