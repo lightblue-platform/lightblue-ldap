@@ -18,6 +18,8 @@
  */
 package com.redhat.lightblue.common.ldap;
 
+import java.util.List;
+
 import com.redhat.lightblue.metadata.DataStore;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
@@ -36,5 +38,10 @@ public interface DBResolver {
      * to the same database.
      */
     LDAPConnection get(DataStore store) throws LDAPException;
-
+    
+    
+    /**
+     * Returns a list of available {@link LDAPConnection} 
+     */
+    List<LDAPConnection> getConnections();
 }
