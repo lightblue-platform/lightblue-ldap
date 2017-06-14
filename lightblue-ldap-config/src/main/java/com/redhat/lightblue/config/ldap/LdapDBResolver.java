@@ -18,9 +18,8 @@
  */
 package com.redhat.lightblue.config.ldap;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import com.redhat.lightblue.common.ldap.DBResolver;
@@ -71,20 +70,20 @@ public class LdapDBResolver implements DBResolver{
         return null;
     }
 
-	@Override
-	public List<LDAPConnection> getConnections() {
-		
-		List<LDAPConnection> ldapConnections = new ArrayList<>();
-		
-		for (LdapDataSourceConfiguration ldapDS : ldapDataSources){
-			try {
-				ldapConnections.add(ldapDS.getLdapConnection());
-			} catch (LDAPException e) {
-				ldapConnections.add(null);
-			}
-		}
-		
-		return Collections.unmodifiableList(ldapConnections);
-	}
+    @Override
+    public Map<String, Object> getLDAPConnectionsStatus() {
+        
+        Map<String, Object> connectionsStatus = new HashMap<>();
+        LDAPConnection connection = null;
+        for (LdapDataSourceConfiguration ldapDS : ldapDataSources) {
+            try {
+                connection = ldapDS.getLdapConnection();
+                connectionsStatus.put(ldapDS.getDatabaseName(), connection.isConnected());
+            } catch (LDAPException e) {
+                connectionsStatus.put(ldapDS.getDatabaseName(), e);
+            }
+        }
 
+        return connectionsStatus;
+    }
 }

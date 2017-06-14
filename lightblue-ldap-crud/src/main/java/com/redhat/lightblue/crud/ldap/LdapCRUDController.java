@@ -39,7 +39,7 @@ import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.CrudConstants;
 import com.redhat.lightblue.crud.DocCtx;
-import com.redhat.lightblue.crud.LightblueHealth;
+import com.redhat.lightblue.crud.CRUDHealth;
 import com.redhat.lightblue.crud.ListDocumentStream;
 import com.redhat.lightblue.crud.ldap.translator.EntryTranslatorFromJson;
 import com.redhat.lightblue.crud.ldap.translator.ModificationTranslatorFromJson;
@@ -532,20 +532,26 @@ public class LdapCRUDController implements CRUDController {
     }
     
     @Override
-	public LightblueHealth checkHealth() {
-		boolean isHealthy = true;
-		List<LDAPConnection> ldapConnnections = dbResolver.getConnections();
-		List<String> details = new ArrayList<>(ldapConnnections.size());
+    public CRUDHealth checkHealth() {
+        boolean isHealthy = true;
+        Map<String, Object> ldapConnnectionsStatus = dbResolver.getLDAPConnectionsStatus();
+        List<String> details = new ArrayList<>(ldapConnnectionsStatus.size());
 
-		for (LDAPConnection ldapConnection : ldapConnnections) {
-			if (ldapConnection == null || !ldapConnection.isConnected()) {
-				isHealthy = false;
-				details.add(ldapConnection + ":ldap_connection_ok!=1");
-			} else {
-				details.add(ldapConnection + ":ldap_connection_ok=1");
-			}
-		}
-		return new LightblueHealth(isHealthy, details.toString());
-	}
+        for (Map.Entry<String, Object> connectionStatus : ldapConnnectionsStatus.entrySet()) {
+
+            if (connectionStatus.getValue() instanceof LDAPException) {
+                isHealthy = false;
+                details.add(new StringBuilder("LDAPConnection [DatabaseName: ").append(connectionStatus.getKey())
+                        .append(", Status: ").append(connectionStatus.getValue()).toString());
+            } else {
+                isHealthy = (Boolean) connectionStatus.getValue();
+
+                details.add(new StringBuilder("LDAPConnection [DatabaseName: ").append(connectionStatus.getKey())
+                        .append(", Status: ").append(connectionStatus.getValue()).toString());
+            }
+
+        }
+        return new CRUDHealth(isHealthy, details.toString());
+    }
 
 }

@@ -18,7 +18,7 @@
  */
 package com.redhat.lightblue.common.ldap;
 
-import java.util.List;
+import java.util.Map;
 
 import com.redhat.lightblue.metadata.DataStore;
 import com.unboundid.ldap.sdk.LDAPConnection;
@@ -41,7 +41,10 @@ public interface DBResolver {
     
     
     /**
-     * Returns a list of available {@link LDAPConnection} 
+     * @return A {@link Map} of LDAP Database name and corresponding connection
+     *         status as true/false. The status may be an object of
+     *         {@link LDAPException} if no connection is available, or a problem
+     *         occurs while creating a new connection to return
      */
-    List<LDAPConnection> getConnections();
+    Map<String, Object> getLDAPConnectionsStatus();
 }
