@@ -549,9 +549,7 @@ public class LdapCRUDController implements CRUDController {
                 details.add(new StringBuilder("LDAPConnection [DatabaseName: ").append(connectionStatus.getKey())
                         .append(", Status: ").append(connectionStatus.getValue()).toString());
             }
-
         }
         return new CRUDHealth(isHealthy, details.toString());
     }
-
 }
