@@ -75,9 +75,16 @@ public class LdapDBResolver implements DBResolver{
         
         Map<String, Object> connectionsStatus = new HashMap<>();
         LDAPConnection connection = null;
+        
         for (LdapDataSourceConfiguration ldapDS : ldapDataSources) {
             try {
                 connection = ldapDS.getLdapConnection();
+                
+                // If a problem is detected that suggests that the provided
+                // connection is not suitable for use, LDAPException would be
+                // thrown.
+                ldapDS.getLdapConnectionPool().getHealthCheck().ensureConnectionValidForContinuedUse(connection);
+                
                 connectionsStatus.put(ldapDS.getDatabaseName(), connection.isConnected());
             } catch (LDAPException e) {
                 connectionsStatus.put(ldapDS.getDatabaseName(), e);
