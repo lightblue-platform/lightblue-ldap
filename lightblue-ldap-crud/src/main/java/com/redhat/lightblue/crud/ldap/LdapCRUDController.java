@@ -1,14 +1,18 @@
 /*
  Copyright 2014 Red Hat, Inc. and/or its affiliates.
+
  This file is part of lightblue.
+
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
+
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -39,7 +43,6 @@ import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.CrudConstants;
 import com.redhat.lightblue.crud.DocCtx;
-import com.redhat.lightblue.crud.CRUDHealth;
 import com.redhat.lightblue.crud.ListDocumentStream;
 import com.redhat.lightblue.crud.ldap.translator.EntryTranslatorFromJson;
 import com.redhat.lightblue.crud.ldap.translator.ModificationTranslatorFromJson;
@@ -530,26 +533,5 @@ public class LdapCRUDController implements CRUDController {
         abstract void onSuccess(LDAPResult result);
 
     }
-    
-    @Override
-    public CRUDHealth checkHealth() {
-        boolean isHealthy = true;
-        Map<String, Object> ldapConnnectionsStatus = dbResolver.getLDAPConnectionsStatus();
-        List<String> details = new ArrayList<>(ldapConnnectionsStatus.size());
 
-        for (Map.Entry<String, Object> connectionStatus : ldapConnnectionsStatus.entrySet()) {
-
-            if (connectionStatus.getValue() instanceof LDAPException) {
-                isHealthy = false;
-                details.add(new StringBuilder("LDAPConnection [DatabaseName: ").append(connectionStatus.getKey())
-                        .append(", Status: ").append(connectionStatus.getValue()).toString());
-            } else {
-                isHealthy = (Boolean) connectionStatus.getValue();
-
-                details.add(new StringBuilder("LDAPConnection [DatabaseName: ").append(connectionStatus.getKey())
-                        .append(", Status: ").append(connectionStatus.getValue()).toString());
-            }
-        }
-        return new CRUDHealth(isHealthy, details.toString());
-    }
 }

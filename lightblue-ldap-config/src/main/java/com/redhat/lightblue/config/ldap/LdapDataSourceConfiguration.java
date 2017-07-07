@@ -84,13 +84,6 @@ public class LdapDataSourceConfiguration implements DataSourceConfiguration{
         }
         return connectionPool.getConnection();
     }
-    
-    public LDAPConnectionPool getLdapConnectionPool() throws LDAPException{
-        if(connectionPool == null){
-            throw new IllegalStateException("Class has not yet been initialized");
-        }
-        return connectionPool;
-    }
 
     @Override
     public void initializeFromJson(JsonNode node) {

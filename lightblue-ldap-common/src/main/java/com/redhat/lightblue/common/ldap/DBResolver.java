@@ -18,8 +18,6 @@
  */
 package com.redhat.lightblue.common.ldap;
 
-import java.util.Map;
-
 import com.redhat.lightblue.metadata.DataStore;
 import com.unboundid.ldap.sdk.LDAPConnection;
 import com.unboundid.ldap.sdk.LDAPException;
@@ -38,13 +36,5 @@ public interface DBResolver {
      * to the same database.
      */
     LDAPConnection get(DataStore store) throws LDAPException;
-    
-    
-    /**
-     * @return A {@link Map} of LDAP Database name and corresponding connection
-     *         status as true/false. The status may be an object of
-     *         {@link LDAPException} if no connection is available, or a problem
-     *         occurs while creating a new connection to return
-     */
-    Map<String, Object> getLDAPConnectionsStatus();
+
 }
