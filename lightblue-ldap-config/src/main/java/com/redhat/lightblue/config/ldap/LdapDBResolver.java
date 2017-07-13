@@ -18,6 +18,8 @@
  */
 package com.redhat.lightblue.config.ldap;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import com.redhat.lightblue.common.ldap.DBResolver;
@@ -68,4 +70,27 @@ public class LdapDBResolver implements DBResolver{
         return null;
     }
 
+    @Override
+    public Map<String, Object> getLDAPConnectionsStatus() {
+        
+        Map<String, Object> connectionsStatus = new HashMap<>();
+        LDAPConnection connection = null;
+        
+        for (LdapDataSourceConfiguration ldapDS : ldapDataSources) {
+            try {
+                connection = ldapDS.getLdapConnection();
+                
+                // If a problem is detected that suggests that the provided
+                // connection is not suitable for use, LDAPException would be
+                // thrown.
+                ldapDS.getLdapConnectionPool().getHealthCheck().ensureConnectionValidForContinuedUse(connection);
+                
+                connectionsStatus.put(ldapDS.getDatabaseName(), connection.isConnected());
+            } catch (LDAPException e) {
+                connectionsStatus.put(ldapDS.getDatabaseName(), e);
+            }
+        }
+
+        return connectionsStatus;
+    }
 }
