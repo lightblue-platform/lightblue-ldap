@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -33,13 +34,13 @@ import com.redhat.lightblue.common.ldap.LdapFieldNameTranslator;
 import com.redhat.lightblue.crud.CRUDController;
 import com.redhat.lightblue.crud.CRUDDeleteResponse;
 import com.redhat.lightblue.crud.CRUDFindResponse;
+import com.redhat.lightblue.crud.CRUDHealth;
 import com.redhat.lightblue.crud.CRUDInsertionResponse;
 import com.redhat.lightblue.crud.CRUDOperationContext;
 import com.redhat.lightblue.crud.CRUDSaveResponse;
 import com.redhat.lightblue.crud.CRUDUpdateResponse;
 import com.redhat.lightblue.crud.CrudConstants;
 import com.redhat.lightblue.crud.DocCtx;
-import com.redhat.lightblue.crud.CRUDHealth;
 import com.redhat.lightblue.crud.ListDocumentStream;
 import com.redhat.lightblue.crud.ldap.translator.EntryTranslatorFromJson;
 import com.redhat.lightblue.crud.ldap.translator.ModificationTranslatorFromJson;
@@ -530,26 +531,26 @@ public class LdapCRUDController implements CRUDController {
         abstract void onSuccess(LDAPResult result);
 
     }
-    
+
     @Override
     public CRUDHealth checkHealth() {
         boolean isHealthy = true;
         Map<String, Object> ldapConnnectionsStatus = dbResolver.getLDAPConnectionsStatus();
-        List<String> details = new ArrayList<>(ldapConnnectionsStatus.size());
+        Map<String, Object> details = new LinkedHashMap<>();
 
         for (Map.Entry<String, Object> connectionStatus : ldapConnnectionsStatus.entrySet()) {
 
             if (connectionStatus.getValue() instanceof LDAPException) {
                 isHealthy = false;
-                details.add(new StringBuilder("LDAPConnection [DatabaseName: ").append(connectionStatus.getKey())
+                details.put("LDAPException", new StringBuilder("LDAPConnection [DatabaseName: ").append(connectionStatus.getKey())
                         .append(", Status: ").append(connectionStatus.getValue()).toString());
             } else {
                 isHealthy = (Boolean) connectionStatus.getValue();
 
-                details.add(new StringBuilder("LDAPConnection [DatabaseName: ").append(connectionStatus.getKey())
+                details.put("exception", new StringBuilder("LDAPConnection [DatabaseName: ").append(connectionStatus.getKey())
                         .append(", Status: ").append(connectionStatus.getValue()).toString());
             }
         }
-        return new CRUDHealth(isHealthy, details.toString());
+        return new CRUDHealth(isHealthy, details);
     }
 }
