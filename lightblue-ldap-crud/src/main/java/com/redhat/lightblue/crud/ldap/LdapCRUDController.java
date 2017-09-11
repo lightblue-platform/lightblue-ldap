@@ -539,16 +539,12 @@ public class LdapCRUDController implements CRUDController {
         Map<String, Object> details = new LinkedHashMap<>();
 
         for (Map.Entry<String, Object> connectionStatus : ldapConnnectionsStatus.entrySet()) {
-
             if (connectionStatus.getValue() instanceof LDAPException) {
                 isHealthy = false;
-                details.put("LDAPException", new StringBuilder("LDAPConnection [DatabaseName: ").append(connectionStatus.getKey())
-                        .append(", Status: ").append(connectionStatus.getValue()).toString());
+                details.put(connectionStatus.getKey(), connectionStatus.getValue());
             } else {
                 isHealthy = (Boolean) connectionStatus.getValue();
-
-                details.put("exception", new StringBuilder("LDAPConnection [DatabaseName: ").append(connectionStatus.getKey())
-                        .append(", Status: ").append(connectionStatus.getValue()).toString());
+                details.put(connectionStatus.getKey(), connectionStatus.getValue());
             }
         }
         return new CRUDHealth(isHealthy, details);
