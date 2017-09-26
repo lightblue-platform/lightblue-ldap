@@ -20,25 +20,25 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
     <parent>
         <groupId>org.sonatype.oss</groupId>
         <artifactId>oss-parent</artifactId>
         <version>7</version>
         <relativePath />
     </parent>
-     
+
     <groupId>com.redhat.lightblue.ldap</groupId>
     <artifactId>lightblue-ldap-pom</artifactId>
     <name>lightblue-ldap: ${project.groupId}|${project.artifactId}</name>
     <version>1.12.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <description>Lightblue LDAP implementation</description>
-    
+
     <prerequisites>
         <maven>3.0</maven>
     </prerequisites>
-    
+
     <licenses>
         <license>
             <name>GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007</name>
@@ -46,37 +46,31 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    
+
     <scm>
         <connection>scm:git:https://github.com/lightblue-platform/lightblue-ldap.git</connection>
         <developerConnection>scm:git:git@github.com:lightblue-platform/lightblue-ldap.git</developerConnection>
         <url>https://github.com/lightblue-platform/lightblue-ldap</url>
         <tag>HEAD</tag>
     </scm>
-    
+
     <distributionManagement>
         <repository>
             <id>ossrh</id>
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
-    
+
     <properties>
         <!-- Sonar -->
-        <sonar.exclusions>**/*Test.java,**/*Exception.java,**/com/redhat/lightblue/ldap/test/*.java</sonar.exclusions>
-        <sonar.jdbc.url>jdbc:mysql://127.0.0.1:3306/sonar?useUnicode=true&amp;characterEncoding=utf8&amp;rewriteBatchedStatements=true</sonar.jdbc.url>
-        <sonar.jdbc.username>sonar</sonar.jdbc.username>
-        <sonar.jdbc.password>sonar</sonar.jdbc.password>
-        <sonar.host.url>http://127.0.0.1:8080</sonar.host.url>
-        <sonar.projectName>lightblue-ldap</sonar.projectName>
-        
+        <sonar.projectName>lightblue-platform: ${project.artifactId}</sonar.projectName>
+        <sonar.exclusions>**/*Test.java,**/*Exception.java</sonar.exclusions>
         <rpm.name>lightblue-ldap</rpm.name>
         <rpm.install.basedir>/usr/share/java/lightblue/lightblue-ldap</rpm.install.basedir>
-
-        <lightblue.core.version>2.12.0-SNAPSHOT</lightblue.core.version>
-        <lightblue.mongo.version>1.31.0-SNAPSHOT</lightblue.mongo.version>
+        <lightblue.core.version>2.6.0</lightblue.core.version>
+        <lightblue.mongo.version>1.25.0</lightblue.mongo.version>
     </properties>
-    
+
     <modules>
         <module>lightblue-ldap-test</module>
         <module>lightblue-ldap-common</module>
@@ -85,7 +79,7 @@
         <module>lightblue-ldap-config</module>
         <module>lightblue-ldap-integration-test</module>
     </modules>
-    
+
     <dependencies>
         <!-- Global Dependencies -->
         <dependency>
@@ -116,7 +110,7 @@
             <artifactId>lightblue-core-test</artifactId>
         </dependency>
     </dependencies>
-    
+
     <dependencyManagement>
         <dependencies>
             <!-- Lightblue Core -->
@@ -135,7 +129,7 @@
                 <artifactId>lightblue-core-metadata</artifactId>
                 <version>${lightblue.core.version}</version>
             </dependency>
-            
+
             <!-- Lightblue Ldap -->
             <dependency>
                 <groupId>com.redhat.lightblue.ldap</groupId>
@@ -163,7 +157,7 @@
                 <version>${project.version}</version>
                 <scope>test</scope>
             </dependency>
-            
+
             <!-- Lightblue Mongo -->
             <dependency>
                 <groupId>com.redhat.lightblue.mongo</groupId>
@@ -176,14 +170,14 @@
                 <version>${lightblue.mongo.version}</version>
                 <scope>test</scope>
             </dependency>
-            
+
             <!-- 3rd Party -->
             <dependency>
                 <groupId>com.unboundid</groupId>
                 <artifactId>unboundid-ldapsdk</artifactId>
                 <version>3.1.1</version>
             </dependency>
-            
+
             <!-- Test -->
             <dependency>
                 <groupId>junit</groupId>
@@ -217,7 +211,7 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-    
+
     <build>
         <plugins>
             <plugin>
@@ -247,7 +241,7 @@
             </plugin>
         </plugins>
     </build>
-    
+
     <profiles>
         <profile>
             <id>release</id>
@@ -331,5 +325,5 @@
             </build>
         </profile>
     </profiles>
-    
+
 </project>
