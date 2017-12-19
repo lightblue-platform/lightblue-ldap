@@ -67,8 +67,8 @@
         <sonar.exclusions>**/*Test.java,**/*Exception.java</sonar.exclusions>
         <rpm.name>lightblue-ldap</rpm.name>
         <rpm.install.basedir>/usr/share/java/lightblue/lightblue-ldap</rpm.install.basedir>
-        <lightblue.core.version>2.12.0-SNAPSHOT</lightblue.core.version>
-        <lightblue.mongo.version>1.31.0-SNAPSHOT</lightblue.mongo.version>
+        <lightblue.core.version>2.14.0-SNAPSHOT</lightblue.core.version>
+        <lightblue.mongo.version>1.33.0-SNAPSHOT</lightblue.mongo.version>
     </properties>
 
     <modules>
